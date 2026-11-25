@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="GW Smart Analytics - Turn your data into smart decisions with interactive dashboards, analytics and reports.">
+<title>GW Smart Analytics | Smart Data Analytics</title>
+
+<style>
+:root{
+    --bg:#f7faff;
+    --surface:#ffffff;
+    --surface-2:#eef5ff;
+    --text:#12213f;
+    --muted:#64748b;
+    --primary:#1769e0;
+    --primary-dark:#0d47a1;
+    --accent:#16a3ff;
+    --border:#dce7f5;
+    --shadow:0 18px 50px rgba(17,55,105,.10);
+    --shadow-lg:0 28px 70px rgba(13,71,161,.18);
+    --hero-grad:linear-gradient(135deg,#061a44 0%,#0d47a1 52%,#1689e8 100%);
+}
+body.blue-theme{
+    --bg:#eaf4ff;
+    --surface:#f8fbff;
+    --surface-2:#dcecff;
+    --text:#102a43;
+    --muted:#486581;
+    --primary:#075985;
+    --primary-dark:#063d66;
+    --accent:#0284c7;
+    --border:#9fc8f4;
+    --shadow:0 18px 50px rgba(8,65,120,.12);
+    --shadow-lg:0 28px 70px rgba(8,65,120,.20);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+    font-family:Inter,Segoe UI,Arial,Helvetica,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    line-height:1.6;
+    transition:.3s ease;
+}
+a{text-decoration:none;color:inherit}
+button,input{font:inherit}
+.container{width:min(1180px,92%);margin:auto}
+
+/* NAVBAR */
+.navbar{
+    position:sticky;top:0;z-index:1000;
+    width:100%;
+    padding:13px 4%;
+    display:flex;align-items:center;gap:22px;
+    background:rgba(255,255,255,.88);
+    backdrop-filter:blur(16px);
+    -webkit-backdrop-filter:blur(16px);
+    border-bottom:1px solid var(--border);
+    box-shadow:0 5px 24px rgba(15,23,42,.05);
+}
+.logo-box{display:flex;align-items:center;gap:11px;flex:0 0 auto}
+.logo-box img{
+    width:48px;height:48px;object-fit:contain;border-radius:11px;
+    background:#fff;box-shadow:0 4px 12px rgba(0,0,0,.10)
+}
+.logo-box h2{font-size:21px;white-space:nowrap}
+.logo-box span{color:var(--primary)}
+.nav-links{
+    display:flex;align-items:center;justify-content:center;gap:5px;
+    margin-left:auto
+}
+.nav-links a{
+    padding:9px 12px;border-radius:9px;
+    color:var(--muted);font-size:14px;font-weight:700;
+    transition:.25s
+}
+.nav-links a:hover,.nav-links a.active{
+    color:var(--primary);background:var(--surface-2)
+}
+.nav-right{display:flex;align-items:center;gap:9px;flex:0 0 auto}
+.theme-switcher{
+    display:flex;gap:3px;padding:3px;border-radius:24px;
+    background:var(--surface-2);border:1px solid var(--border)
+}
+.theme-btn{
+    border:0;background:transparent;color:var(--muted);
+    padding:7px 10px;border-radius:18px;cursor:pointer;
+    font-size:12px;font-weight:800
+}
+.theme-btn.active{background:var(--primary);color:#fff}
+.btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    padding:12px 18px;border-radius:10px;
+    background:var(--primary);color:#fff;border:1px solid var(--primary);
+    font-size:14px;font-weight:800;cursor:pointer;
+    box-shadow:0 8px 20px rgba(23,105,224,.20);
+    transition:.25s
+}
+.btn:hover{transform:translateY(-2px);background:var(--primary-dark);box-shadow:0 12px 28px rgba(23,105,224,.28)}
+.btn-outline{background:transparent;color:var(--primary);box-shadow:none}
+.btn-outline:hover{color:#fff}
+
+/* HERO */
+.hero{
+    position:relative;overflow:hidden;
+    padding:88px 0 82px;
+    background:var(--hero-grad);color:#fff
+}
+.hero:before,.hero:after{
+    content:"";position:absolute;border-radius:50%;filter:blur(2px);pointer-events:none
+}
+.hero:before{
+    width:430px;height:430px;right:-120px;top:-160px;
+    background:rgba(255,255,255,.10)
+}
+.hero:after{
+    width:320px;height:320px;left:-150px;bottom:-190px;
+    background:rgba(22,163,255,.18)
+}
+.hero-inner{
+    position:relative;z-index:1;
+    display:grid;grid-template-columns:1.02fr .98fr;
+    align-items:center;gap:60px
+}
+.hero-content .tag{
+    display:inline-flex;align-items:center;gap:7px;
+    padding:8px 13px;border-radius:30px;
+    background:rgba(255,255,255,.11);
+    border:1px solid rgba(255,255,255,.23);
+    font-size:12px;font-weight:800;letter-spacing:.7px
+}
+.hero h1{
+    margin:20px 0 18px;
+    font-size:clamp(42px,5.2vw,70px);
+    line-height:1.04;letter-spacing:-2px
+}
+.hero h1 span{
+    color:#8ed5ff;
+    text-shadow:0 5px 28px rgba(0,0,0,.15)
+}
+.hero p{max-width:620px;color:#dbeafe;font-size:17px}
+.hero-buttons{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
+.hero .btn{background:#fff;color:#0d47a1;border-color:#fff}
+.hero .btn:hover{background:#eaf4ff}
+.hero .btn-outline{
+    background:rgba(255,255,255,.10);color:#fff;
+    border-color:rgba(255,255,255,.35)
+}
+.hero .btn-outline:hover{background:#fff;color:#0d47a1}
+
+/* DASHBOARD MOCKUP */
+.hero-visual{position:relative}
+.dashboard-preview{
+    position:relative;
+    padding:18px;
+    border:1px solid rgba(255,255,255,.27);
+    border-radius:24px;
+    background:rgba(255,255,255,.10);
+    backdrop-filter:blur(15px);
+    box-shadow:var(--shadow-lg);
+    transform:rotate(1deg)
+}
+.preview-window{
+    overflow:hidden;border-radius:17px;background:#f8fbff;
+    color:#172033;border:1px solid rgba(255,255,255,.55)
+}
+.window-bar{
+    height:42px;padding:0 15px;display:flex;align-items:center;gap:7px;
+    border-bottom:1px solid #dce6f3;background:#fff
+}
+.dot{width:8px;height:8px;border-radius:50%;background:#cbd5e1}
+.preview-body{padding:17px}
+.preview-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.preview-top h3{font-size:16px}
+.live{font-size:11px;font-weight:800;color:#15803d;background:#dcfce7;padding:5px 9px;border-radius:20px}
+.preview-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+.preview-card{padding:12px;border:1px solid #dce7f5;border-radius:11px;background:#fff}
+.preview-card small{font-size:9px;color:#64748b}
+.preview-card h3{font-size:16px;color:#0d47a1;margin-top:2px}
+.preview-chart{
+    height:175px;margin-top:12px;padding:25px 15px 15px;
+    border:1px solid #dce7f5;border-radius:12px;background:#fff;
+    display:flex;align-items:flex-end;gap:8px
+}
+.chart-bar{
+    position:relative;flex:1;min-width:0;border-radius:7px 7px 2px 2px;
+    background-image:none;
+}
+.chart-bar h4{
+    position:absolute;bottom:calc(100% + 3px);left:50%;
+    transform:translateX(-50%);margin:0;
+    color:#12213f;font-size:10px;line-height:1.2
+}
+
+/* STATS */
+.stats{margin-top:-38px;position:relative;z-index:5}
+.stats-grid{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:14px
+}
+.stat{
+    padding:21px;border-radius:16px;background:var(--surface);
+    border:1px solid var(--border);box-shadow:var(--shadow)
+}
+.stat-icon{font-size:23px}
+.stat strong{display:block;font-size:25px;margin-top:3px;color:var(--primary)}
+.stat span{font-size:12px;color:var(--muted);font-weight:700}
+
+/* GENERAL SECTIONS */
+section.content-section{padding:86px 0}
+.section-heading{text-align:center;max-width:720px;margin:0 auto 44px}
+.eyebrow{
+    color:var(--primary);font-size:12px;font-weight:900;
+    letter-spacing:1.2px;text-transform:uppercase
+}
+.section-heading h2{font-size:clamp(30px,4vw,42px);line-height:1.15;margin:8px 0 12px}
+.section-heading p{color:var(--muted);font-size:15px}
+
+/* FEATURES */
+.features-section{background:var(--surface-2)}
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:19px}
+.feature-card{
+    position:relative;padding:26px;border-radius:17px;
+    background:var(--surface);border:1px solid var(--border);
+    box-shadow:0 8px 25px rgba(15,23,42,.05);transition:.3s
+}
+.feature-card:before{
+    content:"";position:absolute;left:0;top:18px;bottom:18px;width:3px;
+    background:var(--primary);border-radius:4px;opacity:0;transition:.3s
+}
+.feature-card:hover{transform:translateY(-7px);box-shadow:var(--shadow)}
+.feature-card:hover:before{opacity:1}
+.feature-icon{
+    width:52px;height:52px;display:grid;place-items:center;
+    border-radius:14px;background:var(--surface-2);font-size:25px;
+    margin-bottom:17px
+}
+.feature-card h3{font-size:18px;margin-bottom:8px}
+.feature-card p{font-size:14px;color:var(--muted)}
+
+/* WORKFLOW */
+.workflow{background:var(--bg)}
+.workflow-grid{
+    display:grid;grid-template-columns:repeat(5,1fr);gap:13px;
+    align-items:stretch
+}
+.workflow-card{
+    padding:23px 15px;text-align:center;border-radius:16px;
+    background:var(--surface);border:1px solid var(--border);
+    box-shadow:0 7px 22px rgba(15,23,42,.05)
+}
+.workflow-number{
+    width:40px;height:40px;border-radius:50%;display:grid;place-items:center;
+    margin:0 auto 12px;background:var(--primary);color:#fff;font-weight:900
+}
+.workflow-card h3{font-size:15px;margin-bottom:6px}
+.workflow-card p{font-size:12px;color:var(--muted)}
+
+/* UPLOAD */
+.upload-section{background:var(--surface-2)}
+.upload-box{
+    max-width:800px;margin:auto;text-align:center;padding:38px;
+    border:1px dashed var(--border);border-radius:22px;background:var(--surface);
+    box-shadow:var(--shadow)
+}
+.upload-icon{font-size:42px;margin-bottom:8px}
+.upload-box h2{font-size:27px;margin-bottom:8px}
+.upload-box p{color:var(--muted);font-size:14px;margin-bottom:20px}
+.file-input{display:none}
+.upload-label{
+    display:inline-flex;align-items:center;justify-content:center;
+    padding:12px 20px;border-radius:10px;background:var(--primary);
+    color:#fff;font-weight:800;cursor:pointer;transition:.25s
+}
+.upload-label:hover{background:var(--primary-dark);transform:translateY(-2px)}
+.file-status{margin-top:14px;color:var(--muted);font-size:13px}
+.file-status.success{color:#15803d;font-weight:800}
+
+/* ABOUT */
+.about-wrap{
+    display:grid;grid-template-columns:.9fr 1.1fr;gap:38px;align-items:center
+}
+.about-visual{
+    min-height:310px;border-radius:24px;padding:25px;
+    background:var(--hero-grad);color:#fff;box-shadow:var(--shadow-lg);
+    display:flex;flex-direction:column;justify-content:center
+}
+.about-visual .big{font-size:56px;font-weight:900;line-height:1}
+.about-visual h3{font-size:25px;margin:13px 0 8px}
+.about-visual p{color:#dbeafe;font-size:14px}
+.about-content h2{font-size:35px;margin-bottom:15px}
+.about-content p{color:var(--muted);margin-bottom:15px}
+.check-list{list-style:none;display:grid;gap:9px;margin-top:18px}
+.check-list li{font-weight:700;font-size:14px}
+.check-list li::before{content:"✓";display:inline-grid;place-items:center;width:23px;height:23px;margin-right:8px;border-radius:50%;background:var(--surface-2);color:var(--primary)}
+
+/* CTA */
+.cta{padding:80px 0}
+.cta-box{
+    position:relative;overflow:hidden;text-align:center;
+    padding:58px 25px;border-radius:25px;color:#fff;
+    background:var(--hero-grad);box-shadow:var(--shadow-lg)
+}
+.cta-box h2{font-size:clamp(29px,4vw,42px);margin-bottom:10px}
+.cta-box p{max-width:680px;margin:0 auto 24px;color:#dbeafe}
+.cta-box .btn{background:#fff;color:#0d47a1;border-color:#fff}
+
+/* FOOTER */
+footer{
+    padding:30px 4%;text-align:center;background:#06183d;color:#b9c8df
+}
+footer strong{color:#fff;font-size:17px}
+footer p{font-size:12px;margin-top:4px}
+
+
+/* LOGGED-IN USER DROPDOWN */
+.logged-user{
+    position:relative;
+    display:inline-flex;
+    align-items:center;
+}
+
+.logged-user-name{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:9px 13px;
+    border-radius:10px;
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    color:var(--primary);
+    font-size:13px;
+    font-weight:800;
+    cursor:pointer;
+    user-select:none;
+    transition:.25s ease;
+}
+
+.logged-user-name:hover{
+    background:var(--primary);
+    color:#fff;
+    border-color:var(--primary);
+}
+
+.logged-user-arrow{
+    font-size:10px;
+    transition:transform .2s ease;
+}
+
+.logged-user.open .logged-user-arrow{
+    transform:rotate(180deg);
+}
+
+.user-dropdown{
+    position:absolute;
+    top:calc(100% + 9px);
+    right:0;
+    min-width:165px;
+    padding:7px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:12px;
+    box-shadow:0 14px 35px rgba(15,23,42,.16);
+    display:none;
+    z-index:2000;
+}
+
+.logged-user.open .user-dropdown{
+    display:block;
+    animation:dropIn .18s ease;
+}
+
+.user-dropdown-user{
+    padding:9px 10px 8px;
+    margin-bottom:4px;
+    border-bottom:1px solid var(--border);
+    color:var(--muted);
+    font-size:11px;
+    font-weight:700;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+
+.user-dropdown button{
+    width:100%;
+    border:0;
+    background:transparent;
+    color:#dc2626;
+    padding:10px;
+    border-radius:8px;
+    text-align:left;
+    font-size:13px;
+    font-weight:800;
+    cursor:pointer;
+}
+
+.user-dropdown button:hover{
+    background:#fee2e2;
+}
+
+@keyframes dropIn{
+    from{
+        opacity:0;
+        transform:translateY(-5px);
+    }
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+
+@media(max-width:700px){
+    .logged-user-name{
+        max-width:150px;
+        font-size:12px;
+        padding:8px 10px;
+    }
+
+    .user-dropdown{
+        right:0;
+        min-width:150px;
+    }
+}
+
+/* MOBILE */
+@media(max-width:1050px){
+    .nav-links{display:none}
+    .navbar{justify-content:space-between}
+    .hero-inner{grid-template-columns:1fr}
+    .hero-content{text-align:center}
+    .hero-content p{margin:auto}
+    .hero-buttons{justify-content:center}
+    .hero-visual{max-width:680px;width:100%;margin:auto}
+    .features-grid{grid-template-columns:repeat(2,1fr)}
+    .workflow-grid{grid-template-columns:repeat(3,1fr)}
+}
+@media(max-width:700px){
+    .navbar{padding:11px 4%}
+    .logo-box h2{font-size:18px}
+    .logo-box img{width:42px;height:42px}
+    .theme-switcher{display:none}
+    .nav-right .btn{padding:9px 12px;font-size:12px}
+    .hero{padding:62px 0 65px}
+    .hero h1{font-size:43px;letter-spacing:-1px}
+    .hero p{font-size:15px}
+    .dashboard-preview{transform:none;padding:10px}
+    .preview-cards{grid-template-columns:repeat(2,1fr)}
+    .preview-chart{height:135px}
+    .stats{margin-top:-25px}
+    .stats-grid{grid-template-columns:repeat(2,1fr)}
+    section.content-section{padding:65px 0}
+    .features-grid{grid-template-columns:1fr}
+    .workflow-grid{grid-template-columns:1fr}
+    .about-wrap{grid-template-columns:1fr}
+    .about-visual{min-height:230px}
+    .upload-box{padding:30px 18px}
+}
+@media(max-width:430px){
+    .logo-box span{display:none}
+    .hero h1{font-size:37px}
+    .hero-buttons .btn{width:100%}
+    .stats-grid{grid-template-columns:1fr 1fr;gap:8px}
+    .stat{padding:15px}
+}
+</style>
+</head>
+
+<body class="white-theme">
+
+<!-- NAVBAR -->
+<header class="navbar">
+    <a href="index.html" class="logo-box" aria-label="GW Smart Analytics Home">
+        <img src="logo.png" alt="GW Smart Analytics Logo">
+        <h2>Gw <span>Smart Analytics</span></h2>
+    </a>
+    <a href="shoppulse.html" class="btn btn-outline">📊 Shop Analysis</a>
+        
+    
+
+    <nav class="nav-links">
+        <a href="index.html" class="active">Home</a>
+        <a href="h.html">Dashboard</a>
+        <a href="Features.html">Features</a>
+        <a href="about.html">About</a>
+        <a href="contact.html">Contact</a>
+    </nav>
+
+    <div class="nav-right">
+
+        <div id="navUserArea">
+            <a href="login.html" class="btn" id="navAuthBtn">Sign In</a>
+        </div>
+    </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+    <div class="container hero-inner">
+        <div class="hero-content">
+            <span class="tag">✦ SMART BUSINESS INTELLIGENCE</span>
+            <h1>Turn Your Data Into <span>Smart Decisions</span></h1>
+            <p>
+                GW  Smart Analytics helps you transform raw business data into
+                meaningful insights through interactive dashboards,
+                powerful analytics and clear visual reports.
+            </p>
+
+            <div class="hero-buttons">
+                <a href="up.html" class="btn">📊 Explore Dashboard</a>
+                <a href="http://localhost:8501" id="streamlitLink" class="btn btn-outline">🚀 Get Started Sales An</a>
+                
+            </div>
+        </div>
+
+        <div class="hero-visual">
+            <div class="dashboard-preview">
+                <div class="preview-window">
+                    <div class="window-bar">
+                        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+                        <span style="margin-left:auto;font-size:10px;color:#64748b;font-weight:700;">GW  Smart Analytics</span>
+                    </div>
+
+                    <div class="preview-body">
+                        <div class="preview-top">
+                            <h3>Analytics Overview</h3>
+                            <span class="live">● Live Insights</span>
+                        </div>
+
+                        <div class="preview-cards">
+                            <div class="preview-card"><small>Total Sales</small><h3>₹2.45M</h3></div>
+                            <div class="preview-card"><small>Total Orders</small><h3>12,540</h3></div>
+                            <div class="preview-card"><small>Customers</small><h3>8,420</h3></div>
+                            <div class="preview-card"><small>Growth</small><h3>+24.8%</h3></div>
+                        </div>
+
+                        <div class="preview-chart">
+                            <div class="chart-bar" style="background-color: #FF6384;"><h4>100</h4></div>
+                            <div class="chart-bar" style="background-color: #36A2EB;"><h4>400</h4></div>
+                            <div class="chart-bar" style="background-color: #FFCE56;"><h4>300</h4></div>
+                            <div class="chart-bar" style="background-color: #4BC0C0;"><h4>800</h4></div>
+                            <div class="chart-bar" style="background-color: #9966FF;"><h4>600</h4></div>
+                            <div class="chart-bar" style="background-color: #FF9F40;"><h4>1000</h4></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+document.querySelectorAll(".preview-chart").forEach(chart => {
+    const bars = Array.from(chart.querySelectorAll(".chart-bar"));
+    const values = bars.map(bar => {
+        const value = Number(bar.querySelector("h4")?.textContent.trim());
+        return Number.isFinite(value) ? value : 0;
+    });
+    const maxValue = Math.max(...values);
+
+    if (maxValue <= 0) return;
+
+    bars.forEach((bar, index) => {
+        bar.style.height = `${(values[index] / maxValue) * 100}%`;
+    });
+});
+</script>
+
+<!-- QUICK STATS -->
+<div class="stats">
+    <div class="container stats-grid">
+        <div class="stat"><div class="stat-icon">📊</div><strong>10+</strong><span>Dashboard Categories</span></div>
+        <div class="stat"><div class="stat-icon">📈</div><strong>Smart</strong><span>Visual Analytics</span></div>
+        <div class="stat"><div class="stat-icon">⚡</div><strong>Fast</strong><span>Data Exploration</span></div>
+        <div class="stat"><div class="stat-icon">📄</div><strong>PDF</strong><span>Professional Reports</span></div>
+    </div>
+</div>
+
+<!-- FEATURES -->
+<section class="content-section features-section" id="features">
+    <div class="container">
+        <div class="section-heading">
+            <span class="eyebrow">Why GW Analytics</span>
+            <h2>Powerful Analytics Features</h2>
+            <p>Everything you need to understand your data and make better decisions.</p>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3>Interactive Dashboards</h3>
+
+                <p>Explore your business data using interactive charts, filters and visual reports.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📁</div>
+                <h3>Easy Data Upload</h3>
+                <p>Upload CSV or Excel data and use your own dataset for analysis.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📈</div>
+                <h3>Business Insights</h3>
+                <p>Discover trends, performance patterns and important business opportunities.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎨</div>
+                <h3>Multiple Themes</h3>
+                <p>Switch between a clean White theme and a professional Blue theme.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3>Fast Analysis</h3>
+                <p>Quickly understand datasets through organized visual analytics and KPIs.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📄</div>
+                <h3>Professional Reports</h3>
+                <p>Prepare analytical reports for presentations, projects and business reviews.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- WORKFLOW -->
+<section class="content-section workflow">
+    <div class="container">
+        <div class="section-heading">
+            <span class="eyebrow">Simple Process</span>
+            <h2>How It Works</h2>
+            <p>From raw data to meaningful insights in a simple workflow.</p>
+        </div>
+
+        <div class="workflow-grid">
+            <div class="workflow-card">
+                <div class="workflow-number">1</div>
+                <h3>Upload Data</h3>
+                <p>Start with your CSV or Excel dataset.</p>
+            </div>
+            <div class="workflow-card">
+                <div class="workflow-number">2</div>
+                <h3>Analyze</h3>
+                <p>Process and explore important values.</p>
+            </div>
+            <div class="workflow-card">
+                <div class="workflow-number">3</div>
+                <h3>Visualize</h3>
+                <p>Understand results through charts and KPIs.</p>
+            </div>
+            <div class="workflow-card">
+                <div class="workflow-number">4</div>
+                <h3>Get Insights</h3>
+                <p>Identify trends and performance patterns.</p>
+            </div>
+            <div class="workflow-card">
+                <div class="workflow-number">5</div>
+                <h3>Generate Report</h3>
+                <p>Prepare a clear analytical report.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- UPLOAD -->
+
+
+<!-- ABOUT -->
+<section class="content-section">
+    <div class="container about-wrap">
+        <div class="about-visual">
+            <div class="big"></div>
+            <img src="logo.png" alt="GW Smart Analytics Logo" style="width: 120px; height: 120px; object-fit: contain;">
+            <h3>Smart Analytics</h3>
+            <p>Making data simple, visual and meaningful for business, projects and analysis.</p>
+        </div>
+
+        <div class="about-content">
+            <span class="eyebrow">About The Platform</span>
+            <h2>Make Data Easier to Understand</h2>
+            <p>
+                GW Analytics is designed to help users move from raw data
+                to clear dashboards, visual analysis and useful insights
+                without making the process complicated.
+            </p>
+            <ul class="check-list">
+                <li>Interactive dashboard experience</li>
+                <li>Clear charts, KPIs and visual reports</li>
+                <li>Business performance and trend analysis</li>
+                <li>Professional analytical report workflow</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+
+
+<!-- FOOTER -->
+<footer>
+    <strong>GW Smart Analytics</strong>
+    <p>Making Data Simple, Visual & Meaningful.</p>
+    <p>© 2026 GW Smart Analytics. All Rights Reserved.</p>
+</footer>
+
+<script>
+/* THEME MANAGEMENT (null-safe: theme buttons may not exist in navbar) */
+function setTheme(theme){
+    const body=document.body;
+    const whiteBtn=document.getElementById("whiteThemeBtn");
+    const blueBtn=document.getElementById("blueThemeBtn");
+
+    if(theme==="blue"){
+        body.classList.remove("white-theme");
+        body.classList.add("blue-theme");
+        if(blueBtn) blueBtn.classList.add("active");
+        if(whiteBtn) whiteBtn.classList.remove("active");
+    }else{
+        body.classList.remove("blue-theme");
+        body.classList.add("white-theme");
+        if(whiteBtn) whiteBtn.classList.add("active");
+        if(blueBtn) blueBtn.classList.remove("active");
+    }
+    localStorage.setItem("gwTheme",theme);
+}
+
+function toggleTheme(){
+    setTheme(document.body.classList.contains("blue-theme") ? "white" : "blue");
+}
+
+function loadSavedTheme(){
+    setTheme(localStorage.getItem("gwTheme") || "white");
+}
+
+/* DATASET UPLOAD */
+const homeFileInput=document.getElementById("homeFileInput");
+const homeFileName=document.getElementById("homeFileName");
+
+if(homeFileInput){
+    homeFileInput.addEventListener("change",function(){
+        const file=this.files[0];
+        if(!file)return;
+
+        const allowedExtensions=[".csv",".xlsx",".xls"];
+        const fileName=file.name.toLowerCase();
+        const isValid=allowedExtensions.some(ext=>fileName.endsWith(ext));
+
+        if(!isValid){
+            alert("Please upload only CSV or Excel files.");
+            this.value="";
+            homeFileName.textContent="No dataset selected";
+            homeFileName.classList.remove("success");
+            return;
+        }
+
+        homeFileName.textContent="✓ Selected: "+file.name;
+        homeFileName.classList.add("success");
+
+        const reader=new FileReader();
+
+        reader.onload=function(event){
+            const fileData={
+                name:file.name,
+                type:file.type,
+                data:event.target.result
+            };
+
+            try{
+                localStorage.setItem("gwUploadedFile",JSON.stringify(fileData));
+                homeFileName.textContent="✓ Dataset ready: "+file.name;
+            }catch(error){
+                homeFileName.textContent="✓ File selected: "+file.name;
+                console.warn("Browser storage limit reached:",error);
+            }
+        };
+
+        reader.onerror=function(){
+            homeFileName.textContent="Error while reading file.";
+            homeFileName.classList.remove("success");
+        };
+
+        reader.readAsDataURL(file);
+    });
+}
+
+
+/* Dashboard links use the Flask server as their origin. */
+const AUTH_API_BASE = window.location.protocol === "http:" || window.location.protocol === "https:"
+    ? ""
+    : "http://127.0.0.1:5000";
+
+const streamlitLink = document.getElementById("streamlitLink");
+if(streamlitLink){
+    streamlitLink.href = `${AUTH_API_BASE}/dashboard`;
+}
+loadSavedTheme()
+</script>
+<!-- ===== MAIN SCRIPT ENDS HERE ===== -->
+
+
+<!-- ===== GW ASSISTANT (Swati AI Assistant Loader) ===== -->
+<div id="swatiContainer"></div>
+<script>
+(function(){
+  fetch('/assistent.html', { cache: 'no-store' })
+    .then(r => r.text())
+    .then(html => {
+      const temp = document.createElement('div');
+      temp.innerHTML = html;
+      Array.from(temp.children).forEach(child => {
+        if (child.tagName === 'SCRIPT') {
+          const s = document.createElement('script');
+          s.textContent = child.textContent;
+          document.body.appendChild(s);
+        } else {
+          document.body.appendChild(child);
+        }
+      });
+    })
+    .catch(err => console.warn('Could not load Swati AI:', err));
+})();
+</script>
+<!-- ===== END GW ASSISTANT ===== -->
+
+
+
+</body>
+</html>
+

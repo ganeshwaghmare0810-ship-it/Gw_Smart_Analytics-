@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="About GW Analytics - Smart Data Analytics platform.">
+<title>About | GW Analytics</title>
+
+<style>
+:root{
+    --bg:#f7faff;
+    --surface:#fff;
+    --surface2:#eef5ff;
+    --text:#12213f;
+    --muted:#64748b;
+    --primary:#1769e0;
+    --dark:#0d47a1;
+    --border:#dce7f5;
+    --shadow:0 16px 45px rgba(17,55,105,.09);
+}
+body.blue-theme{
+    --bg:#eaf4ff;
+    --surface:#f8fbff;
+    --surface2:#dcecff;
+    --text:#102a43;
+    --muted:#486581;
+    --primary:#075985;
+    --dark:#063d66;
+    --border:#9fc8f4;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+    font-family:Segoe UI,Arial,Helvetica,sans-serif;
+    background:var(--bg);color:var(--text);line-height:1.6;
+    transition:.3s;
+}
+a{text-decoration:none;color:inherit}
+.container{width:min(1150px,92%);margin:auto}
+
+/* NAVBAR */
+.navbar{
+    position:sticky;top:0;z-index:1000;
+    display:flex;align-items:center;gap:20px;
+    padding:12px 4%;
+    background:rgba(255,255,255,.9);
+    backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--border);
+    box-shadow:0 4px 20px rgba(0,0,0,.05)
+}
+.brand{display:flex;align-items:center;gap:11px}
+.brand img{
+    width:48px;height:48px;object-fit:contain;
+    border-radius:10px;background:#fff
+}
+.brand h2{font-size:21px;white-space:nowrap}
+.brand span{color:var(--primary)}
+.nav-links{
+    display:flex;align-items:center;gap:4px;margin-left:auto
+}
+.nav-links a{
+    padding:9px 11px;border-radius:9px;
+    color:var(--muted);font-size:14px;font-weight:700
+}
+.nav-links a:hover,.nav-links a.active{
+    color:var(--primary);background:var(--surface2)
+}
+.nav-right{display:flex;align-items:center;gap:8px}
+.theme-switcher{
+    display:flex;gap:3px;padding:3px;border-radius:22px;
+    background:var(--surface2);border:1px solid var(--border)
+}
+.theme-btn{
+    border:0;background:transparent;color:var(--muted);
+    padding:7px 9px;border-radius:17px;cursor:pointer;
+    font-size:11px;font-weight:800
+}
+.theme-btn.active{background:var(--primary);color:white}
+.btn{
+    display:inline-flex;align-items:center;justify-content:center;
+    padding:11px 17px;border-radius:10px;
+    background:var(--primary);color:#fff;
+    border:1px solid var(--primary);font-weight:800;
+    font-size:13px;transition:.25s
+}
+.btn:hover{background:var(--dark);transform:translateY(-2px)}
+
+/* HERO */
+.hero{
+    position:relative;overflow:hidden;
+    background:linear-gradient(135deg,#061a44,#0d47a1 55%,#1689e8);
+    color:#fff;padding:75px 0
+}
+.hero:before,.hero:after{
+    content:"";position:absolute;border-radius:50%;
+    background:rgba(255,255,255,.08)
+}
+.hero:before{width:420px;height:420px;right:-150px;top:-210px}
+.hero:after{width:300px;height:300px;left:-160px;bottom:-170px}
+.hero-content{
+    position:relative;z-index:1;text-align:center;max-width:850px;margin:auto
+}
+.badge{
+    display:inline-block;padding:7px 13px;border-radius:25px;
+    border:1px solid rgba(255,255,255,.25);
+    background:rgba(255,255,255,.1);
+    font-size:12px;font-weight:800;letter-spacing:1px
+}
+.hero h1{font-size:clamp(38px,5vw,58px);margin:17px 0 12px;line-height:1.1}
+.hero h1 span{color:#8ed5ff}
+.hero p{color:#dbeafe;max-width:720px;margin:auto;font-size:16px}
+
+/* CONTENT */
+.section{padding:75px 0}
+.heading{text-align:center;max-width:730px;margin:0 auto 40px}
+.eyebrow{
+    color:var(--primary);font-size:12px;font-weight:900;
+    letter-spacing:1.2px;text-transform:uppercase
+}
+.heading h2{font-size:clamp(29px,4vw,40px);margin:7px 0 10px}
+.heading p{color:var(--muted);font-size:15px}
+
+/* ABOUT GRID */
+.about-grid{
+    display:grid;grid-template-columns:1fr 1fr;gap:35px;align-items:stretch
+}
+.about-card{
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:20px;padding:32px;box-shadow:var(--shadow)
+}
+.about-card h2{font-size:27px;margin-bottom:13px}
+.about-card p{color:var(--muted);font-size:14px;margin-bottom:13px}
+.visual-card{
+    border-radius:20px;padding:35px;
+    background:linear-gradient(145deg,#061a44,#0d47a1 60%,#1689e8);
+    color:#fff;box-shadow:0 22px 55px rgba(13,71,161,.20);
+    display:flex;flex-direction:column;justify-content:center
+}
+.gw-mark{
+    font-size:76px;font-weight:900;line-height:1;
+    color:#8ed5ff
+}
+.visual-card h2{font-size:30px;margin:8px 0}
+.visual-card p{color:#dbeafe;font-size:14px}
+.pills{display:flex;flex-wrap:wrap;gap:9px;margin-top:20px}
+.pill{
+    padding:8px 12px;border-radius:20px;
+    background:rgba(255,255,255,.11);
+    border:1px solid rgba(255,255,255,.2);
+    font-size:12px;font-weight:700
+}
+
+/* VALUES */
+.values{background:var(--surface2)}
+.values-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:19px}
+.value{
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:17px;padding:26px;box-shadow:0 7px 22px rgba(0,0,0,.05);
+    transition:.3s
+}
+.value:hover{transform:translateY(-6px);box-shadow:var(--shadow)}
+.icon{
+    width:52px;height:52px;border-radius:14px;
+    display:grid;place-items:center;background:var(--surface2);
+    font-size:25px;margin-bottom:15px
+}
+.value h3{font-size:18px;margin-bottom:7px}
+.value p{font-size:13px;color:var(--muted)}
+
+/* HIGHLIGHTS */
+.highlights{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.highlight{
+    text-align:center;background:var(--surface);
+    border:1px solid var(--border);border-radius:15px;
+    padding:23px 12px;box-shadow:0 7px 20px rgba(0,0,0,.05)
+}
+.highlight strong{display:block;color:var(--primary);font-size:27px}
+.highlight span{font-size:12px;color:var(--muted);font-weight:700}
+
+/* VISION */
+.vision{
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:23px;padding:45px 30px;text-align:center;
+    box-shadow:var(--shadow)
+}
+.vision h2{font-size:32px;margin-bottom:10px}
+.vision p{max-width:750px;margin:auto;color:var(--muted);font-size:14px}
+.vision .btn{margin-top:22px}
+
+/* FOOTER */
+footer{
+    background:#06183d;color:#b9c8df;text-align:center;padding:29px 15px
+}
+footer strong{color:#fff;font-size:17px}
+footer p{font-size:12px;margin-top:4px}
+
+/* MOBILE */
+@media(max-width:950px){
+    .nav-links{display:none}
+    .navbar{justify-content:space-between}
+    .about-grid{grid-template-columns:1fr}
+    .values-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:650px){
+    .brand h2{font-size:18px}
+    .brand img{width:42px;height:42px}
+    .theme-switcher{display:none}
+    .nav-right .btn{padding:9px 12px;font-size:12px}
+    .hero{padding:60px 0}
+    .hero h1{font-size:39px}
+    .section{padding:58px 0}
+    .values-grid{grid-template-columns:1fr}
+    .highlights{grid-template-columns:repeat(2,1fr)}
+    .about-card,.visual-card{padding:25px}
+}
+</style>
+</head>
+
+<body>
+
+<header class="navbar">
+    <a href="index.html" class="brand">
+        <img src="logo.png" alt="GW Smart Analytics Logo">
+        <h2>GW <span>Smart Analytics</span></h2>
+    </a>
+
+    <nav class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="h.html">Dashboard</a>
+        <a href="Features.html">Features</a>
+        <a href="about.html" class="active">About</a>
+        <a href="contact.html">Contact</a>
+    </nav>
+
+    <div class="nav-right">
+        <div class="theme-switcher">
+            <button class="theme-btn active" id="whiteBtn" onclick="setTheme('white')">White</button>
+            <button class="theme-btn" id="blueBtn" onclick="setTheme('blue')">Blue</button>
+        </div>
+        <a href="login.html" class="btn">Sign In</a>
+    </div>
+</header>
+
+<section class="hero">
+    <div class="container hero-content">
+        <span class="badge">✦ ABOUT GW Smart Analytics</span>
+        <h1>Making Data <span>Simple & Meaningful</span></h1>
+        <p>
+            GW Smart Analytics is designed to help users transform raw data into
+            clear visualizations, useful insights and professional analytical reports.
+        </p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container about-grid">
+        <div class="visual-card">
+            <div class="gw-mark">GW</div>
+            <h2>GW Smart   Analytics</h2>
+            <p>
+                A smart analytics platform focused on making data easier
+                to explore, understand and communicate.
+            </p>
+            <div class="pills">
+                <span class="pill">📊 Dashboards</span>
+                <span class="pill">📈 Visualization</span>
+                <span class="pill">💡 Insights</span>
+                <span class="pill">📄 Reports</span>
+            </div>
+        </div>
+
+        <div class="about-card">
+            <span class="eyebrow">Who We Are</span>
+            <h2>About GW Analytics</h2>
+            <p>
+                GW Analytics is a data analytics platform created to provide
+                a simple and user-friendly way to understand datasets.
+            </p>
+            <p>
+                Instead of looking at large amounts of raw information,
+                users can explore important values through dashboards,
+                charts, performance indicators and analytical summaries.
+            </p>
+            <p>
+                The platform is suitable for learning, academic projects,
+                business analysis and data-driven decision making.
+            </p>
+        </div>
+    </div>
+</section>
+
+<section class="section values">
+    <div class="container">
+        <div class="heading">
+            <span class="eyebrow">Our Purpose</span>
+            <h2>Why GW Analytics?</h2>
+            <p>
+                The goal is to make data analysis easier, clearer and more useful.
+            </p>
+        </div>
+
+        <div class="values-grid">
+            <div class="value">
+                <div class="icon">🎯</div>
+                <h3>Simple Analysis</h3>
+                <p>
+                    Make complex datasets easier to understand through
+                    organized analytics and clear visual presentation.
+                </p>
+            </div>
+
+            <div class="value">
+                <div class="icon">📊</div>
+                <h3>Visual Understanding</h3>
+                <p>
+                    Turn numbers and records into charts, dashboards and
+                    performance indicators that communicate results clearly.
+                </p>
+            </div>
+
+            <div class="value">
+                <div class="icon">💡</div>
+                <h3>Useful Insights</h3>
+                <p>
+                    Identify trends, performance patterns and important
+                    information that can support better decisions.
+                </p>
+            </div>
+
+            <div class="value">
+                <div class="icon">⚡</div>
+                <h3>Easy Experience</h3>
+                <p>
+                    Provide a clean workflow so users can move from data
+                    upload to analysis without unnecessary complexity.
+                </p>
+            </div>
+
+            <div class="value">
+                <div class="icon">📄</div>
+                <h3>Professional Reports</h3>
+                <p>
+                    Present analytical results in a structured format
+                    suitable for projects, presentations and reviews.
+                </p>
+            </div>
+
+            <div class="value">
+                <div class="icon">🔐</div>
+                <h3>Secure Access</h3>
+                <p>
+                    Support controlled access to user accounts and
+                    premium analytics capabilities.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="heading">
+            <span class="eyebrow">At A Glance</span>
+            <h2>Built Around Your Data</h2>
+            <p>Key capabilities that make the analytics experience useful.</p>
+        </div>
+
+        <div class="highlights">
+            <div class="highlight">
+                <strong>10+</strong>
+                <span>Dashboard Categories</span>
+            </div>
+            <div class="highlight">
+                <strong>CSV</strong>
+                <span>Data Support</span>
+            </div>
+            <div class="highlight">
+                <strong>Excel</strong>
+                <span>Data Support</span>
+            </div>
+            <div class="highlight">
+                <strong>PDF</strong>
+                <span>Analytical Reports</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+
+<footer>
+    <strong>Gw Smart Analytics</strong>
+    <p>Making Data Simple, Visual & Meaningful.</p>
+    <p>© 2026 GW Analytics. All Rights Reserved.</p>
+</footer>
+
+<script>
+function setTheme(theme){
+    if(theme === "blue"){
+        document.body.classList.add("blue-theme");
+        document.getElementById("blueBtn").classList.add("active");
+        document.getElementById("whiteBtn").classList.remove("active");
+    }else{
+        document.body.classList.remove("blue-theme");
+        document.getElementById("whiteBtn").classList.add("active");
+        document.getElementById("blueBtn").classList.remove("active");
+    }
+    localStorage.setItem("gwTheme",theme);
+}
+
+const savedTheme=localStorage.getItem("gwTheme") || "white";
+setTheme(savedTheme);
+</script>
+
+</body>
+</html>

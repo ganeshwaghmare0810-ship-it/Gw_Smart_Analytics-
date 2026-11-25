@@ -1,0 +1,763 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Gw Smart Analytics - Contact Us</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f4f7fb;
+            color: #172033;
+            line-height: 1.6;
+        }
+
+        /* HEADER */
+        .header {
+            background: linear-gradient(135deg, #071b45, #0d47a1);
+            color: white;
+            padding: 18px 6%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand img {
+            width: 48px;
+            height: 48px;
+            object-fit: contain;
+            border-radius: 10px;
+        }
+
+        .brand h2 {
+            font-size: 21px;
+        }
+
+        .home-btn {
+            text-decoration: none;
+            color: white;
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 9px 17px;
+            border-radius: 9px;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .home-btn:hover {
+            background: white;
+            color: #0d47a1;
+        }
+
+        /* HERO */
+        .hero {
+            text-align: center;
+            padding: 65px 20px 45px;
+            background: white;
+        }
+
+        .hero h1 {
+            font-size: 42px;
+            color: #0d47a1;
+            margin-bottom: 12px;
+        }
+
+        .hero p {
+            max-width: 700px;
+            margin: auto;
+            color: #667085;
+            font-size: 17px;
+        }
+
+        /* MAIN */
+        .container {
+            width: 90%;
+            max-width: 1100px;
+            margin: 45px auto 70px;
+        }
+
+        .contact-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.3fr;
+            gap: 30px;
+        }
+
+        /* CONTACT INFO */
+        .contact-info {
+            background: linear-gradient(145deg, #071b45, #0d47a1);
+            color: white;
+            padding: 35px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+        }
+
+        .contact-info h2 {
+            font-size: 28px;
+            margin-bottom: 12px;
+        }
+
+        .contact-info > p {
+            color: #dbe7ff;
+            margin-bottom: 30px;
+        }
+
+        .info-item {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 24px;
+            align-items: flex-start;
+        }
+
+        .info-icon {
+            min-width: 45px;
+            height: 45px;
+            background: rgba(255,255,255,0.14);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 21px;
+        }
+
+        .info-item h4 {
+            margin-bottom: 3px;
+            font-size: 16px;
+        }
+
+        .info-item p {
+            color: #dbe7ff;
+            font-size: 14px;
+            word-break: break-word;
+        }
+
+        .info-item a {
+            color: white;
+            text-decoration: none;
+        }
+
+        .info-item a:hover {
+            text-decoration: underline;
+        }
+
+        /* FORM */
+        .contact-form {
+            background: white;
+            padding: 35px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            border: 1px solid #e5eaf1;
+        }
+
+        .contact-form h2 {
+            color: #102a56;
+            margin-bottom: 8px;
+            font-size: 28px;
+        }
+
+        .contact-form .subtitle {
+            color: #667085;
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 7px;
+            color: #344054;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 13px 14px;
+            border: 1px solid #d0d5dd;
+            border-radius: 10px;
+            font-size: 14px;
+            outline: none;
+            transition: 0.25s;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            border-color: #0d47a1;
+            box-shadow: 0 0 0 3px rgba(13,71,161,0.10);
+        }
+
+        .form-group textarea {
+            min-height: 130px;
+            resize: vertical;
+        }
+
+        .submit-btn {
+            width: 100%;
+            border: none;
+            padding: 14px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #0d47a1, #1565c0);
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 18px rgba(13,71,161,0.25);
+        }
+
+        /* SUPPORT */
+        .support-section {
+            margin-top: 35px;
+            text-align: center;
+        }
+
+        .support-section h2 {
+            color: #0d47a1;
+            margin-bottom: 20px;
+        }
+
+        .support-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+        }
+
+        .support-card {
+            background: white;
+            padding: 25px 18px;
+            border-radius: 15px;
+            border: 1px solid #e5eaf1;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+        }
+
+        .support-card .icon {
+            font-size: 30px;
+            margin-bottom: 8px;
+        }
+
+        .support-card h3 {
+            color: #172b4d;
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .support-card p {
+            color: #667085;
+            font-size: 14px;
+        }
+
+        /* FOOTER */
+        .footer {
+            background: #071b45;
+            color: #cbd5e1;
+            text-align: center;
+            padding: 28px 15px;
+        }
+
+        .footer strong {
+            color: white;
+            font-size: 16px;
+        }
+
+        .footer p {
+            margin-top: 5px;
+            font-size: 13px;
+        }
+
+        /* SUCCESS MESSAGE */
+        .success-message {
+            display: none;
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            background: #e8f5e9;
+            color: #2e7d32;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .error-message {
+            display: none;
+            margin-top: 15px;
+            padding: 12px;
+            border: 1px solid #ffcdd2;
+            border-radius: 8px;
+            background: #ffebee;
+            color: #b71c1c;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .submit-btn:disabled {
+            cursor: wait;
+            opacity: 0.7;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 850px) {
+
+            .contact-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .support-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero h1 {
+                font-size: 34px;
+            }
+        }
+
+        @media (max-width: 550px) {
+
+            .header {
+                padding: 14px 4%;
+            }
+
+            .brand h2 {
+                font-size: 17px;
+            }
+
+            .brand img {
+                width: 40px;
+                height: 40px;
+            }
+
+            .hero {
+                padding: 45px 15px 35px;
+            }
+
+            .hero h1 {
+                font-size: 29px;
+            }
+
+            .contact-info,
+            .contact-form {
+                padding: 25px 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- HEADER -->
+    <header class="header">
+
+        <div class="brand">
+
+            <img src="logo.png"
+                 alt="GW Smart Analytics Logo">
+
+            <h2>GW Smart Analytics</h2>
+
+        </div>
+
+        <a href="index.html" class="home-btn">
+            🏠 Home
+        </a>
+
+    </header>
+
+
+    <!-- HERO -->
+    <section class="hero">
+
+        <h1>📩 Contact Us</h1>
+
+        <p>
+            Have a question, need support, or want to know more about
+            GW Smart Analytics? We are here to help.
+        </p>
+
+    </section>
+
+
+    <!-- MAIN CONTENT -->
+    <main class="container">
+
+        <div class="contact-grid">
+
+            <!-- CONTACT INFORMATION -->
+            <section class="contact-info">
+
+                <h2>Get in Touch</h2>
+
+                <p>
+                    Contact us for questions related to the platform,
+                    dashboards, reports, subscriptions or general support.
+                </p>
+
+
+                <!-- Email -->
+                <div class="info-item">
+
+                    <div class="info-icon">📧</div>
+
+                    <div>
+                        <h4>Email Support</h4>
+
+                        <p>
+                            <a href="mailto:gwsmartanalytics0810@gmail.com">
+                                gwsmartanalytics0810@gmail.com
+                            </a>
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <!-- Phone -->
+                <div class="info-item">
+
+                    <div class="info-icon">📞</div>
+
+                    <div>
+                        <h4>Customer Support</h4>
+
+                        <p>
+                            9529579858
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <!-- Working Hours -->
+                <div class="info-item">
+
+                    <div class="info-icon">🕐</div>
+
+                    <div>
+                        <h4>Support Hours</h4>
+
+                        <p>
+                            Monday – Saturday<br>
+                            10:00 AM – 6:00 PM
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <!-- Location -->
+                <div class="info-item">
+
+                    <div class="info-icon">📍</div>
+
+                    <div>
+                        <h4>Location</h4>
+
+                        <p>
+                            Ahilyanagar, Maharashtra, India
+                        </p>
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- CONTACT FORM -->
+            <section class="contact-form">
+
+                <h2>Send Us a Message</h2>
+
+                <p class="subtitle">
+                    Fill in the form below. Your message will be emailed to
+                    gwsmartanalytics0810@gmail.com.
+                </p>
+
+
+                <form id="contactForm">
+
+                    <!-- Name -->
+                    <div class="form-group">
+
+                        <label for="name">
+                            Full Name
+                        </label>
+
+                        <input
+                            type="text"
+                            id="name"
+                            name="name"
+                            placeholder="Enter your full name"
+                            required>
+
+                    </div>
+
+
+                    <!-- Email -->
+                    <div class="form-group">
+
+                        <label for="email">
+                            Email Address
+                        </label>
+
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            placeholder="Enter your email address"
+                            required>
+
+                    </div>
+
+
+                    <!-- Subject -->
+                    <div class="form-group">
+
+                        <label for="subject">
+                            Subject
+                        </label>
+
+                        <select id="subject" name="subject" required>
+
+                            <option value="">
+                                Select a subject
+                            </option>
+
+                            <option value="General Enquiry">
+                                General Enquiry
+                            </option>
+
+                            <option value="Dashboard Support">
+                                Dashboard Support
+                            </option>
+
+                            <option value="Report Support">
+                                Report Support
+                            </option>
+
+                            <option value="Payment Support">
+                                Payment / Subscription Support
+                            </option>
+
+                            <option value="Technical Support">
+                                Technical Support
+                            </option>
+
+                            <option value="Other">
+                                Other
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- Message -->
+                    <div class="form-group">
+
+                        <label for="message">
+                            Your Message
+                        </label>
+
+                        <textarea
+                            id="message"
+                            name="message"
+                            placeholder="Write your message here..."
+                            required></textarea>
+
+                    </div>
+
+
+                    <!-- Submit -->
+                    <button
+                        type="submit"
+                        class="submit-btn">
+
+                        📤 Send Message
+
+                    </button>
+
+
+                    <div
+                        class="success-message"
+                        id="successMessage">
+
+                        ✅ Your message was sent successfully.
+
+                    </div>
+                    <div class="error-message" id="errorMessage" role="alert"></div>
+
+                </form>
+
+            </section>
+
+        </div>
+
+
+        <!-- SUPPORT SECTION -->
+        <section class="support-section">
+
+            <h2>How Can We Help?</h2>
+
+            <div class="support-grid">
+
+                <div class="support-card">
+
+                    <div class="icon">📊</div>
+
+                    <h3>Dashboard Support</h3>
+
+                    <p>
+                        Get help with dashboard creation, charts,
+                        filters and data analysis.
+                    </p>
+
+                </div>
+
+
+                <div class="support-card">
+
+                    <div class="icon">💳</div>
+
+                    <h3>Payment Support</h3>
+
+                    <p>
+                        Need help with subscription, payment verification
+                        or premium access?
+                    </p>
+
+                </div>
+
+
+                <div class="support-card">
+
+                    <div class="icon">📄</div>
+
+                    <h3>Report Support</h3>
+
+                    <p>
+                        Get assistance with analytical reports and
+                        premium PDF downloads.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- FOOTER -->
+    <footer class="footer">
+
+        <strong>GW Smart Analytics</strong>
+
+        <p>
+            Making Data Simple, Visual & Meaningful.
+        </p>
+
+        <p>
+            © 2026 GW Smart Analytics. All Rights Reserved.
+        </p>
+
+    </footer>
+
+
+    <!-- JAVASCRIPT -->
+    <script>
+
+        const contactForm = document.getElementById("contactForm");
+        const successMessage = document.getElementById("successMessage");
+        const errorMessage = document.getElementById("errorMessage");
+
+        contactForm.addEventListener("submit", async function(event) {
+            event.preventDefault();
+            successMessage.style.display = "none";
+            errorMessage.style.display = "none";
+
+            if (!contactForm.reportValidity()) return;
+
+            const submitButton = contactForm.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            submitButton.textContent = "Sending...";
+
+            try {
+                const response = await fetch("/api/contact", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        name: document.getElementById("name").value.trim(),
+                        email: document.getElementById("email").value.trim(),
+                        subject: document.getElementById("subject").value,
+                        message: document.getElementById("message").value.trim()
+                    })
+                });
+                const result = await response.json();
+                if (!response.ok || !result.success) {
+                    throw new Error(result.message || "Your message could not be sent.");
+                }
+                successMessage.textContent = `✅ ${result.message}`;
+                successMessage.style.display = "block";
+                contactForm.reset();
+            } catch (error) {
+                errorMessage.textContent = error.message || "Could not contact the email server. Please try again later.";
+                errorMessage.style.display = "block";
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = "📤 Send Message";
+            }
+        });
+
+    </script>
+    <!-- ===== GW ASSISTANT (Swati AI Assistant Loader) ===== -->
+<div id="swatiContainer"></div>
+<script>
+(function(){
+  fetch('/assistent.html', { cache: 'no-store' })
+    .then(r => r.text())
+    .then(html => {
+      const temp = document.createElement('div');
+      temp.innerHTML = html;
+      Array.from(temp.children).forEach(child => {
+        if (child.tagName === 'SCRIPT') {
+          const s = document.createElement('script');
+          s.textContent = child.textContent;
+          document.body.appendChild(s);
+        } else {
+          document.body.appendChild(child);
+        }
+      });
+    })
+    .catch(err => console.warn('Could not load Swati AI:', err));
+})();
+</script>
+<!-- ===== END GW ASSISTANT ===== -->
+
+</body>
+</html>

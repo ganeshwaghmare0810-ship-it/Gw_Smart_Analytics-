@@ -1,0 +1,95 @@
+{
+  "dataset_name": "Sales Dataset",
+  "records": [
+    {
+      "order_id": 1001,
+      "date": "2026-01-01",
+      "product": "Laptop",
+      "category": "Electronics",
+      "quantity": 2,
+      "price": 55000,
+      "region": "West"
+    },
+    {
+      "order_id": 1002,
+      "date": "2026-01-02",
+      "product": "Mobile",
+      "category": "Electronics",
+      "quantity": 5,
+      "price": 18000,
+      "region": "North"
+    },
+    {
+      "order_id": 1003,
+      "date": "2026-01-03",
+      "product": "Keyboard",
+      "category": "Accessories",
+      "quantity": 10,
+      "price": 1200,
+      "region": "South"
+    },
+    {
+      "order_id": 1004,
+      "date": "2026-01-04",
+      "product": "Mouse",
+      "category": "Accessories",
+      "quantity": 8,
+      "price": 800,
+      "region": "East"
+    },
+    {
+      "order_id": 1005,
+      "date": "2026-01-05",
+      "product": "Monitor",
+      "category": "Electronics",
+      "quantity": 3,
+      "price": 12500,
+      "region": "West"
+    },
+    {
+      "order_id": 1006,
+      "date": "2026-01-06",
+      "product": "Chair",
+      "category": "Furniture",
+      "quantity": 4,
+      "price": 6500,
+      "region": "North"
+    },
+    {
+      "order_id": 1007,
+      "date": "2026-01-07",
+      "product": "Table",
+      "category": "Furniture",
+      "quantity": 2,
+      "price": 9000,
+      "region": "South"
+    },
+    {
+      "order_id": 1008,
+      "date": "2026-01-08",
+      "product": "Headphones",
+      "category": "Accessories",
+      "quantity": 6,
+      "price": 2200,
+      "region": "East"
+    },
+    {
+      "order_id": 1009,
+      "date": "2026-01-09",
+      "product": "Tablet",
+      "category": "Electronics",
+      "quantity": 3,
+      "price": 24000,
+      "region": "West"
+    },
+    {
+      "order_id": 1010,
+      "date": "2026-01-10",
+      "product": "Printer",
+      "category": "Electronics",
+      "quantity": 2,
+      "price": 15000,
+      "region": "North"
+    }
+  ]
+}

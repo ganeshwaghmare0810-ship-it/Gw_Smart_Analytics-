@@ -1,0 +1,1728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GW Dashboard Generator – 10 Dashboards</title>
+
+<!-- Chart JS -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- CSV Reader -->
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<!-- Excel Reader -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<!-- PDF Generation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+body { background: #080f1e; color: white; min-height: 100vh; }
+
+/* ===== Theme variables (changed by the theme picker, used by dashboard + report only) ===== */
+:root {
+    --tz-bg: #0f2447; --tz-card: #163158; --tz-border: #2b4a7a; --tz-text: #ffffff;
+    --tz-muted: #9db4d8; --tz-accent: #22c27f; --tz-nav: #0a1730; --tz-navtext: #ffffff;
+    --tz-kpinum: #2dd4a0; --tz-grid: rgba(255,255,255,.10);
+}
+
+/* ===== User bar ===== */
+.user-bar { background: #0b1325; border-bottom: 1px solid #1f2c44; padding: 8px 25px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #9eaac2; }
+.user-info { display: flex; align-items: center; gap: 10px; }
+.auth-links { display: flex; gap: 12px; align-items: center; }
+.auth-links a { color: #38bdf8; text-decoration: none; font-weight: bold; }
+.auth-links a:hover { text-decoration: underline; }
+.logout-link { color: #ff6b8b !important; cursor: pointer; }
+
+/* ===== Home ===== */
+#homePage { min-height: 100vh; padding: 40px; }
+.main-title { text-align: center; font-size: 38px; margin-bottom: 8px; display: flex; justify-content: center; align-items: center; gap: 10px; }
+.main-title img { width: 40px; height: 40px; object-fit: contain; }
+.subtitle { text-align: center; color: #9da9c4; margin-bottom: 35px; }
+.dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; max-width: 1200px; margin: auto; }
+.type-card { background: linear-gradient(145deg, #141e34, #10192c); border: 1px solid #26324a; padding: 25px; border-radius: 18px; cursor: pointer; transition: .3s; }
+.type-card:hover { transform: translateY(-7px); border-color: #46b5ff; box-shadow: 0 10px 30px rgba(0,150,255,.20); }
+.type-icon { font-size: 38px; }
+.type-card h2 { margin: 15px 0 8px; font-size: 20px; }
+.type-card p { color: #9eaac2; font-size: 14px; }
+
+/* ===== Dashboard page chrome ===== */
+#dashboardPage, #reportPage { display: none; min-height: 100vh; }
+.dash-hero { background: #10182b; padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #26334a; flex-wrap: wrap; gap: 15px; }
+.dash-hero-left { display: flex; align-items: center; gap: 12px; }
+.dash-hero-icon { font-size: 28px; }
+.dash-hero-title { font-size: 22px; font-weight: bold; }
+.dash-hero-sub { font-size: 12px; color: #8ea2c8; }
+.top-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+button { border: none; border-radius: 8px; padding: 10px 16px; cursor: pointer; font-weight: bold; font-size: 13px; transition: .2s; }
+button:disabled { opacity: .6; cursor: not-allowed; }
+.back-btn { background: #26334a; color: white; }
+.pdf-btn { background: #ff416c; color: white; }
+.reset-btn { background: #f39c12; color: #fff; }
+.report-btn { background: #27ae60; color: #fff; }
+.back-btn:hover { background: #34435d; }
+.pdf-btn:hover { background: #e0325b; }
+.reset-btn:hover { background: #d68910; }
+.report-btn:hover { background: #219653; }
+button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid #38bdf8; outline-offset: 2px; }
+
+.main-container { padding: 20px; max-width: 1600px; margin: auto; }
+
+.tool-row { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 16px; align-items: stretch; }
+.upload-box { flex: 1 1 360px; border: 2px dashed #2c466d; background: #10192c; border-radius: 14px; padding: 14px 18px; }
+.upload-title { font-size: 15px; font-weight: bold; }
+.upload-box input { margin-top: 8px; font-size: 12px; }
+.upload-status { margin-top: 6px; font-size: 12px; color: #9da9c4; }
+.upload-status.success { color: #7dffb0; }
+.upload-status.error { color: #ff91aa; }
+.generator-actions { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 9px; }
+.generator-actions button { padding: 8px 10px; font-size: 11px; }
+.generate-btn { background: #0ea5e9; color: #04121f; }
+.generate-btn:hover { background: #38bdf8; }
+.improve-btn { background: #7c3aed; color: white; }
+.improve-btn:hover { background: #8b5cf6; }
+.generator-status { margin-top: 8px; color: #9da9c4; font-size: 12px; line-height: 1.5; }
+.generator-status.success { color: #7dffb0; }
+.generator-status.error { color: #ff91aa; }
+.generator-status.warning { color: #fcd34d; }
+.dataset-empty-state { margin: 20px 0; padding: 28px; text-align: center; border: 1px dashed #2c466d; border-radius: 14px; background: #10192c; }
+.dataset-empty-state p { margin: 10px auto 16px; max-width: 650px; color: #9da9c4; line-height: 1.5; }
+
+.theme-box { flex: 1 1 360px; background: #10192c; border: 1px solid #26334a; border-radius: 14px; padding: 14px 18px; }
+.theme-box .upload-title { margin-bottom: 4px; }
+.theme-note { font-size: 11px; color: #8ea2c8; margin-bottom: 10px; }
+.theme-picker { display: flex; gap: 10px; flex-wrap: wrap; }
+.theme-opt { display: flex; align-items: center; gap: 8px; background: #16243b; color: #dce7ff; border: 2px solid transparent; border-radius: 10px; padding: 6px 10px; font-size: 12px; }
+.theme-opt:hover { background: #1d2f4d; }
+.theme-opt.active { border-color: #38bdf8; }
+.theme-dot { width: 22px; height: 22px; border-radius: 50%; border: 2px solid rgba(255,255,255,.35); }
+
+/* ===== The dashboard canvas (this is what gets exported to PDF) ===== */
+#dashCanvas, #reportContentArea { background: var(--tz-bg); color: var(--tz-text); border-radius: 14px; padding: 14px; border: 1px solid var(--tz-border); }
+.dz-top { display: flex; gap: 12px; align-items: stretch; flex-wrap: wrap; margin-bottom: 12px; }
+.dz-title { flex: 1 1 300px; background: var(--tz-card); border: 1px solid var(--tz-border); border-radius: 12px; padding: 12px 18px; display: flex; align-items: center; gap: 12px; }
+.dz-title-text { font-size: 22px; font-weight: bold; }
+.dz-title-sub { font-size: 11px; color: var(--tz-muted); margin-top: 2px; }
+.dz-logo { width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--tz-accent); display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.dz-slicers { display: flex; gap: 8px; flex-wrap: wrap; flex: 2 1 420px; justify-content: flex-end; }
+.sl { background: var(--tz-card); border: 1px solid var(--tz-border); border-radius: 10px; padding: 6px 10px; min-width: 125px; flex: 0 1 165px; }
+.sl label { display: block; font-size: 10px; color: var(--tz-muted); margin-bottom: 2px; }
+.sl select { width: 100%; background: transparent; color: var(--tz-text); border: 0; font-size: 12px; font-weight: bold; }
+.sl select option { background: var(--tz-card); color: var(--tz-text); }
+
+.dz-body { display: grid; grid-template-columns: 120px 1fr; gap: 12px; }
+.dz-nav { display: flex; flex-direction: column; gap: 8px; }
+.dz-nav button { background: var(--tz-nav); color: var(--tz-navtext); border: 1px solid var(--tz-border); border-radius: 8px; padding: 13px 6px; font-size: 11px; font-weight: bold; text-align: center; }
+.dz-nav button.active { background: var(--tz-accent); color: #04121f; border-color: var(--tz-accent); }
+.dz-nav button:hover:not(.active) { border-color: var(--tz-accent); }
+
+.dz-chips { display: flex; gap: 8px; flex-wrap: wrap; min-height: 0; margin-bottom: 10px; }
+.dz-chips:empty { display: none; }
+.chip { background: var(--tz-card); border: 1px solid var(--tz-accent); color: var(--tz-text); border-radius: 20px; padding: 4px 6px 4px 12px; font-size: 11px; display: flex; align-items: center; gap: 6px; }
+.chip button { background: var(--tz-accent); color: #04121f; padding: 0; width: 18px; height: 18px; border-radius: 50%; font-size: 11px; line-height: 18px; }
+.chip-hint { font-size: 11px; color: var(--tz-muted); align-self: center; }
+
+.dz-kpis { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 12px; background: rgba(255,255,255,.05); border-radius: 12px; padding: 8px; }
+.dz-kpi { background: var(--tz-card); border: 1px solid var(--tz-border); border-radius: 14px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; min-height: 66px; gap: 6px; }
+.dz-kpi-val { font-size: 21px; font-weight: bold; color: var(--tz-kpinum); }
+.dz-kpi-lab { font-size: 9px; color: var(--tz-muted); margin-top: 3px; }
+.dz-kpi-ic { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--tz-accent); display: flex; align-items: center; justify-content: center; font-size: 13px; flex: none; }
+
+.dz-page { display: none; }
+.dz-page.show { display: block; }
+#pageMain.show { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+#pageMain .dz-grid3, #pageMain .dz-grid3b { display: contents; }
+.dz-grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 12px; }
+.dz-grid3b { display: grid; grid-template-columns: 1.45fr 1fr 1fr; gap: 12px; }
+.dz-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+.dz-card { background: var(--tz-card); border: 1px solid var(--tz-border); border-radius: 12px; padding: 10px 12px; height: 290px; display: flex; flex-direction: column; min-width: 0; }
+.dz-card.tall { height: 340px; }
+.dz-card-h { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 6px; }
+.dz-card-t { font-size: 13px; font-weight: bold; text-align: center; flex: 1; }
+.dz-card select.dim { background: transparent; color: var(--tz-muted); border: 1px solid var(--tz-border); border-radius: 6px; font-size: 10px; max-width: 95px; padding: 2px; }
+.dz-card select.dim option { background: var(--tz-card); color: var(--tz-text); }
+.dz-card select.chart-type { background: transparent; color: var(--tz-muted); border: 1px solid var(--tz-border); border-radius: 6px; font-size: 10px; max-width: 78px; padding: 2px; }
+.dz-card select.chart-type option { background: var(--tz-card); color: var(--tz-text); }
+.dz-card select.chart-filter { background: transparent; color: var(--tz-muted); border: 1px solid var(--tz-border); border-radius: 6px; font-size: 10px; max-width: 112px; padding: 2px; }
+.dz-card select.chart-filter option { background: var(--tz-card); color: var(--tz-text); }
+.dz-card select.chart-measure { background: transparent; color: var(--tz-muted); border: 1px solid var(--tz-border); border-radius: 6px; font-size: 10px; max-width: 92px; padding: 2px; }
+.dz-card select.chart-measure option { background: var(--tz-card); color: var(--tz-text); }
+.dz-card[data-ai-chart].chart-hidden { display: none; }
+.dz-cv { position: relative; flex: 1; min-height: 0; }
+.dz-cv canvas { width: 100% !important; height: 100% !important; }
+.dz-tablewrap { flex: 1; overflow: auto; min-height: 0; }
+.dz-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+.dz-table th { color: var(--tz-muted); font-weight: bold; text-align: left; padding: 6px 6px; border-bottom: 1px solid var(--tz-border); position: sticky; top: 0; background: var(--tz-card); }
+.dz-table td { padding: 6px; border-bottom: 1px solid var(--tz-grid); }
+.dz-table tr.clickable { cursor: pointer; }
+.dz-table tr.clickable:hover td { background: rgba(255,255,255,.07); }
+.dz-table tr.sel td { background: rgba(255,255,255,.12); color: var(--tz-kpinum); }
+.dz-table tfoot td { font-weight: bold; border-top: 2px solid var(--tz-border); position: sticky; bottom: 0; background: var(--tz-card); }
+.dz-sub { font-size: 10px; color: var(--tz-muted); text-align: center; margin-bottom: 4px; }
+.data-search { width: 100%; background: var(--tz-bg); color: var(--tz-text); border: 1px solid var(--tz-border); border-radius: 8px; padding: 8px 10px; margin-bottom: 8px; font-size: 12px; }
+.dz-empty { color: var(--tz-muted); font-size: 13px; text-align: center; padding: 40px 10px; }
+
+/* ===== Report ===== */
+.report-card { background: var(--tz-card); border: 1px solid var(--tz-border); border-radius: 14px; padding: 22px; margin-bottom: 14px; }
+.report-card h3 { font-size: 18px; margin-bottom: 6px; }
+.report-sub { color: var(--tz-muted); font-size: 12px; margin-bottom: 16px; }
+.report-text { font-size: 13px; line-height: 1.7; }
+.report-text p { margin-bottom: 8px; }
+.report-highlights { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 14px; }
+.report-highlight { background: rgba(0,0,0,.18); border: 1px solid var(--tz-border); border-radius: 10px; padding: 12px; }
+.report-highlight-label { font-size: 10px; color: var(--tz-muted); }
+.report-highlight-value { font-size: 16px; font-weight: bold; margin-top: 4px; color: var(--tz-kpinum); }
+
+/* ===== Payment & receipt ===== */
+.payment-overlay { display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,.8); backdrop-filter: blur(6px); align-items: center; justify-content: center; padding: 20px; }
+.payment-overlay.show { display: flex; }
+.payment-modal { width: 100%; max-width: 540px; max-height: 95vh; overflow: auto; background: linear-gradient(145deg, #111c31, #0b1425); border: 1px solid #34435d; border-radius: 20px; padding: 28px; position: relative; box-shadow: 0 25px 70px rgba(0,0,0,.55); }
+.payment-close { position: absolute; top: 14px; right: 14px; width: 34px; height: 34px; border-radius: 50%; background: #26334a; color: white; font-size: 20px; cursor: pointer; padding: 0; }
+.payment-header { text-align: center; }
+.payment-price { margin: 12px 0; font-size: 36px; font-weight: bold; color: #38cfff; }
+.payment-price small { display: block; color: #91a1bd; font-size: 11px; }
+.payment-status { margin: 14px 0; padding: 10px; border-radius: 8px; background: #17243b; border: 1px solid #2d4161; color: #c9d7ef; font-size: 12px; text-align: center; }
+
+@media (max-width: 1100px) {
+    .dz-kpis { grid-template-columns: repeat(3, 1fr); }
+    .dz-grid3, .dz-grid3b, .dz-grid2 { grid-template-columns: 1fr; }
+}
+@media (max-width: 800px) {
+    .dz-body { grid-template-columns: 1fr; }
+    #pageMain.show { grid-template-columns: 1fr; }
+    .dz-nav { flex-direction: row; overflow-x: auto; }
+    .dz-nav button { flex: 1 0 auto; padding: 10px 14px; }
+    .dz-kpis { grid-template-columns: repeat(2, 1fr); }
+    .report-highlights { grid-template-columns: 1fr; }
+    .dz-slicers { justify-content: flex-start; }
+    #homePage { padding: 20px; }
+}
+</style>
+</head>
+<body>
+
+<!-- USER STATUS BAR -->
+<div class="user-bar">
+    <div class="user-info"><a href="index.html" style="color:#38bdf8;font-weight:bold;text-decoration:none;">🏠 Home</a></div>
+    <button id="navReceiptBtn" type="button" onclick="openReceiptModal()" style="display:none;background:none;border:0;color:#38bdf8;cursor:pointer;font-weight:bold;padding:0;">Receipt</button>
+    <div class="auth-links" id="userAuthLinks">
+        <a href="login.html">Login</a><span>|</span><a href="register.html">Register</a>
+    </div>
+</div>
+
+<!-- ================= HOME PAGE ================= -->
+<div id="homePage">
+    <h1 class="main-title">
+        <img src="logo.png" alt="Logo" onerror="this.style.display='none'">
+        <span>GW Dashboard Generator</span>
+    </h1>
+    <p class="subtitle">Select which type of dashboard you want to create</p>
+
+    <div class="dashboard-grid">
+        <div class="type-card" onclick="openDashboard('Business Dashboard')"><div class="type-icon">🏢</div><h2>Business Dashboard</h2><p>Sales, cost, profit, products and business performance.</p></div>
+        <div class="type-card" onclick="openDashboard('Financial Dashboard')"><div class="type-icon">💰</div><h2>Financial Dashboard</h2><p>Revenue, expenses, profit, margin and financial analysis.</p></div>
+        <div class="type-card" onclick="openDashboard('Sales Dashboard')"><div class="type-icon">🛒</div><h2>Sales Dashboard</h2><p>Sales trends, products, orders and category performance.</p></div>
+        <div class="type-card" onclick="openDashboard('Inventory Dashboard')"><div class="type-icon">📦</div><h2>Inventory Dashboard</h2><p>Stock, inventory quantity and product availability.</p></div>
+        <div class="type-card" onclick="openDashboard('HR Dashboard')"><div class="type-icon">👥</div><h2>HR Dashboard</h2><p>Employees, departments, salary and workforce analysis.</p></div>
+        <div class="type-card" onclick="openDashboard('Marketing Dashboard')"><div class="type-icon">📢</div><h2>Marketing Dashboard</h2><p>Campaigns, leads, conversions and marketing performance.</p></div>
+        <div class="type-card" onclick="openDashboard('Student Dashboard')"><div class="type-icon">🎓</div><h2>Student Dashboard</h2><p>Marks, attendance, student and subject performance.</p></div>
+        <div class="type-card" onclick="openDashboard('Customer Dashboard')"><div class="type-icon">👤</div><h2>Customer Dashboard</h2><p>Customers, transactions and customer behaviour.</p></div>
+        <div class="type-card" onclick="openDashboard('Production Dashboard')"><div class="type-icon">🏭</div><h2>Production Dashboard</h2><p>Production quantity, cost and product efficiency.</p></div>
+        <div class="type-card" onclick="openDashboard('Data Analytics Dashboard')"><div class="type-icon">📈</div><h2>Data Analytics Dashboard</h2><p>Automatic analytics for almost any dataset.</p></div>
+    </div>
+</div>
+
+<!-- ================= DASHBOARD PAGE ================= -->
+<div id="dashboardPage">
+    <div class="dash-hero">
+        <div class="dash-hero-left">
+            <div class="dash-hero-icon">📈</div>
+            <div>
+                <div class="dash-hero-title" id="dashboardTitle">Dashboard</div>
+                <div class="dash-hero-sub">Interactive Business Intelligence Report</div>
+            </div>
+        </div>
+        <div class="top-actions">
+            <button class="pdf-btn" onclick="openPaymentModal('dashboard')">⬇ Download Dashboard (PDF)</button>
+            <button class="back-btn" onclick="openPaymentModal('excel')">Excel</button>
+            <button class="back-btn" onclick="openPaymentModal('csv')">CSV</button>
+            <button class="back-btn" onclick="openPaymentModal('png')">PNG</button>
+            <button class="reset-btn" onclick="resetFilter()">Reset Filters</button>
+            <button class="report-btn" onclick="createReport()">📄 Create Report</button>
+            <button class="back-btn" onclick="goHome()">← Dashboard Types</button>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="tool-row">
+            <div class="upload-box">
+                <div class="upload-title">Upload your CSV or Excel file</div>
+                <h2 style="margin-top:10px;font-size:15px;color:#e2e8f0;">
+                    Describe Your Dashboard — AI Will Build It For You
+                </h2>
+                <textarea id="dashboardPrompt" rows="4"
+                    aria-label="Describe Your Dashboard — AI Will Build It For You"
+                    placeholder="Example: Create a modern blue sales dashboard with monthly revenue, net profit, top 10 products, category-wise sales, date filters, interactive charts, and a downloadable PDF report."
+                    style="width:100%;margin-top:6px;padding:10px;background:#0b1325;color:#fff;border:1px solid #2c466d;border-radius:8px;resize:vertical;font-size:13px;"></textarea>
+                <div class="generator-actions">
+                    <button type="button" class="generate-btn" onclick="generateDashboard()">Generate Dashboard</button>
+                    <button type="button" class="improve-btn" onclick="improveDashboard()">Improve Dashboard</button>
+                    <button type="button" class="reset-btn" onclick="resetDashboardGenerator()">Reset</button>
+                    <button type="button" class="back-btn" onclick="useDefaultDashboard()">Use Default Dashboard</button>
+                    <button type="button" class="back-btn" onclick="loadSampleData(selectedDashboard || 'Data Analytics Dashboard')">Use Sample Dataset</button>
+                </div>
+                <div id="generatorStatus" class="generator-status" role="status" aria-live="polite">Upload a dataset or use the sample dataset. An empty prompt generates a dashboard automatically.</div>
+                <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" onchange="handleFile(event)">
+                <div class="upload-status" id="uploadStatus">No file uploaded yet</div>
+            </div>
+            <div class="theme-box">
+                <div class="upload-title">Choose dashboard theme</div>
+                <div class="theme-note" id="themeNote">The dashboard preview, PDF, and PNG use the selected theme.</div>
+                <div class="theme-picker" id="themePicker"></div>
+            </div>
+        </div>
+
+        <!-- ===== Dashboard canvas ===== -->
+        <div id="datasetEmptyState" class="dataset-empty-state" style="display:none;">
+            <h2>Start with your data</h2>
+            <p>Upload a CSV or Excel file, or load the clearly labeled synthetic demo dataset (not real business metrics). Uploaded dashboards use your detected columns and actual rows.</p>
+            <button type="button" class="generate-btn" onclick="loadSampleData(selectedDashboard || 'Data Analytics Dashboard')">Use Sample Dataset</button>
+        </div>
+        <div id="dashCanvas" style="display:none;">
+            <div class="dz-top">
+                <div class="dz-title">
+                    <div class="dz-logo" id="dzLogo">📈</div>
+                    <div>
+                        <div class="dz-title-text" id="dashName">Dashboard</div>
+                        <div class="dz-title-sub" id="recordsCount">0 Records</div>
+                    </div>
+                </div>
+                <div class="dz-slicers" id="slicerBar"></div>
+            </div>
+
+            <div class="dz-body">
+                <nav class="dz-nav" id="dzNav">
+                    <button class="active" data-page="Main" onclick="showPage('Main')">MAIN</button>
+                    <button data-page="Trends" onclick="showPage('Trends')">TRENDS</button>
+                    <button data-page="Data" onclick="showPage('Data')">DATA</button>
+                    <button onclick="createReport()">Reports</button>
+                </nav>
+
+                <div class="dz-main">
+                    <div class="dz-chips" id="chipBar"></div>
+                    <div class="dz-kpis" id="kpiRow"></div>
+
+                    <!-- Page: MAIN -->
+                    <div class="dz-page show" id="pageMain">
+                        <div class="dz-grid3">
+                            <div class="dz-card" data-ai-chart="trend"><div class="dz-card-h"><div class="dz-card-t" id="t_trend"></div><select class="chart-measure" data-chart-measure="trend" aria-label="Trend chart metric" onchange="changeChartMeasure('trend',this.value)"></select><select class="chart-filter" data-chart-filter="trend" aria-label="Trend chart filter" onchange="setChartFilter('trend',this.value)"><option value="">All data</option></select><select class="chart-type" aria-label="Trend chart type" onchange="changeChartType('trend',this.value)"><option value="line">Line</option><option value="bar">Bar</option></select></div><div class="dz-cv"><canvas id="c_trend"></canvas></div></div>
+                            <div class="dz-card" data-ai-chart="c2"><div class="dz-card-h"><div class="dz-card-t" id="t_c2"></div><select class="dim" id="dim_c2" onchange="changeDim('c2',this.value)"></select><select class="chart-measure" data-chart-measure="c2" aria-label="Chart 2 metric" onchange="changeChartMeasure('c2',this.value)"></select><select class="chart-filter" data-chart-filter="c2" aria-label="Chart 2 filter" onchange="setChartFilter('c2',this.value)"><option value="">All data</option></select><select class="chart-type" aria-label="Chart 2 type" onchange="changeChartType('c2',this.value)"><option value="bar">Bar</option><option value="line">Line</option><option value="doughnut">Doughnut</option><option value="pie">Pie</option></select></div><div class="dz-cv"><canvas id="c_c2"></canvas></div></div>
+                            <div class="dz-card" data-ai-chart="c3"><div class="dz-card-h"><div class="dz-card-t" id="t_c3"></div><select class="dim" id="dim_c3" onchange="changeDim('c3',this.value)"></select><select class="chart-measure" data-chart-measure="c3" aria-label="Chart 3 metric" onchange="changeChartMeasure('c3',this.value)"></select><select class="chart-filter" data-chart-filter="c3" aria-label="Chart 3 filter" onchange="setChartFilter('c3',this.value)"><option value="">All data</option></select><select class="chart-type" aria-label="Chart 3 type" onchange="changeChartType('c3',this.value)"><option value="bar">Bar</option><option value="line">Line</option><option value="doughnut">Doughnut</option><option value="pie">Pie</option></select></div><div class="dz-cv"><canvas id="c_c3"></canvas></div></div>
+                        </div>
+                        <div class="dz-grid3b">
+                            <div class="dz-card" data-ai-table><div class="dz-card-h"><div class="dz-card-t" id="t_table"></div></div><div class="dz-sub" id="tableSub"></div><div class="dz-tablewrap" id="groupTable"></div></div>
+                            <div class="dz-card" data-ai-chart="hb"><div class="dz-card-h"><div class="dz-card-t" id="t_hb"></div><select class="dim" id="dim_hb" onchange="changeDim('hb',this.value)"></select><select class="chart-measure" data-chart-measure="hb" aria-label="Chart 4 metric" onchange="changeChartMeasure('hb',this.value)"></select><select class="chart-filter" data-chart-filter="hb" aria-label="Chart 4 filter" onchange="setChartFilter('hb',this.value)"><option value="">All data</option></select><select class="chart-type" aria-label="Chart 4 type" onchange="changeChartType('hb',this.value)"><option value="bar">Bar</option><option value="line">Line</option><option value="doughnut">Doughnut</option><option value="pie">Pie</option></select></div><div class="dz-cv"><canvas id="c_hb"></canvas></div></div>
+                            <div class="dz-card" data-ai-chart="dn"><div class="dz-card-h"><div class="dz-card-t" id="t_dn"></div><select class="dim" id="dim_dn" onchange="changeDim('dn',this.value)"></select><select class="chart-measure" data-chart-measure="dn" aria-label="Chart 5 metric" onchange="changeChartMeasure('dn',this.value)"></select><select class="chart-filter" data-chart-filter="dn" aria-label="Chart 5 filter" onchange="setChartFilter('dn',this.value)"><option value="">All data</option></select><select class="chart-type" aria-label="Chart 5 type" onchange="changeChartType('dn',this.value)"><option value="bar">Bar</option><option value="line">Line</option><option value="doughnut">Doughnut</option><option value="pie">Pie</option></select></div><div class="dz-cv"><canvas id="c_dn"></canvas></div></div>
+                        </div>
+                    </div>
+
+                    <!-- Page: TRENDS -->
+                    <div class="dz-page" id="pageTrends">
+                        <div class="dz-card tall"><div class="dz-card-h"><div class="dz-card-t" id="t_trend2"></div></div><div class="dz-cv"><canvas id="c_trend2"></canvas></div></div>
+                        <div class="dz-grid2">
+                            <div class="dz-card tall"><div class="dz-card-h"><div class="dz-card-t" id="t_stack"></div><select class="dim" id="dim_stack" onchange="changeDim('stack',this.value)"></select></div><div class="dz-cv"><canvas id="c_stack"></canvas></div></div>
+                            <div class="dz-card tall"><div class="dz-card-h"><div class="dz-card-t" id="t_tp"></div><select class="dim" id="dim_tp" onchange="changeDim('tp',this.value)"></select></div><div class="dz-cv"><canvas id="c_tp"></canvas></div></div>
+                        </div>
+                    </div>
+
+                    <!-- Page: DATA -->
+                    <div class="dz-page" id="pageData">
+                        <div class="dz-card" style="height:auto;max-height:640px;">
+                            <div class="dz-card-h"><div class="dz-card-t">Data table</div><span class="dz-sub" id="tablePreviewCount" style="margin:0"></span></div>
+                            <input class="data-search" id="dataSearch" placeholder="Search in table..." oninput="renderDataPage()">
+                            <div class="dz-tablewrap" style="max-height:520px;"><table class="dz-table"><thead id="dataThead"></thead><tbody id="dataTbody"></tbody></table></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================= REPORT PAGE ================= -->
+<div id="reportPage">
+    <div class="dash-hero">
+        <div class="dash-hero-left">
+            <div class="dash-hero-icon">📄</div>
+            <div>
+                <div class="dash-hero-title" id="reportTitle">Comprehensive Analytics Report</div>
+                <div class="dash-hero-sub" id="reportGeneratedDate">Generated Report</div>
+            </div>
+        </div>
+        <div class="top-actions">
+            <button class="pdf-btn" onclick="openPaymentModal('report')">⬇ Download Report (PDF)</button>
+            <button class="back-btn" onclick="backToDashboard()">← Back to Dashboard</button>
+        </div>
+    </div>
+    <div class="main-container">
+        <div class="tool-row"><div class="theme-box" style="flex:1 1 100%">
+            <div class="upload-title">Report theme</div>
+            <div class="theme-note">Change the theme here too. The PDF uses the selected theme.</div>
+            <div class="theme-picker" id="themePicker2"></div>
+        </div></div>
+        <div id="reportContentArea">
+            <div class="report-card">
+                <h3 id="reportHeaderTitle">Executive Summary</h3>
+                <div class="report-sub" id="reportSubtitle">Automated Intelligence Assessment</div>
+                <div class="report-text" id="reportSummaryText"></div>
+                <div class="report-highlights" id="reportHighlightsGrid"></div>
+            </div>
+            <div class="dz-grid2" style="margin-top:0">
+                <div class="dz-card tall"><div class="dz-card-h"><div class="dz-card-t" id="rt_1">Trend</div></div><div class="dz-cv"><canvas id="reportChart1"></canvas></div></div>
+                <div class="dz-card tall"><div class="dz-card-h"><div class="dz-card-t" id="rt_2">Breakdown</div></div><div class="dz-cv"><canvas id="reportChart2"></canvas></div></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================= PAYMENT MODAL ================= -->
+<div class="payment-overlay" id="paymentOverlay" onclick="closePaymentOnOverlay(event)">
+    <div class="payment-modal">
+        <button class="payment-close" onclick="closePaymentModal()">&times;</button>
+        <div class="payment-header">
+            <h2>Unlock Dashboard Downloads</h2>
+            <p>One-time payment of ₹10 unlocks dashboard and report downloads, plus 1-month platform access.</p>
+            <div class="payment-price">₹10.00 <small>1-Month Full Pro Access Included</small></div>
+        </div>
+        <div class="payment-status" id="payStatus">Selected visual theme: <b id="payTheme">Navy Insight</b> · Scan QR Code or enter UTR below</div>
+        <div id="paymentFeedback" role="status" aria-live="polite" style="margin-top:8px;font-size:12px;color:#9da9c4;"></div>
+        <div style="text-align:center;margin:14px 0;">
+            <div style="background:white;padding:10px;border-radius:12px;display:inline-block;">
+                <img src="scanner.png" alt="UPI QR" style="width:170px;height:170px;object-fit:contain;" onerror="this.src='scaner.png'">
+            </div>
+            <div style="font-size:12px;color:#9da9c4;margin-top:6px;">UPI ID: <b style="color:#38bdf8;">9529579858-d3cb-2@ybl</b></div>
+        </div>
+        <div style="margin-bottom:14px;">
+            <label style="font-size:12px;color:#9da9c4;display:block;margin-bottom:6px;">Enter 12-Digit UTR / Transaction ID:</label>
+            <input type="text" id="utrInput" inputmode="numeric" maxlength="12" placeholder="e.g. 428910284712" style="width:100%;padding:10px;background:#16243b;border:1px solid #30415c;border-radius:8px;color:white;outline:none;">
+        </div>
+        <div style="display:flex;gap:10px;">
+            <button style="flex:1;padding:12px;background:#10b981;color:white;border-radius:8px;" onclick="submitUtrPayment()">Verify &amp; Download</button>
+            <button style="flex:1;padding:12px;background:#0284c7;color:white;border-radius:8px;" onclick="launchRazorpayCheckout()">Razorpay Checkout</button>
+        </div>
+    </div>
+</div>
+
+<!-- ================= RECEIPT MODAL ================= -->
+<div class="payment-overlay" id="receiptModal" onclick="closeReceiptOnOverlay(event)">
+    <div class="payment-modal" style="max-width:520px;">
+        <button class="payment-close" onclick="closeReceiptModal()">&times;</button>
+        <div id="receiptPrintArea">
+            <h2 style="text-align:center;font-size:20px;margin-bottom:6px;">Official Payment Receipt</h2>
+            <p style="text-align:center;color:#9da9c4;font-size:12px;margin-bottom:14px;">GW Smart Analytics &bull; Tax Invoice</p>
+            <div style="background:#16243b;border-radius:10px;padding:14px;font-size:12px;line-height:1.8;margin-bottom:16px;">
+                <div>Receipt No: <b id="rcptNo">GW-REC-2026</b></div>
+                <div>Customer Name: <b id="rcptName">User</b></div>
+                <div>Customer Email: <span id="rcptEmail">user@example.com</span></div>
+                <div>Amount Paid: <b id="rcptAmount" style="color:#7dffb0;">₹10.00</b></div>
+                <div>Status: <span style="color:#7dffb0;font-weight:bold;">PAID &amp; VERIFIED</span></div>
+                <div>Validity: <span id="rcptValid">30 Days Pro</span></div>
+            </div>
+            <div style="display:flex;justify-content:flex-end;gap:10px;">
+                <button type="button" onclick="printReceiptFromModal()" style="padding:10px 20px;background:#e2e8f0;color:#334155;">🖨️ Print</button>
+                <button type="button" onclick="downloadReceiptPDFFromModal()" style="padding:10px 22px;background:#0284c7;color:white;">📄 Download PDF</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================= SCRIPT ================= -->
+<script>
+/* =====================================================================
+   STATE
+===================================================================== */
+let selectedDashboard = "";
+let rawData = [];          // all rows (normalised)
+let filteredData = [];     // rows after filters
+let colMeta = {};          // column name -> 'num' | 'date' | 'cat' | 'text'
+let numCols = [], catCols = [], dimCols = [], dateCol = null;
+let measure = null, agg = "sum";
+let filters = {};          // column -> selected value  (dropdowns AND chart clicks share this)
+let dimFor = {};           // chart id -> dimension column
+let currentPage = "Main";
+let charts = {}, reportCharts = {};
+let pendingDownloadTarget = "dashboard";
+let currentTheme = "navy";
+let currentDataIsSample = false;
+let chartTopN = 10, chartCount = 5, kpiCount = 6, dateGranularity = "auto", chartSort = "desc";
+let chartHeight = 290, chartHeights = {};
+let chartTypes = { trend: "line", c2: "bar", c3: "bar", hb: "bar", dn: "doughnut" };
+let chartMeasures = {}, kpiMeasures = [];
+let chartOrder = ["trend", "c2", "c3", "hb", "dn"];
+let globalFilterCols = [];
+let chartFilters = {};
+let hiddenCharts = new Set();
+let autoDashboardSnapshot = null;
+let derivedMetrics = {};
+
+/* =====================================================================
+   THEMES  (user picks one; dashboard + PDF use it)
+===================================================================== */
+const THEMES = {
+    navy:    { name: "Navy Insight",  bg:"#0f2447", card:"#163158", border:"#2b4a7a", text:"#ffffff", muted:"#9db4d8", accent:"#22c27f", nav:"#0a1730", navText:"#ffffff", kpi:"#2dd4a0", grid:"rgba(255,255,255,.10)", palette:["#ef4444","#f5c518","#22c27f","#3b9eff","#a78bfa","#fb923c","#14b8a6","#ec4899"], dots:["#0f2447","#22c27f"] },
+    emerald: { name: "Emerald Night", bg:"#06201a", card:"#0c3329", border:"#1d5a49", text:"#ecfdf5", muted:"#8fd1b9", accent:"#34d399", nav:"#04140f", navText:"#ecfdf5", kpi:"#6ee7b7", grid:"rgba(255,255,255,.09)", palette:["#34d399","#fbbf24","#38bdf8","#f472b6","#a3e635","#fb923c","#2dd4bf","#c084fc"], dots:["#06201a","#34d399"] },
+    violet:  { name: "Violet Pulse",  bg:"#1a1035", card:"#271a50", border:"#46348a", text:"#f5f3ff", muted:"#b9a9ee", accent:"#a78bfa", nav:"#110a26", navText:"#f5f3ff", kpi:"#c4b5fd", grid:"rgba(255,255,255,.10)", palette:["#a78bfa","#f472b6","#38bdf8","#fbbf24","#34d399","#fb7185","#818cf8","#f97316"], dots:["#1a1035","#a78bfa"] },
+    crimson: { name: "Crimson Ink",   bg:"#1c0e13", card:"#2d1620", border:"#5a2a3c", text:"#fff1f2", muted:"#e0a1b0", accent:"#fb7185", nav:"#12080c", navText:"#fff1f2", kpi:"#fda4af", grid:"rgba(255,255,255,.09)", palette:["#fb7185","#fbbf24","#fb923c","#38bdf8","#a78bfa","#34d399","#f472b6","#facc15"], dots:["#1c0e13","#fb7185"] },
+    sunset:  { name: "Sunset Amber",  bg:"#2a1406", card:"#3d200c", border:"#6e3d1a", text:"#fff7ed", muted:"#e6b88f", accent:"#fb923c", nav:"#1b0d04", navText:"#fff7ed", kpi:"#fdba74", grid:"rgba(255,255,255,.10)", palette:["#fb923c","#facc15","#ef4444","#34d399","#38bdf8","#c084fc","#f472b6","#a3e635"], dots:["#2a1406","#fb923c"] },
+    light:   { name: "Paper Light",   bg:"#eef2f7", card:"#ffffff", border:"#d4dce8", text:"#0f172a", muted:"#5b6b84", accent:"#2563eb", nav:"#ffffff", navText:"#0f172a", kpi:"#1d4ed8", grid:"rgba(15,23,42,.10)", palette:["#2563eb","#f59e0b","#10b981","#ef4444","#8b5cf6","#06b6d4","#ec4899","#84cc16"], dots:["#eef2f7","#2563eb"] }
+};
+function T() { return THEMES[currentTheme] || THEMES.navy; }
+
+function buildThemePickers() {
+    ["themePicker", "themePicker2"].forEach(id => {
+        const box = document.getElementById(id);
+        if (!box) return;
+        box.innerHTML = Object.keys(THEMES).map(k => {
+            const t = THEMES[k];
+            return `<button type="button" class="theme-opt ${k === currentTheme ? "active" : ""}" onclick="setTheme('${k}')" aria-label="${t.name} theme">
+                <span class="theme-dot" style="background:linear-gradient(135deg,${t.dots[0]} 50%,${t.dots[1]} 50%)"></span>${t.name}</button>`;
+        }).join("");
+    });
+}
+
+function applyThemeVars() {
+    const t = T(), s = document.documentElement.style;
+    s.setProperty("--tz-bg", t.bg); s.setProperty("--tz-card", t.card); s.setProperty("--tz-border", t.border);
+    s.setProperty("--tz-text", t.text); s.setProperty("--tz-muted", t.muted); s.setProperty("--tz-accent", t.accent);
+    s.setProperty("--tz-nav", t.nav); s.setProperty("--tz-navtext", t.navText); s.setProperty("--tz-kpinum", t.kpi);
+    s.setProperty("--tz-grid", t.grid);
+    Chart.defaults.color = t.muted;
+    Chart.defaults.borderColor = t.grid;
+    Chart.defaults.font.size = 11;
+    const pt = document.getElementById("payTheme"); if (pt) pt.innerText = t.name;
+    const tn = document.getElementById("themeNote"); if (tn) tn.innerText = `The dashboard preview, PDF, and PNG use the "${t.name}" theme.`;
+}
+
+function setTheme(key) {
+    if (!THEMES[key]) return;
+    currentTheme = key;
+    try { localStorage.setItem("gw_theme", key); } catch (e) {}
+    applyThemeVars();
+    buildThemePickers();
+    if (document.getElementById("reportPage").style.display === "block") createReport(true);
+    else if (rawData.length) renderAll();
+}
+
+/* =====================================================================
+   AUTH (header links)
+===================================================================== */
+const AUTH_API_BASE = window.location.protocol === "http:" || window.location.protocol === "https:"
+    ? ""
+    : "http://127.0.0.1:5000";
+
+async function checkUserAuth() {
+    let user = null;
+    try {
+        const res = await fetch(`${AUTH_API_BASE}/api/me`, { cache: "no-store", credentials: "include" });
+        if (!res.ok) throw new Error(`Account check failed (${res.status}).`);
+        const d = await res.json();
+        if (d.authenticated && d.user) {
+            user = d.user;
+        }
+    } catch (error) {
+        console.warn("Could not confirm the signed-in account with the server:", error);
+    }
+    window.__gwUser = user;
+    const receiptButton = document.getElementById("navReceiptBtn");
+    if (receiptButton) receiptButton.style.display = user ? "inline-flex" : "none";
+}
+document.addEventListener("DOMContentLoaded", () => {
+    try { const s = localStorage.getItem("gw_theme"); if (s && THEMES[s]) currentTheme = s; } catch (e) {}
+    applyThemeVars();
+    buildThemePickers();
+    checkUserAuth();
+});
+
+/* =====================================================================
+   HELPERS
+===================================================================== */
+function esc(s) { return String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+function parseNum(v) {
+    if (typeof v === "number") return isFinite(v) ? v : null;
+    if (v === null || v === undefined) return null;
+    const s = String(v).trim().replace(/[₹$€£,%\s]/g, "").replace(/,/g, "");
+    if (s === "" || !/^-?\d*\.?\d+(e[+-]?\d+)?$/i.test(s)) return null;
+    const n = parseFloat(s);
+    return isFinite(n) ? n : null;
+}
+const pad2 = n => String(n).padStart(2, "0");
+function parseDate(v) {
+    if (v instanceof Date) return isNaN(v) ? null : v;
+    if (v === null || v === undefined || typeof v === "number") return null;
+    const s = String(v).trim();
+    let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if (m) return new Date(+m[1], +m[2] - 1, +m[3]);
+    m = s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);
+    if (m) { let y = +m[3]; if (y < 100) y += 2000; return new Date(y, +m[2] - 1, +m[1]); }
+    if (/[a-z]/i.test(s) && /\d/.test(s) && s.length >= 6) { const t = Date.parse(s); return isNaN(t) ? null : new Date(t); }
+    return null;
+}
+const dayKey = d => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+const monthKey = d => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}`;
+const MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function fmtKey(k) {
+    if (/^\d{4}-\d{2}$/.test(k)) return `${MON[+k.slice(5) - 1]} ${k.slice(0, 4)}`;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(k)) return `${+k.slice(8)} ${MON[+k.slice(5, 7) - 1]}`;
+    if (/^\d{4}-\d{2}-\d{2} \(week\)$/.test(k)) return `${fmtKey(k.slice(0, 10))} · week`;
+    return k;
+}
+function isCurrencyName(n) { return /sale|revenue|amount|price|cost|profit|salary|expense|income|value|bill|fee|payroll|spend|paid|total/i.test(n || ""); }
+function fmtNum(n, cur) {
+    if (n === null || n === undefined || isNaN(n)) return "–";
+    const a = Math.abs(n); let s;
+    if (a >= 1e7) s = (n / 1e7).toFixed(2) + " Cr";
+    else if (a >= 1e5) s = (n / 1e5).toFixed(2) + " L";
+    else s = Number.isInteger(n) ? n.toLocaleString("en-IN") : n.toLocaleString("en-IN", { maximumFractionDigits: 2 });
+    return (cur ? "₹" : "") + s;
+}
+const fmtM = n => fmtNum(n, agg !== "count" && isCurrencyName(measure));
+
+/* =====================================================================
+   NAVIGATION
+===================================================================== */
+const PREF = {
+    "Business Dashboard": /sales|revenue|profit/i, "Financial Dashboard": /revenue|profit|amount|income|expense/i,
+    "Sales Dashboard": /sales|revenue|amount|total/i, "Inventory Dashboard": /stock|qty|quantity|inventory|value/i,
+    "HR Dashboard": /salary|pay|ctc/i, "Marketing Dashboard": /lead|conversion|spend|click|impression/i,
+    "Student Dashboard": /mark|score|total|percent/i, "Customer Dashboard": /spend|purchase|amount|ltv|value/i,
+    "Production Dashboard": /produc|qty|quantity|unit|output/i
+};
+
+function openDashboard(type) {
+    selectedDashboard = type;
+    document.getElementById("homePage").style.display = "none";
+    document.getElementById("reportPage").style.display = "none";
+    document.getElementById("dashboardPage").style.display = "block";
+    document.getElementById("dashboardTitle").innerText = type;
+    document.getElementById("dashName").innerText = type;
+    if (rawData.length === 0) {
+        document.getElementById("dashCanvas").style.display = "none";
+        document.getElementById("datasetEmptyState").style.display = "block";
+        setGeneratorStatus("Upload a CSV or Excel file, or use the sample dataset. No business metrics will be shown until data is available.", "warning");
+        document.getElementById("uploadStatus").innerText = "No dataset loaded. Upload a file or choose Use Sample Dataset.";
+    } else {
+        document.getElementById("dashCanvas").style.display = "block";
+        document.getElementById("datasetEmptyState").style.display = "none";
+        clearDerivedMeasures();
+        pickMeasureForType();
+        resetDashboardConfig();
+        saveAutomaticDashboard();
+        const prompt = (document.getElementById("dashboardPrompt")?.value || "").trim();
+        if (prompt) applyDashboardPrompt(prompt);
+        initControls();
+        renderAll();
+    }
+}
+function goHome() {
+    document.getElementById("dashboardPage").style.display = "none";
+    document.getElementById("reportPage").style.display = "none";
+    document.getElementById("homePage").style.display = "block";
+}
+function backToDashboard() {
+    document.getElementById("reportPage").style.display = "none";
+    document.getElementById("dashboardPage").style.display = "block";
+    renderAll();
+}
+function showPage(p) {
+    currentPage = p;
+    ["Main", "Trends", "Data"].forEach(n => document.getElementById("page" + n).classList.toggle("show", n === p));
+    document.querySelectorAll("#dzNav button[data-page]").forEach(b => b.classList.toggle("active", b.dataset.page === p));
+    renderAll();
+}
+
+/* =====================================================================
+   FILE UPLOAD
+===================================================================== */
+function handleFile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const status = document.getElementById("uploadStatus");
+    status.className = "upload-status";
+    status.innerText = `Reading ${file.name}...`;
+    const ext = file.name.split(".").pop().toLowerCase();
+    if (ext === "csv") {
+        Papa.parse(file, { header: true, skipEmptyLines: true, dynamicTyping: false, complete: r => processDataset(r.data, file.name) });
+    } else if (ext === "xlsx" || ext === "xls") {
+        const reader = new FileReader();
+        reader.onload = e => {
+            try {
+                const wb = XLSX.read(new Uint8Array(e.target.result), { type: "array", cellDates: true });
+                const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: "" });
+                processDataset(json, file.name);
+            } catch (err) {
+                status.className = "upload-status error";
+                status.innerText = "Could not read this Excel file: " + err.message;
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    } else {
+        status.className = "upload-status error";
+        status.innerText = "Please upload a .csv, .xlsx or .xls file.";
+        return;
+    }
+    const fd = new FormData(); fd.append("file", file);
+    fetch("/api/upload", { method: "POST", body: fd }).catch(() => {});
+}
+
+function normaliseRows(data) {
+    const rows = [];
+    data.forEach(r => {
+        const o = {}; let any = false;
+        Object.keys(r).forEach(k => {
+            const key = String(k).trim(); if (!key || key.startsWith("__EMPTY")) return;
+            let v = r[k];
+            if (v instanceof Date) v = isNaN(v) ? "" : new Date(v.getTime() + 12 * 3600e3).toISOString().slice(0, 10);
+            if (typeof v === "string") v = v.trim();
+            if (v !== "" && v !== null && v !== undefined) any = true;
+            o[key] = v;
+        });
+        if (any) rows.push(o);
+    });
+    return rows;
+}
+
+function inferDashboardType(prompt) {
+    const p = normalizeDashboardPrompt(prompt);
+    if (/\b(inventory|stock|warehouse|reorder)\b/.test(p)) return "Inventory Dashboard";
+    if (/\b(hr|human resources|employee|staff|salary|payroll)\b/.test(p)) return "HR Dashboard";
+    if (/\b(student|attendance|marks|grades|exam|academic)\b/.test(p)) return "Student Dashboard";
+    if (/\b(marketing|campaign|lead|conversion|impression|clicks)\b/.test(p)) return "Marketing Dashboard";
+    if (/\b(customer|clients|retention|repeat purchase)\b/.test(p)) return "Customer Dashboard";
+    if (/\b(production|manufacturing|factory|output)\b/.test(p)) return "Production Dashboard";
+    if (/\b(finance|financial|expense|expenses|budget|cash flow|income)\b/.test(p)) return "Financial Dashboard";
+    if (/\b(sales|selling|orders|revenue|products|e-commerce|ecommerce)\b/.test(p)) return "Sales Dashboard";
+    if (/\b(business|profit|performance)\b/.test(p)) return "Business Dashboard";
+    return "Data Analytics Dashboard";
+}
+
+function normalizeDashboardPrompt(prompt) {
+    let normalized = prompt.toLowerCase().replace(/\bnet\s+income\b/g, "profit");
+    [
+        [/\bventas?\b/g, "sales"], [/\bingresos?\b/g, "revenue"], [/\b(beneficio|beneficios|ganancia|ganancias)\b/g, "profit"],
+        [/\b(gastos?|coste|costes)\b/g, "expense"], [/\bproductos?\b/g, "product"], [/\bcategor[ií]as?\b/g, "category"],
+        [/\b(financier[oa]|finanzas)\b/g, "financial"], [/\binventario\b/g, "inventory"], [/\bestudiantes?\b/g, "student"],
+        [/\basistencia\b/g, "attendance"], [/\bclientes?\b/g, "customer"], [/\bproducci[oó]n\b/g, "production"],
+        [/\bazul\b/g, "blue"], [/\bverde\b/g, "green"], [/\b(morado|violeta)\b/g, "violet"],
+        [/\bmensual(?:es)?\b/g, "monthly"], [/\bsemanal(?:es)?\b/g, "weekly"], [/\bdiari(?:o|a|os|as)\b/g, "daily"],
+        [/\btrimestral(?:es)?\b/g, "quarterly"], [/\banual(?:es)?\b/g, "yearly"], [/\bfiltros?\b/g, "filter"],
+        [/\b(umsatz|erlös|erlöse)\b/g, "revenue"], [/\bgewinn\b/g, "profit"], [/\bkosten\b/g, "cost"],
+        [/\bprodukt(?:e)?\b/g, "product"], [/\bkategorie(?:n)?\b/g, "category"], [/\bmonatlich\b/g, "monthly"],
+        [/\bwöchentlich\b/g, "weekly"], [/\btäglich\b/g, "daily"], [/\bquartalsweise\b/g, "quarterly"],
+        [/\bjährlich\b/g, "yearly"], [/\bfilter\b/g, "filter"],
+        [/बिक्री/g, "sales"], [/राजस्व/g, "revenue"], [/लाभ/g, "profit"], [/खर्च/g, "expense"],
+        [/उत्पाद/g, "product"], [/श्रेणी/g, "category"], [/मासिक/g, "monthly"], [/साप्ताहिक/g, "weekly"],
+        [/दैनिक/g, "daily"], [/त्रैमासिक/g, "quarterly"], [/वार्षिक/g, "yearly"], [/फ़िल्टर|फिल्टर/g, "filter"],
+        [/वित्तीय/g, "financial"], [/इन्वेंटरी/g, "inventory"], [/छात्र/g, "student"], [/उपस्थिति/g, "attendance"],
+        [/ग्राहक/g, "customer"], [/उत्पादन/g, "production"], [/नीला/g, "blue"], [/हरा/g, "green"], [/बैंगनी/g, "violet"]
+    ].forEach(([pattern, replacement]) => { normalized = normalized.replace(pattern, replacement); });
+    return normalized;
+}
+
+function setGeneratorStatus(message, kind = "") {
+    const status = document.getElementById("generatorStatus");
+    if (!status) return;
+    status.className = `generator-status${kind ? " " + kind : ""}`;
+    status.innerText = message;
+}
+
+function resetDashboardConfig() {
+    chartTopN = 10;
+    chartCount = 5;
+    kpiCount = 6;
+    dateGranularity = "auto";
+    chartSort = "desc";
+    chartHeight = 290;
+    chartHeights = {};
+    chartTypes = { trend: "line", c2: "bar", c3: "bar", hb: "bar", dn: "doughnut" };
+    chartMeasures = {};
+    kpiMeasures = [];
+    chartOrder = ["trend", "c2", "c3", "hb", "dn"];
+    globalFilterCols = catCols.slice(0, 3);
+    chartFilters = {};
+    hiddenCharts = new Set();
+    document.querySelectorAll(".chart-type").forEach(select => {
+        const match = select.getAttribute("onchange").match(/'([^']+)'/);
+        if (match) select.value = chartTypes[match[1]] || "bar";
+    });
+    document.querySelectorAll("[data-ai-chart]").forEach(card => card.classList.remove("chart-hidden"));
+    const table = document.querySelector("[data-ai-table]");
+    if (table) table.style.display = "";
+}
+
+function clearDerivedMeasures() {
+    Object.keys(derivedMetrics).forEach(name => { numCols = numCols.filter(col => col !== name); });
+    derivedMetrics = {};
+}
+
+function saveAutomaticDashboard() {
+    autoDashboardSnapshot = {
+        selectedDashboard, measure, agg, dimFor: { ...dimFor },
+        chartTopN, chartCount, kpiCount, dateGranularity, chartSort, chartHeight, chartHeights: { ...chartHeights },
+        chartTypes: { ...chartTypes }, chartMeasures: { ...chartMeasures }, kpiMeasures: [...kpiMeasures], chartOrder: [...chartOrder],
+        globalFilterCols: [...globalFilterCols], hiddenCharts: [...hiddenCharts]
+    };
+}
+
+function restoreAutomaticDashboard() {
+    if (!autoDashboardSnapshot) {
+        pickMeasureForType();
+        resetDashboardConfig();
+        return;
+    }
+    selectedDashboard = autoDashboardSnapshot.selectedDashboard;
+    measure = autoDashboardSnapshot.measure;
+    agg = autoDashboardSnapshot.agg;
+    dimFor = { ...autoDashboardSnapshot.dimFor };
+    chartTopN = autoDashboardSnapshot.chartTopN;
+    chartCount = autoDashboardSnapshot.chartCount;
+    kpiCount = autoDashboardSnapshot.kpiCount;
+    dateGranularity = autoDashboardSnapshot.dateGranularity;
+    chartSort = autoDashboardSnapshot.chartSort;
+    chartHeight = autoDashboardSnapshot.chartHeight;
+    chartHeights = { ...autoDashboardSnapshot.chartHeights };
+    chartTypes = { ...autoDashboardSnapshot.chartTypes };
+    chartMeasures = { ...autoDashboardSnapshot.chartMeasures };
+    kpiMeasures = [...autoDashboardSnapshot.kpiMeasures];
+    chartOrder = [...autoDashboardSnapshot.chartOrder];
+    globalFilterCols = [...autoDashboardSnapshot.globalFilterCols];
+    hiddenCharts = new Set(autoDashboardSnapshot.hiddenCharts);
+}
+
+function applyDashboardPrompt(prompt) {
+    const p = normalizeDashboardPrompt(prompt), notes = [];
+    if (!p) {
+        setGeneratorStatus(currentDataIsSample
+            ? "Your dashboard was generated automatically from the synthetic sample dataset. These demo metrics are not real business data."
+            : "Your dashboard was generated automatically from your uploaded data. Detected columns, metrics, date fields, and categories are used in the preview.", "success");
+        return notes;
+    }
+
+    selectedDashboard = inferDashboardType(prompt);
+    const titleMatch = prompt.match(/(?:dashboard\s+(?:title|name)|title|name)\s+(?:to|as|is)?\s*["“]?([^.!?\n"”]{2,70})/i);
+    const title = titleMatch ? titleMatch[1].trim() : selectedDashboard;
+    document.getElementById("dashboardTitle").innerText = title;
+    document.getElementById("dashName").innerText = title;
+
+    const metricRules = [
+        [/\b(profits?|margins?)\b/, /net.?profit|profit|margin/i, "profit"],
+        [/\b(revenues?|income|turnover)\b/, /revenue|income|turnover|sales.?amount|total.?amount/i, "revenue"],
+        [/\b(sales|selling)\b(?!\s+dashboard)/, /sales|selling.?price|amount|revenue/i, "sales"],
+        [/\b(costs?|expenses?|spend|budget)\b/, /cost|expense|spend|budget/i, "cost or expense"],
+        [/\b(stock|quantity|units|volume)\b/, /stock|quantity|qty|units|volume/i, "stock or quantity"],
+        [/\b(salary|payroll|wage)\b/, /salary|payroll|wage|compensation/i, "salary"],
+        [/\b(marks|score|grade|attendance)\b/, /marks|score|grade|percent|percentage|attendance/i, "marks or attendance"]
+    ];
+    const requestedMetrics = metricRules.filter(rule => rule[0].test(p)).sort((a, b) => p.search(a[0]) - p.search(b[0]));
+    const metricColumns = [];
+    requestedMetrics.forEach(rule => {
+        let column = numCols.find(c => rule[1].test(c));
+        if (!column && rule[2] === "revenue") {
+            column = numCols.find(c => /sales|selling.?price|amount|turnover/i.test(c));
+            if (column) notes.push(`No revenue column was found; using ${column} as the closest available sales metric.`);
+        }
+        if (!column && rule[2] === "profit") {
+            const salesColumn = numCols.find(c => /revenue|sales|turnover|income|amount/i.test(c));
+            const costColumn = numCols.find(c => /cost|expense/i.test(c));
+            if (salesColumn && costColumn) {
+                column = `Calculated Profit (${salesColumn} - ${costColumn})`;
+                if (!derivedMetrics[column]) {
+                    derivedMetrics[column] = { left: salesColumn, right: costColumn };
+                    numCols.push(column);
+                }
+                notes.push(`Calculated profit from the dataset as ${salesColumn} minus ${costColumn}.`);
+            }
+        }
+        if (column && !metricColumns.includes(column)) metricColumns.push(column);
+        else if (!column) notes.push(`Could not find a numeric column for ${rule[2]}; showing ${measure || "record counts"} instead.`);
+    });
+    const metricColumn = metricColumns[0] || (requestedMetrics.length ? null : numCols.find(c => p.includes(c.toLowerCase())));
+    if (metricColumn) measure = metricColumn;
+    if (metricColumns.length) {
+        kpiMeasures = metricColumns.slice(0, 5);
+        chartMeasures.trend = metricColumns[0];
+        if (metricColumns[1]) {
+            chartMeasures.c2 = metricColumns[1];
+            chartMeasures.c3 = metricColumns[2] || metricColumns[0];
+            chartMeasures.hb = metricColumns[3] || metricColumns[1];
+            chartMeasures.dn = metricColumns[4] || metricColumns[0];
+        }
+    }
+    if (measure) {
+        agg = /\b(average|avg|mean)\b/.test(p) ? "avg" :
+            (/\b(maximum|max|highest|peak)\b/.test(p) ? "max" :
+                (/\b(minimum|min|lowest)\b/.test(p) ? "min" : "sum"));
+    }
+
+    const keywordDim = [];
+    if (/category|categories/.test(p)) keywordDim.push(/category|type|segment/i);
+    if (/product|item|sku/.test(p)) keywordDim.push(/product|item|sku|name/i);
+    if (/region|location|city|state|country/.test(p)) keywordDim.push(/region|location|city|state|country/i);
+    if (/payment/.test(p)) keywordDim.push(/payment|method/i);
+    if (/department|team/.test(p)) keywordDim.push(/department|team/i);
+    if (/customer|client/.test(p)) keywordDim.push(/customer|client/i);
+    if (/student|subject|class/.test(p)) keywordDim.push(/student|subject|class|grade/i);
+    const requestedDims = dimCols.filter(c => p.includes(c.toLowerCase())).sort((a, b) => p.indexOf(a.toLowerCase()) - p.indexOf(b.toLowerCase()));
+    const chosenDims = [...requestedDims];
+    keywordDim.forEach(re => {
+        const found = dimCols.find(c => re.test(c));
+        if (found && !chosenDims.includes(found)) chosenDims.push(found);
+        else if (!found) notes.push(`No matching category column was found for "${re.source.split("|")[0]}".`);
+    });
+    const dims = [...chosenDims, ...dimCols.filter(c => !chosenDims.includes(c))];
+    if (dims.length) {
+        dimFor.c2 = dims[0]; dimFor.stack = dims[0];
+        dimFor.c3 = dims[1 % dims.length]; dimFor.hb = dims[2 % dims.length];
+        dimFor.dn = dims[3 % dims.length]; dimFor.tp = dims[1 % dims.length];
+    }
+
+    const countMatch = p.match(/\b(\d+|one|two|three|four|five|six)\s+(?:charts?|graphs?)\b/);
+    const numberWords = { one:1, two:2, three:3, four:4, five:5, six:5 };
+    if (countMatch) {
+        const requestedCount = Number(countMatch[1]) || numberWords[countMatch[1]];
+        chartCount = Math.max(1, Math.min(5, requestedCount));
+        if (requestedCount > 5) notes.push("This dashboard supports up to five main charts; showing five.");
+    }
+    if (/\badd\s+(?:a\s+)?(?:new\s+)?chart\b/.test(p) && !/\bchart\s+[2-5]\b/.test(p)) chartCount = Math.min(5, chartCount + 1);
+    const topMatch = p.match(/\b(?:top|bottom)\s+(\d{1,2})\b/);
+    if (topMatch) chartTopN = Math.max(1, Math.min(50, Number(topMatch[1])));
+    chartSort = /\b(bottom|lowest|least|worst)\b/.test(p) ? "asc" : "desc";
+    if (/\b(only important|important kpis|few kpis|three kpis)\b/.test(p)) kpiCount = 3;
+    if (/\b(all|every)\s+(?:important\s+)?kpis?\b/.test(p)) kpiCount = 6;
+    const resizeMatch = p.match(/\bchart\s*([1-5])\s+(larger|bigger|taller|smaller|compact)\b/);
+    const size = /\b(smaller|compact)\b/.test(p) ? 230 : 360;
+    if (resizeMatch) chartHeights[{ "1":"trend", "2":"c2", "3":"c3", "4":"hb", "5":"dn" }[resizeMatch[1]]] = size;
+    else if (/\b(make|resize|set)\s+(?:the\s+)?(?:all\s+)?charts?\s+(larger|bigger|taller|smaller|compact)\b/.test(p)) chartHeight = size;
+
+    if (/\b(daily|per day|by day)\b/.test(p)) dateGranularity = "day";
+    else if (/\b(weekly|per week|by week)\b/.test(p)) dateGranularity = "week";
+    else if (/\b(monthly|per month|by month)\b/.test(p)) dateGranularity = "month";
+    else if (/\b(quarterly|per quarter|by quarter)\b/.test(p)) dateGranularity = "quarter";
+    else if (/\b(yearly|annually|per year|by year)\b/.test(p)) dateGranularity = "year";
+    if (dateGranularity !== "auto" && !dateCol) notes.push("Date grouping was requested, but no date column was detected.");
+
+    const type = /\b(doughnut|donut)\b/.test(p) ? "doughnut" : (/\b(pie)\b/.test(p) ? "pie" : (/\b(line)\b/.test(p) ? "line" : (/\b(bar)\b/.test(p) ? "bar" : null)));
+    const typeTarget = p.match(/\b(?:chart|graph)\s*([1-5])\b/);
+    if (type && typeTarget) {
+        const chartKey = { "1": "trend", "2": "c2", "3": "c3", "4": "hb", "5": "dn" }[typeTarget[1]];
+        if (chartKey === "trend" && type !== "line" && type !== "bar") notes.push("The trend chart supports line or bar; keeping its current type.");
+        else chartTypes[chartKey] = type;
+    } else if (type) ["c2", "c3", "hb"].forEach(id => { chartTypes[id] = type; });
+    if (/\b(clear|remove|reset)\s+(?:all\s+)?filters\b/.test(p)) {
+        filters = {};
+        chartFilters = {};
+    }
+    if (/\b(dark blue|blue theme|blue)\b/.test(p)) setTheme("navy");
+    else if (/\b(green|emerald)\b/.test(p)) setTheme("emerald");
+    else if (/\b(purple|violet|colorful|colourful)\b/.test(p)) setTheme("violet");
+    else if (/\b(red|crimson)\b/.test(p)) setTheme("crimson");
+    else if (/\b(orange|amber|sunset)\b/.test(p)) setTheme("sunset");
+    else if (/\b(light|paper|white)\s+(?:theme|background|dashboard)?\b/.test(p)) setTheme("light");
+
+    if (/filter|slicer/.test(p)) {
+        const requestedFilterDims = dims.filter(c => requestedDims.includes(c) || keywordDim.some(re => re.test(c)));
+        globalFilterCols = [...new Set([...globalFilterCols, ...requestedFilterDims])].slice(0, 5);
+        if (/date|time|month|year/.test(p) && !dateCol) notes.push("A date filter was requested, but no date column was detected.");
+    }
+    if (/\b(hide|remove)\s+(?:the\s+)?table\b/.test(p)) {
+        const table = document.querySelector("[data-ai-table]");
+        if (table) table.style.display = "none";
+    } else if (/\b(show|add)\s+(?:the\s+)?table\b/.test(p)) {
+        const table = document.querySelector("[data-ai-table]");
+        if (table) table.style.display = "";
+    }
+    const chartKeys = ["trend", "c2", "c3", "hb", "dn"];
+    chartKeys.forEach(key => {
+        if (new RegExp(`\\b(?:hide|remove)\\s+(?:the\\s+)?${key === "trend" ? "(?:trend|time)" : key === "c2" ? "(?:chart 2|second chart)" : key === "c3" ? "(?:chart 3|third chart)" : key === "hb" ? "(?:chart 4|fourth chart)" : "(?:chart 5|fifth chart|breakdown chart)"}`).test(p)) hiddenCharts.add(key);
+        if (new RegExp(`\\b(?:show|add)\\s+(?:the\\s+)?${key === "trend" ? "(?:trend|time)" : key === "c2" ? "(?:chart 2|second chart)" : key === "c3" ? "(?:chart 3|third chart)" : key === "hb" ? "(?:chart 4|fourth chart)" : "(?:chart 5|fifth chart|breakdown chart)"}`).test(p)) hiddenCharts.delete(key);
+    });
+    if (/\b(hide|remove)\s+all\s+charts\b/.test(p)) hiddenCharts = new Set(chartKeys);
+    if (/\b(show|add)\s+all\s+charts\b/.test(p)) hiddenCharts.clear();
+    const reorderMatch = p.match(/\b(?:move|put|place|rearrange)\s+(?:the\s+)?(trend|chart\s*[2-5]|second chart|third chart|fourth chart|fifth chart)\s*(?:chart)?\s+(first|last)\b/);
+    if (reorderMatch) {
+        const aliases = { trend: "trend", "chart2": "c2", "second chart": "c2", "chart3": "c3", "third chart": "c3", "chart4": "hb", "fourth chart": "hb", "chart5": "dn", "fifth chart": "dn" };
+        const key = aliases[reorderMatch[1].replace(/\s+/g, "")] || aliases[reorderMatch[1]];
+        if (key) {
+            chartOrder = chartOrder.filter(item => item !== key);
+            if (reorderMatch[2] === "first") chartOrder.unshift(key);
+            else chartOrder.push(key);
+        }
+    }
+
+    if (notes.length) setGeneratorStatus(`Dashboard updated using your data. ${notes.join(" ")}`, "warning");
+    else setGeneratorStatus("Dashboard updated from your instructions using the detected dataset fields. This safe, local rule-based interpreter does not execute prompt code.", "success");
+    return notes;
+}
+
+function generateDashboard() {
+    if (!rawData.length) {
+        setGeneratorStatus("Upload a CSV or Excel dataset, or choose Use Sample Dataset, before generating a dashboard.", "error");
+        document.getElementById("datasetEmptyState").style.display = "block";
+        return;
+    }
+    const prompt = document.getElementById("dashboardPrompt").value.trim();
+    if (!prompt) {
+        restoreAutomaticDashboard();
+        document.getElementById("dashboardTitle").innerText = selectedDashboard;
+        document.getElementById("dashName").innerText = selectedDashboard;
+        applyDashboardPrompt("");
+    } else {
+        clearDerivedMeasures();
+        pickMeasureForType();
+        resetDashboardConfig();
+        applyDashboardPrompt(prompt);
+    }
+    initControls();
+    renderAll();
+}
+
+function improveDashboard() {
+    if (!rawData.length) {
+        generateDashboard();
+        return;
+    }
+    const prompt = document.getElementById("dashboardPrompt").value.trim();
+    if (!prompt) {
+        useDefaultDashboard();
+        setGeneratorStatus("No new instruction was entered, so the automatic dashboard was restored.", "success");
+        return;
+    }
+    applyDashboardPrompt(prompt);
+    initControls();
+    renderAll();
+}
+
+function useDefaultDashboard() {
+    if (!rawData.length) {
+        setGeneratorStatus("Upload a CSV or Excel dataset, or choose Use Sample Dataset, to create the automatic dashboard.", "warning");
+        return;
+    }
+    document.getElementById("dashboardPrompt").value = "";
+    clearDerivedMeasures();
+    restoreAutomaticDashboard();
+    document.getElementById("dashboardTitle").innerText = selectedDashboard;
+    document.getElementById("dashName").innerText = selectedDashboard;
+    resetFilter();
+    initControls();
+    renderAll();
+    setGeneratorStatus("Your automatic dashboard was restored from the detected dataset fields and values.", "success");
+}
+
+function resetDashboardGenerator() {
+    document.getElementById("dashboardPrompt").value = "";
+    if (!rawData.length) {
+        resetDashboardConfig();
+        setGeneratorStatus("Prompt cleared. Upload a dataset or use the sample dataset to generate a dashboard.", "warning");
+        return;
+    }
+    useDefaultDashboard();
+}
+
+function changeChartType(id, type) {
+    if (!["bar", "line", "doughnut", "pie"].includes(type)) return;
+    chartTypes[id] = type;
+    renderAll();
+}
+
+function applyDashboardLayout() {
+    const visibleCharts = chartOrder.filter(key => !hiddenCharts.has(key)).slice(0, chartCount);
+    const trendsNav = document.querySelector('#dzNav button[data-page="Trends"]');
+    if (trendsNav) trendsNav.style.display = chartCount <= 3 ? "none" : "";
+    if (chartCount <= 3 && currentPage === "Trends") {
+        currentPage = "Main";
+        document.getElementById("pageTrends").classList.remove("show");
+        document.getElementById("pageMain").classList.add("show");
+        document.querySelectorAll("#dzNav button[data-page]").forEach(button => button.classList.toggle("active", button.dataset.page === "Main"));
+    }
+    document.querySelectorAll("[data-ai-chart]").forEach(card => {
+        const key = card.dataset.aiChart;
+        const visible = visibleCharts.includes(key);
+        card.classList.toggle("chart-hidden", !visible);
+        card.style.height = `${chartHeights[key] || chartHeight}px`;
+    });
+    chartOrder.forEach((key, index) => {
+        const card = document.querySelector(`[data-ai-chart="${key}"]`);
+        if (card) card.style.order = index;
+    });
+    const table = document.querySelector("[data-ai-table]");
+    if (table) table.style.order = chartOrder.length;
+    document.querySelectorAll(".chart-type").forEach(select => {
+        const match = select.getAttribute("onchange").match(/'([^']+)'/);
+        if (match && chartTypes[match[1]]) select.value = chartTypes[match[1]];
+    });
+}
+
+function processDataset(data, fileName, isSample) {
+    const st = document.getElementById("uploadStatus");
+    const rows = normaliseRows(data || []);
+    if (rows.length === 0) { st.className = "upload-status error"; st.innerText = "File contains no records."; return; }
+    rawData = rows;
+    currentDataIsSample = Boolean(isSample);
+    derivedMetrics = {};
+    filters = {}; dimFor = {};
+    analyseColumns();
+    pickMeasureForType();
+    resetDashboardConfig();
+    saveAutomaticDashboard();
+    document.getElementById("dashCanvas").style.display = "block";
+    document.getElementById("datasetEmptyState").style.display = "none";
+    const prompt = (document.getElementById("dashboardPrompt")?.value || "").trim();
+    applyDashboardPrompt(prompt);
+    initControls();
+    st.className = "upload-status success";
+    st.innerText = isSample
+        ? `Showing synthetic sample data for demonstration only, not real business metrics. ${prompt ? "Custom dashboard request applied." : "Automatic sample dashboard loaded."} Upload your own file to replace it.`
+        : `✓ Loaded ${rows.length} records, ${Object.keys(colMeta).length} columns from ${fileName}${prompt ? " · Custom dashboard request applied" : " · Automatically generated from uploaded data"}`;
+    renderAll();
+}
+
+function loadSampleData(type) {
+    const regions = ["North", "South", "East", "West"], cats = ["Retail", "Wholesale", "Online", "Corporate"], prods = ["Product Alpha", "Product Beta", "Product Gamma", "Product Delta", "Product Omega"];
+    const rows = []; const start = new Date(2026, 5, 1);
+    for (let i = 0; i < 150; i++) {
+        const d = new Date(start.getTime() + i * 86400000);
+        const sales = Math.round(1500 + Math.random() * 4500), cost = Math.round(900 + Math.random() * 2500);
+        rows.push({ Date: dayKey(d), Region: regions[i % 4], Category: cats[(i * 3 + 1) % 4], Product: prods[(i * 7) % 5], Sales: sales, Cost: cost, Profit: sales - cost, Units: Math.round(5 + Math.random() * 25) });
+    }
+    processDataset(rows, "sample", true);
+}
+
+/* =====================================================================
+   COLUMN DETECTION  (this is what makes the fields change with every file)
+===================================================================== */
+function analyseColumns() {
+    const keys = []; rawData.slice(0, 100).forEach(r => Object.keys(r).forEach(k => { if (!keys.includes(k)) keys.push(k); }));
+    const sample = rawData.slice(0, 300);
+    colMeta = {}; numCols = []; catCols = []; dateCol = null;
+    const texts = [];
+    keys.forEach(k => {
+        const vals = sample.map(r => r[k]).filter(v => v !== "" && v !== null && v !== undefined);
+        if (!vals.length) return;
+        const nNum = vals.filter(v => parseNum(v) !== null).length / vals.length;
+        const nDate = vals.filter(v => parseDate(v)).length / vals.length;
+        const distinct = new Set(rawData.map(r => r[k])).size;
+        const idLike = /(^|[_\s.-])(id|no|number|code|phone|mobile|contact|pin|zip|sr|sno|roll)$/i.test(k) || /^(id|sr|s\.?no|roll)\b/i.test(k);
+        const yearLike = /year|sem|class|std|grade/i.test(k) && nNum >= .8 && vals.every(v => Number.isInteger(parseNum(v)) && parseNum(v) < 3000);
+        if (nDate >= .8 && nNum < .8) colMeta[k] = "date";
+        else if (yearLike) colMeta[k] = "cat";
+        else if (nNum >= .8 && !idLike) colMeta[k] = "num";
+        else if (distinct >= 2 && distinct <= Math.min(60, Math.max(25, rawData.length * .3))) colMeta[k] = "cat";
+        else colMeta[k] = "text";
+        if (colMeta[k] === "date" && !dateCol) dateCol = k;
+        if (colMeta[k] === "num") numCols.push(k);
+        if (colMeta[k] === "cat") catCols.push(k);
+        if (colMeta[k] === "text" && distinct >= 2) texts.push(k);
+    });
+    // categorical columns: fewest distinct values first (best for slicers)
+    const dc = k => new Set(rawData.map(r => r[k])).size;
+    catCols.sort((a, b) => dc(a) - dc(b));
+    dimCols = [...catCols, ...texts.slice(0, 6)];
+    if (dimCols.length === 0) {
+        // no text columns at all: make row groups so charts still work
+        const size = Math.max(1, Math.ceil(rawData.length / 8));
+        rawData.forEach((r, i) => { r["Row Group"] = `Rows ${Math.floor(i / size) * size + 1}-${Math.min((Math.floor(i / size) + 1) * size, rawData.length)}`; });
+        colMeta["Row Group"] = "cat"; catCols = ["Row Group"]; dimCols = ["Row Group"];
+    }
+}
+
+function pickMeasureForType() {
+    const re = PREF[selectedDashboard];
+    measure = (re && numCols.find(c => re.test(c))) || numCols[0] || null;
+    agg = !measure ? "count" : (/rate|percent|%|avg|average|score|mark|age|price|ratio/i.test(measure) ? "avg" : "sum");
+    const dims = dimCols;
+    const d = i => dims[i % dims.length];
+    dimFor = { c2: d(0), c3: d(1), hb: d(2), dn: d(3), stack: d(0), tp: d(1) };
+}
+
+/* =====================================================================
+   CONTROLS (slicers + measure + aggregation + per-chart field pickers)
+===================================================================== */
+function distinctVals(col) { return [...new Set(rawData.map(r => r[col]))].filter(v => v !== "" && v !== null && v !== undefined).map(String).sort((a, b) => a.localeCompare(b, undefined, { numeric: true })); }
+
+function initControls() {
+    const bar = document.getElementById("slicerBar");
+    let html = "";
+    const valuesByDimension = new Map(dimCols.map(col => [col, distinctVals(col)]));
+    const filterCols = (globalFilterCols.length ? globalFilterCols : catCols.slice(0, 3)).filter(c => dimCols.includes(c)).slice(0, 5);
+    filterCols.forEach(c => {
+        html += `<div class="sl"><label>${esc(c)}</label><select data-col="${esc(c)}" onchange="setFilter(this.dataset.col,this.value,true)"><option value="">All</option>${valuesByDimension.get(c).slice(0, 200).map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join("")}</select></div>`;
+    });
+    if (dateCol) {
+        const months = [...new Set(rawData.map(r => { const d = parseDate(r[dateCol]); return d ? monthKey(d) : null; }).filter(Boolean))].sort();
+        html += `<div class="sl"><label>${esc(dateCol)} (month)</label><select data-col="__period" onchange="setFilter('__period',this.value,true)"><option value="">All</option>${months.map(m => `<option value="${m}">${fmtKey(m)}</option>`).join("")}</select></div>`;
+    }
+    if (numCols.length) {
+        html += `<div class="sl"><label>Measure</label><select id="measureSel" onchange="onMeasureChange(this.value)">${numCols.map(c => `<option value="${esc(c)}" ${c === measure ? "selected" : ""}>${esc(c)}</option>`).join("")}</select></div>`;
+        html += `<div class="sl"><label>Calculation</label><select id="aggSel" onchange="onAggChange(this.value)">${[["sum", "Sum"], ["avg", "Average"], ["max", "Maximum"], ["min", "Minimum"], ["count", "Count"]].map(([v, l]) => `<option value="${v}" ${v === agg ? "selected" : ""}>${l}</option>`).join("")}</select></div>`;
+    }
+    bar.innerHTML = html;
+    // per-chart field pickers
+    ["c2", "c3", "hb", "dn", "stack", "tp"].forEach(id => {
+        const sel = document.getElementById("dim_" + id);
+        if (sel) sel.innerHTML = dimCols.map(c => `<option value="${esc(c)}" ${c === dimFor[id] ? "selected" : ""}>${esc(c)}</option>`).join("");
+    });
+    document.querySelectorAll(".chart-filter").forEach(select => {
+        const chartId = select.dataset.chartFilter;
+        const groups = dimCols.map(col => `<optgroup label="${esc(col)}">${valuesByDimension.get(col).slice(0, 200).map(value => `<option value="${esc(JSON.stringify([col, value]))}">${esc(col)}: ${esc(value)}</option>`).join("")}</optgroup>`).join("");
+        select.innerHTML = `<option value="">All data</option>${groups}`;
+        const filter = chartFilters[chartId];
+        select.value = filter ? JSON.stringify([filter.col, filter.value]) : "";
+    });
+    document.querySelectorAll(".chart-measure").forEach(select => {
+        const chartId = select.dataset.chartMeasure;
+        select.innerHTML = numCols.map(col => `<option value="${esc(col)}">${esc(col)}</option>`).join("");
+        select.disabled = numCols.length === 0;
+        select.value = chartMeasures[chartId] || measure || "";
+    });
+    document.querySelectorAll(".chart-type").forEach(select => {
+        const match = select.getAttribute("onchange").match(/'([^']+)'/);
+        if (match && chartTypes[match[1]]) select.value = chartTypes[match[1]];
+    });
+}
+function onMeasureChange(v) { measure = v; chartMeasures = {}; kpiMeasures = []; initControls(); renderAll(); }
+function onAggChange(v) { agg = v; renderAll(); }
+function changeDim(id, col) { dimFor[id] = col; renderAll(); }
+function changeChartMeasure(id, col) {
+    if (!numCols.includes(col)) return;
+    chartMeasures[id] = col;
+    renderAll();
+}
+function setChartFilter(chartId, encoded) {
+    if (!encoded) delete chartFilters[chartId];
+    else {
+        let pair;
+        try { pair = JSON.parse(encoded); }
+        catch (err) {
+            setGeneratorStatus("That chart filter could not be applied. Choose a field and value from the list.", "error");
+            return;
+        }
+        if (!Array.isArray(pair) || pair.length !== 2 || !dimCols.includes(pair[0]) || !distinctVals(pair[0]).includes(pair[1])) {
+            setGeneratorStatus("That chart filter is not available in the uploaded dataset.", "warning");
+            return;
+        }
+        chartFilters[chartId] = { col: pair[0], value: pair[1] };
+    }
+    renderAll();
+}
+function rowsForChart(chartId) {
+    const filter = chartFilters[chartId];
+    return filter ? filteredData.filter(row => String(row[filter.col]) === filter.value) : filteredData;
+}
+
+function syncSlicerValues() {
+    document.querySelectorAll("#slicerBar select[data-col]").forEach(s => { s.value = filters[s.dataset.col] || ""; });
+}
+
+/* =====================================================================
+   FILTERING  (dropdowns + clicking any chart/table row)
+===================================================================== */
+function rowPasses(r) {
+    for (const col in filters) {
+        const val = filters[col];
+        if (col === "__period") {
+            const d = parseDate(r[dateCol]);
+            if (!d || !dateMatchesPeriod(d, val)) return false;
+        }
+        else if (String(r[col]) !== val) return false;
+    }
+    return true;
+}
+function dateMatchesPeriod(d, val) {
+    if (/^\d{4}-\d{2}$/.test(val)) return monthKey(d) === val;
+    if (/^\d{4}-Q[1-4]$/.test(val)) return `${d.getFullYear()}-Q${Math.floor(d.getMonth() / 3) + 1}` === val;
+    if (/^\d{4}-\d{2}-\d{2} \(week\)$/.test(val)) {
+        const monday = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
+        return `${dayKey(monday)} (week)` === val;
+    }
+    if (/^\d{4}$/.test(val)) return String(d.getFullYear()) === val;
+    return dayKey(d) === val;
+}
+function setFilter(col, val, fromDropdown) {
+    if (!col) return;
+    if (!val || (!fromDropdown && filters[col] === val)) delete filters[col];
+    else filters[col] = val;
+    renderAll();
+}
+function resetFilter() {
+    filters = {};
+    chartFilters = {};
+    document.querySelectorAll(".chart-filter").forEach(select => { select.value = ""; });
+    const ds = document.getElementById("dataSearch"); if (ds) ds.value = "";
+    renderAll();
+}
+
+function renderChips() {
+    const bar = document.getElementById("chipBar");
+    const keys = Object.keys(filters);
+    if (!keys.length) { bar.innerHTML = ""; return; }
+    bar.innerHTML = `<span class="chip-hint">Filters applied to every chart:</span>` + keys.map(k => `<span class="chip">${esc(k === "__period" ? dateCol : k)}: <b>${esc(k === "__period" ? fmtKey(filters[k]) : filters[k])}</b><button type="button" aria-label="Remove filter" onclick="setFilter('${k.replace(/'/g, "\\'")}','',true)">✕</button></span>`).join("");
+}
+
+/* =====================================================================
+   AGGREGATION
+===================================================================== */
+function aggregate(rows, metric = measure) {
+    if (!metric || agg === "count") return rows.length;
+    const v = rows.map(row => measureValue(row, metric)).filter(x => x !== null);
+    if (!v.length) return 0;
+    if (agg === "sum") return v.reduce((a, b) => a + b, 0);
+    if (agg === "avg") return v.reduce((a, b) => a + b, 0) / v.length;
+    if (agg === "max") return Math.max(...v);
+    return Math.min(...v);
+}
+function measureValue(row, metric = measure) {
+    const derived = derivedMetrics[metric];
+    if (derived) {
+        const left = parseNum(row[derived.left]), right = parseNum(row[derived.right]);
+        return left === null || right === null ? null : left - right;
+    }
+    return parseNum(row[metric]);
+}
+function groupBy(rows, col, metric = measure) {
+    const m = new Map();
+    rows.forEach(r => { const k = String(r[col] ?? "").trim() || "(blank)"; if (!m.has(k)) m.set(k, []); m.get(k).push(r); });
+    return [...m.entries()].map(([key, g]) => ({ key, value: aggregate(g, metric), count: g.length, rows: g })).sort((a, b) => b.value - a.value);
+}
+function bucketRows(rows) {
+    if (dateCol) {
+        const items = rows.map(r => ({ r, d: parseDate(r[dateCol]) })).filter(x => x.d);
+        if (items.length) {
+            const m = new Map();
+            const gran = dateGranularity === "auto" ? (new Set(items.map(x => dayKey(x.d))).size <= 62 ? "day" : "month") : dateGranularity;
+            items.sort((a, b) => a.d - b.d).forEach(x => {
+                let k = monthKey(x.d);
+                if (gran === "day") k = dayKey(x.d);
+                else if (gran === "week") {
+                    const monday = new Date(x.d.getFullYear(), x.d.getMonth(), x.d.getDate());
+                    monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
+                    k = `${dayKey(monday)} (week)`;
+                } else if (gran === "quarter") k = `${x.d.getFullYear()}-Q${Math.floor(x.d.getMonth() / 3) + 1}`;
+                else if (gran === "year") k = String(x.d.getFullYear());
+                if (!m.has(k)) m.set(k, []);
+                m.get(k).push(x.r);
+            });
+            return { gran, list: [...m.entries()] };
+        }
+    }
+    const n = Math.min(24, rows.length), size = Math.max(1, Math.ceil(rows.length / n)), list = [];
+    for (let i = 0; i < rows.length; i += size) list.push([`#${i + 1}-${Math.min(i + size, rows.length)}`, rows.slice(i, i + size)]);
+    return { gran: "seq", list };
+}
+const aggName = (metric = measure) => !metric || agg === "count" ? "Records" : ({ sum: "Total", avg: "Average", max: "Max", min: "Min" }[agg] + " " + metric);
+const fmtMetric = (value, metric = measure) => fmtNum(value, agg !== "count" && isCurrencyName(metric));
+
+/* =====================================================================
+   RENDER
+===================================================================== */
+function renderAll() {
+    if (!rawData.length) return;
+    applyDashboardLayout();
+    filteredData = rawData.filter(rowPasses);
+    syncSlicerValues();
+    document.getElementById("recordsCount").innerText = `${filteredData.length.toLocaleString()} of ${rawData.length.toLocaleString()} records · ${aggName()}`;
+    renderChips();
+    renderKPIs();
+    if (currentPage === "Main") renderMainPage();
+    else if (currentPage === "Trends") renderTrendsPage();
+    else renderDataPage();
+}
+
+function renderKPIs() {
+    const rows = filteredData;
+    const vals = measure ? rows.map(row => measureValue(row)).filter(x => x !== null) : [];
+    const cur = isCurrencyName(measure);
+    const sum = vals.reduce((a, b) => a + b, 0);
+    const d0 = dimFor.c2, distinct0 = new Set(rows.map(r => r[d0])).size;
+    const second = numCols.find(c => c !== measure && !derivedMetrics[c]);
+    const secSum = second ? rows.reduce((a, r) => a + (parseNum(r[second]) || 0), 0) : null;
+    const k = [
+        { ic: "🧾", v: rows.length.toLocaleString(), l: "Total records" },
+        { ic: "💰", v: measure ? fmtNum(sum, cur) : "–", l: measure ? `Total ${measure}` : "No numeric column" },
+        { ic: "📊", v: vals.length ? fmtNum(sum / vals.length, cur) : "–", l: measure ? `Average ${measure}` : "" },
+        { ic: "🔝", v: vals.length ? fmtNum(Math.max(...vals), cur) : "–", l: measure ? `Highest ${measure}` : "" },
+        { ic: "🧩", v: distinct0.toLocaleString(), l: `Distinct ${d0}` },
+        second ? { ic: "➕", v: fmtNum(secSum, isCurrencyName(second)), l: `Total ${second}` } : { ic: "📉", v: vals.length ? fmtNum(Math.min(...vals), cur) : "–", l: measure ? `Lowest ${measure}` : "" }
+    ];
+    if (kpiMeasures.length) {
+        const selectedMetrics = kpiMeasures.map(metric => {
+            const metricValues = rows.map(row => measureValue(row, metric)).filter(value => value !== null);
+            const total = metricValues.reduce((sum, value) => sum + value, 0);
+            return { ic: "💰", v: fmtNum(total, isCurrencyName(metric)), l: `Total ${metric}` };
+        });
+        const supportingKpis = [k[0], ...k.slice(2)];
+        k.splice(0, k.length, ...selectedMetrics, ...supportingKpis);
+    }
+    document.getElementById("kpiRow").style.gridTemplateColumns = `repeat(${Math.min(kpiCount, k.length)}, minmax(0, 1fr))`;
+    document.getElementById("kpiRow").innerHTML = k.slice(0, kpiCount).map(x => `<div class="dz-kpi"><div><div class="dz-kpi-val">${esc(x.v)}</div><div class="dz-kpi-lab">${esc(x.l)}</div></div><div class="dz-kpi-ic">${x.ic}</div></div>`).join("");
+}
+
+/* ---- chart helpers ---- */
+function mk(id, cfg) {
+    const el = document.getElementById(id); if (!el) return;
+    if (charts[id]) charts[id].destroy();
+    charts[id] = new Chart(el.getContext("2d"), cfg);
+}
+const baseOpts = (extra = {}) => Object.assign({ responsive: true, maintainAspectRatio: false, animation: { duration: 350 }, plugins: { legend: { display: false } } }, extra);
+function pointer(e, els) { if (e.native && e.native.target) e.native.target.style.cursor = els.length ? "pointer" : "default"; }
+
+function barChart(canvasId, titleId, col, horizontal, limit, typeKey) {
+    const rows = rowsForChart(typeKey);
+    const metric = chartMeasures[typeKey] || measure;
+    const grouped = groupBy(rows, col, metric);
+    if (chartSort === "asc") grouped.reverse();
+    const g = grouped.slice(0, Math.min(limit, chartTopN));
+    const pal = T().palette, sel = filters[col];
+    const chartType = chartTypes[typeKey] || "bar";
+    document.getElementById(titleId).innerText = `${aggName(metric)} by ${col}${g.length ? ` · ${chartSort === "asc" ? "Bottom" : "Top"} ${g.length}` : ""}`;
+    const isCircular = chartType === "doughnut" || chartType === "pie";
+    const dataset = {
+        label: aggName(metric),
+        data: g.map(x => x.value),
+        backgroundColor: isCircular
+            ? g.map((x, i) => pal[i % pal.length] + (sel && sel !== x.key ? "55" : ""))
+            : g.map((x, i) => pal[i % pal.length] + (sel && sel !== x.key ? "55" : "")),
+        borderColor: chartType === "line" ? T().accent : T().card,
+        borderRadius: chartType === "bar" ? 4 : 0,
+        fill: chartType === "line" ? false : undefined,
+        tension: chartType === "line" ? .35 : undefined,
+        borderWidth: isCircular ? 2 : 0
+    };
+    const options = baseOpts({
+        cutout: chartType === "doughnut" ? "58%" : undefined,
+        indexAxis: horizontal ? "y" : "x",
+        onHover: pointer,
+        onClick: (e, els) => { if (els.length) setFilter(col, g[els[0].index].key); },
+        plugins: {
+            legend: { display: isCircular, position: "bottom", labels: { boxWidth: 10, font: { size: 10 } } },
+            tooltip: { callbacks: { label: c => ` ${fmtMetric(isCircular ? c.parsed : (chartType === "line" ? c.parsed.y : c.parsed[horizontal ? "x" : "y"]), metric)}  ·  ${g[c.dataIndex].count} rows` } }
+        }
+    });
+    if (!isCircular) options.scales = {
+        x: { grid: { display: !horizontal ? false : true, color: T().grid }, ticks: { callback: function (v) { return horizontal ? fmtNum(v) : this.getLabelForValue(v); }, maxRotation: 40 } },
+        y: { grid: { color: T().grid }, ticks: { callback: function (v) { return horizontal ? this.getLabelForValue(v) : fmtNum(v); } } }
+    };
+    if (chartType === "bar") dataset.maxBarThickness = 46;
+    mk(canvasId, {
+        type: chartType,
+        data: { labels: g.map(x => x.key), datasets: [dataset] },
+        options
+    });
+}
+
+function trendChart(canvasId, titleId) {
+    const mainTrend = canvasId === "c_trend";
+    const metric = mainTrend ? chartMeasures.trend || measure : measure;
+    const b = bucketRows(mainTrend ? rowsForChart("trend") : filteredData);
+    const labels = b.list.map(x => fmtKey(x[0])), values = b.list.map(x => aggregate(x[1], metric));
+    const t = T(), sel = filters.__period;
+    document.getElementById(titleId).innerText = `${aggName(metric)} over ${b.gran === "seq" ? "row sequence" : (b.gran === "auto" ? "time" : (b.gran === "day" ? "days" : `${b.gran}s`))}`;
+    const chartType = chartTypes.trend || "line";
+    mk(canvasId, {
+        type: chartType,
+        data: { labels, datasets: [{ data: values, borderColor: t.accent, backgroundColor: chartType === "bar" ? t.accent : t.accent + "33", fill: chartType !== "bar", tension: .4, pointRadius: 3, pointHoverRadius: 6, pointBackgroundColor: b.list.map(x => sel && sel === x[0] ? "#fff" : t.accent) }] },
+        options: baseOpts({
+            onHover: pointer,
+            onClick: (e, els) => { if (els.length && b.gran !== "seq") setFilter("__period", b.list[els[0].index][0]); },
+            plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => " " + fmtMetric(c.parsed.y, metric) } } },
+            scales: { x: { grid: { display: false }, ticks: { maxRotation: 45, autoSkip: true } }, y: { grid: { color: t.grid }, ticks: { callback: v => fmtNum(v) } } }
+        })
+    });
+    return b;
+}
+
+function donutChart(canvasId, titleId, col) {
+    if (chartTypes.dn !== "doughnut" && chartTypes.dn !== "pie") {
+        barChart(canvasId, titleId, col, false, chartTopN, "dn");
+        return;
+    }
+    const metric = chartMeasures.dn || measure;
+    const g = groupBy(rowsForChart("dn"), col, metric), pal = T().palette, sel = filters[col];
+    if (chartSort === "asc") g.reverse();
+    const top = g.slice(0, chartTopN), rest = g.slice(chartTopN);
+    const items = rest.length ? [...top, { key: "Others", value: rest.reduce((a, x) => a + x.value, 0), count: 0 }] : top;
+    document.getElementById(titleId).innerText = `${aggName(metric)} by ${col} · ${chartSort === "asc" ? "Bottom" : "Top"} ${top.length}`;
+    mk(canvasId, {
+        type: chartTypes.dn,
+        data: { labels: items.map(x => x.key), datasets: [{ data: items.map(x => Math.max(0, x.value)), backgroundColor: items.map((x, i) => pal[i % pal.length] + (sel && sel !== x.key ? "55" : "")), borderColor: T().card, borderWidth: 2 }] },
+        options: baseOpts({
+            cutout: "58%", onHover: pointer,
+            onClick: (e, els) => { if (els.length) { const k = items[els[0].index].key; if (k !== "Others") setFilter(col, k); } },
+            plugins: { legend: { display: true, position: "bottom", labels: { boxWidth: 10, font: { size: 10 } } }, tooltip: { callbacks: { label: c => ` ${c.label}: ${fmtMetric(c.parsed, metric)}` } } }
+        })
+    });
+}
+
+function renderGroupTable(col) {
+    const g = groupBy(filteredData, col);
+    if (chartSort === "asc") g.reverse();
+    const top = g.slice(0, chartTopN), sel = filters[col];
+    const cur = agg !== "count" && isCurrencyName(measure);
+    document.getElementById("t_table").innerText = `${chartSort === "asc" ? "Bottom" : "Top"} ${top.length} ${col} (${aggName()})`;
+    document.getElementById("tableSub").innerText = `Showing ${chartSort === "asc" ? "bottom" : "top"} ${top.length} of ${g.length} · click a row to filter`;
+    const total = aggregate(filteredData);
+    document.getElementById("groupTable").innerHTML = `<table class="dz-table"><thead><tr><th>${esc(col)}</th><th>Records</th><th>${esc(measure && agg !== "count" ? agg + " " + measure : "Count")}</th></tr></thead><tbody>` +
+        top.map((x, i) => `<tr class="clickable ${sel === x.key ? "sel" : ""}" data-k="${i}"><td>${esc(x.key)}</td><td>${x.count}</td><td>${fmtNum(x.value, cur)}</td></tr>`).join("") +
+        `</tbody><tfoot><tr><td>Total</td><td>${filteredData.length}</td><td>${fmtNum(total, cur)}</td></tr></tfoot></table>`;
+    document.querySelectorAll("#groupTable tr.clickable").forEach(tr => tr.onclick = () => setFilter(col, top[+tr.dataset.k].key));
+}
+
+function renderMainPage() {
+    trendChart("c_trend", "t_trend");
+    barChart("c_c2", "t_c2", dimFor.c2, false, chartTopN, "c2");
+    barChart("c_c3", "t_c3", dimFor.c3, false, chartTopN, "c3");
+    renderGroupTable(dimFor.c2);
+    barChart("c_hb", "t_hb", dimFor.hb, true, chartTopN, "hb");
+    donutChart("c_dn", "t_dn", dimFor.dn);
+}
+
+function renderTrendsPage() {
+    const b = trendChart("c_trend2", "t_trend2");
+    // stacked bars: top 5 values of a dimension over time
+    const col = dimFor.stack, pal = T().palette;
+    const topKeys = groupBy(filteredData, col).slice(0, 5).map(x => x.key);
+    document.getElementById("t_stack").innerText = `${aggName()} over time by ${col}`;
+    mk("c_stack", {
+        type: "bar",
+        data: { labels: b.list.map(x => fmtKey(x[0])), datasets: topKeys.map((k, i) => ({ label: k, data: b.list.map(x => aggregate(x[1].filter(r => (String(r[col] ?? "").trim() || "(blank)") === k))), backgroundColor: pal[i % pal.length], borderRadius: 2, stack: "s" })) },
+        options: baseOpts({
+            onHover: pointer,
+            onClick: (e, els, chart) => { if (els.length) setFilter(col, topKeys[els[0].datasetIndex]); },
+            plugins: { legend: { display: true, position: "bottom", labels: { boxWidth: 10, font: { size: 10 } } } },
+            scales: { x: { stacked: true, grid: { display: false }, ticks: { maxRotation: 45 } }, y: { stacked: true, grid: { color: T().grid }, ticks: { callback: v => fmtNum(v) } } }
+        })
+    });
+    barChart("c_tp", "t_tp", dimFor.tp, true, 10);
+}
+
+function renderDataPage() {
+    if (!rawData.length) return;
+    filteredData = rawData.filter(rowPasses);
+    const q = (document.getElementById("dataSearch")?.value || "").toLowerCase();
+    const cols = Object.keys(rawData[0]).filter(c => c !== "Row Group" || colMeta[c] === "cat" && Object.keys(rawData[0]).length === 1 || true);
+    const rows = filteredData.filter(r => !q || cols.some(c => String(r[c]).toLowerCase().includes(q)));
+    document.getElementById("dataThead").innerHTML = `<tr>${cols.map(c => `<th>${esc(c)}</th>`).join("")}</tr>`;
+    document.getElementById("dataTbody").innerHTML = rows.slice(0, 300).map(r => `<tr>${cols.map(c => `<td>${esc(r[c])}</td>`).join("")}</tr>`).join("");
+    document.getElementById("tablePreviewCount").innerText = `Showing ${Math.min(rows.length, 300)} of ${rows.length}`;
+}
+
+/* =====================================================================
+   REPORT
+===================================================================== */
+function createReport(keepPage) {
+    if (!rawData.length) return;
+    filteredData = rawData.filter(rowPasses);
+    document.getElementById("dashboardPage").style.display = "none";
+    document.getElementById("reportPage").style.display = "block";
+    const dashboardName = document.getElementById("dashboardTitle").innerText || selectedDashboard;
+    document.getElementById("reportHeaderTitle").innerText = `${dashboardName} – Executive Analysis`;
+    document.getElementById("reportGeneratedDate").innerText = `Generated on ${new Date().toLocaleDateString("en-IN")} at ${new Date().toLocaleTimeString("en-IN")}`;
+    buildThemePickers();
+
+    const rows = filteredData, cur = agg !== "count" && isCurrencyName(measure);
+    const total = aggregate(rows);
+    const col = dimFor.c2, g = groupBy(rows, col);
+    const b = bucketRows(rows);
+    const tv = b.list.map(x => aggregate(x[1]));
+    const peakIdx = tv.length ? tv.indexOf(Math.max(...tv)) : -1;
+    const sumG = g.reduce((a, x) => a + Math.max(0, x.value), 0);
+    const filterText = Object.keys(filters).length ? Object.keys(filters).map(k => `${k === "__period" ? dateCol : k} = ${k === "__period" ? fmtKey(filters[k]) : filters[k]}`).join(", ") : "none (full dataset)";
+
+    document.getElementById("reportSummaryText").innerHTML = `
+        <p>This report covers <b>${rows.length.toLocaleString()}</b> records from the <b>${esc(dashboardName)}</b>. Filters applied: <b>${esc(filterText)}</b>.</p>
+        <p>${esc(aggName())} is <b>${fmtNum(total, cur)}</b>${rows.length && agg !== "count" ? ` across ${rows.length} records` : ""}.</p>
+        ${g.length ? `<p>By <b>${esc(col)}</b>, <b>${esc(g[0].key)}</b> leads with <b>${fmtNum(g[0].value, cur)}</b>${sumG > 0 ? ` (${(g[0].value / sumG * 100).toFixed(1)}% share)` : ""}. The lowest is <b>${esc(g[g.length - 1].key)}</b> at <b>${fmtNum(g[g.length - 1].value, cur)}</b>.</p>` : ""}
+        ${peakIdx >= 0 && b.gran !== "seq" ? `<p>The peak ${b.gran} is <b>${esc(fmtKey(b.list[peakIdx][0]))}</b> with <b>${fmtNum(tv[peakIdx], cur)}</b>.</p>` : ""}`;
+
+    document.getElementById("reportHighlightsGrid").innerHTML = `
+        <div class="report-highlight"><div class="report-highlight-label">RECORDS</div><div class="report-highlight-value">${rows.length.toLocaleString()}</div></div>
+        <div class="report-highlight"><div class="report-highlight-label">${esc(aggName().toUpperCase())}</div><div class="report-highlight-value">${fmtNum(total, cur)}</div></div>
+        <div class="report-highlight"><div class="report-highlight-label">TOP ${esc(col.toUpperCase())}</div><div class="report-highlight-value">${g.length ? esc(g[0].key) : "–"}</div></div>`;
+
+    const t = T(), pal = t.palette;
+    document.getElementById("rt_1").innerText = `${aggName()} over ${b.gran === "seq" ? "row sequence" : `${b.gran}s`}`;
+    document.getElementById("rt_2").innerText = `${aggName()} by ${col}`;
+    if (reportCharts.c1) reportCharts.c1.destroy();
+    if (reportCharts.c2) reportCharts.c2.destroy();
+    reportCharts.c1 = new Chart(document.getElementById("reportChart1").getContext("2d"), {
+        type: "line",
+        data: { labels: b.list.map(x => fmtKey(x[0])), datasets: [{ data: tv, borderColor: t.accent, backgroundColor: t.accent + "33", fill: true, tension: .4, pointRadius: 3 }] },
+        options: baseOpts({ scales: { x: { grid: { display: false }, ticks: { maxRotation: 45 } }, y: { grid: { color: t.grid }, ticks: { callback: v => fmtNum(v) } } } })
+    });
+    const top = g.slice(0, 8);
+    reportCharts.c2 = new Chart(document.getElementById("reportChart2").getContext("2d"), {
+        type: "bar",
+        data: { labels: top.map(x => x.key), datasets: [{ data: top.map(x => x.value), backgroundColor: top.map((x, i) => pal[i % pal.length]), borderRadius: 4, maxBarThickness: 46 }] },
+        options: baseOpts({ scales: { x: { grid: { display: false }, ticks: { maxRotation: 40 } }, y: { grid: { color: t.grid }, ticks: { callback: v => fmtNum(v) } } } })
+    });
+}
+
+/* =====================================================================
+   PAYMENT + PDF  (PDF uses the theme the user selected)
+===================================================================== */
+function openPaymentModal(target = "dashboard") {
+    if (!rawData.length) {
+        setGeneratorStatus("Upload a dataset or use the sample dataset before downloading dashboard exports.", "error");
+        return;
+    }
+    pendingDownloadTarget = target;
+    const pt = document.getElementById("payTheme"); if (pt) pt.innerText = T().name;
+    document.getElementById("paymentOverlay").classList.add("show");
+}
+function closePaymentModal() { document.getElementById("paymentOverlay").classList.remove("show"); }
+function closePaymentOnOverlay(e) { if (e.target.id === "paymentOverlay") closePaymentModal(); }
+
+async function submitUtrPayment() {
+    const utr = document.getElementById("utrInput").value.trim();
+    if (!/^\d{12}$/.test(utr)) { alert("Please enter a valid 12-digit UTR number."); return; }
+    const feedback = document.getElementById("paymentFeedback");
+    feedback.innerText = "Verifying payment with the server...";
+    try {
+        const res = await fetch("/api/payment/submit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ utr_number: utr, method: "UPI QR (9529579858-d3cb-2@ybl)" }) });
+        const data = await res.json();
+        if (res.ok && data.success) paymentSuccess(data.receipt || {});
+        else feedback.innerText = data.message || "Payment could not be verified. No download was started.";
+    } catch (err) {
+        feedback.innerText = "Payment verification is unavailable. Please retry; no download was started.";
+    }
+}
+function launchRazorpayCheckout() {
+    document.getElementById("paymentFeedback").innerText = "Razorpay checkout is not configured for this page. Use UTR verification to continue.";
+}
+function paymentSuccess(receipt) {
+    try { window.__gwReceipt = receipt; } catch (e) {}
+    closePaymentModal();
+    downloadPDF(pendingDownloadTarget);
+}
+
+async function downloadPDF(target) {
+    const title = document.getElementById("dashboardTitle").innerText || selectedDashboard || "Dashboard";
+    const filename = title.replace(/[^\w-]+/g, "_") + "_" + T().name.replace(/[^\w-]+/g, "_");
+    const rows = rawData.filter(rowPasses);
+    try {
+        if (target === "csv") {
+            const blob = new Blob([Papa.unparse(rows)], { type: "text/csv;charset=utf-8" });
+            saveDownload(blob, `${filename}.csv`);
+            return;
+        }
+        if (target === "excel") {
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(rows), "Filtered Data");
+            XLSX.writeFile(workbook, `${filename}.xlsx`);
+            return;
+        }
+        const elem = target === "report" ? document.getElementById("reportContentArea") : document.getElementById("dashCanvas");
+        if (!elem) return;
+        const canvas = await html2canvas(elem, { scale: 2, useCORS: true, backgroundColor: T().bg });
+        if (target === "png") {
+            const link = document.createElement("a");
+            link.download = `${filename}.png`;
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+            return;
+        }
+        const w = canvas.width / 2, h = canvas.height / 2;
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({ orientation: w > h ? "l" : "p", unit: "px", format: [w, h], hotfixes: ["px_scaling"] });
+        pdf.setFillColor(T().bg); pdf.rect(0, 0, w, h, "F");
+        pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, w, h);
+        pdf.save(`${filename}.pdf`);
+    } catch (err) { alert("Dashboard download error: " + err.message); }
+}
+function saveDownload(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/* =====================================================================
+   RECEIPT
+===================================================================== */
+function openReceiptModal() {
+    const u = window.__gwUser || {}, r = window.__gwReceipt || {};
+    if (u.name || u.email) document.getElementById("rcptName").innerText = u.name || u.email;
+    if (u.email) document.getElementById("rcptEmail").innerText = u.email;
+    if (r.receipt_no) document.getElementById("rcptNo").innerText = r.receipt_no;
+    document.getElementById("receiptModal").classList.add("show");
+}
+function closeReceiptModal() { document.getElementById("receiptModal").classList.remove("show"); }
+function closeReceiptOnOverlay(e) { if (e.target.id === "receiptModal") closeReceiptModal(); }
+function printReceiptFromModal() { window.print(); }
+function downloadReceiptPDFFromModal() { window.print(); }
+</script>
+
+<!-- ===== GW ASSISTANT (Swati) ===== -->
+<style>
+.gw-chat-badge{position:fixed;bottom:24px;right:24px;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#06b6d4);color:white;display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer;box-shadow:0 10px 25px rgba(99,102,241,.4);z-index:9000;transition:.2s;}
+.gw-chat-badge:hover{transform:scale(1.08);}
+.gw-chat-window{display:none;position:fixed;bottom:90px;right:24px;width:380px;max-width:calc(100vw - 32px);height:500px;background:#10182b;border:1px solid #26334a;border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.5);z-index:9000;flex-direction:column;overflow:hidden;}
+.gw-chat-window.show{display:flex;}
+.gw-chat-head{background:#16243b;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #26334a;}
+.gw-chat-msgs{flex:1;padding:16px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;}
+.gw-msg-bot{background:#1b2a47;padding:10px 14px;border-radius:12px;font-size:13px;line-height:1.5;max-width:85%;color:#e2e8f0;}
+.gw-chat-input-box{padding:10px;border-top:1px solid #26334a;display:flex;gap:8px;}
+.gw-chat-input-box input{flex:1;padding:8px 12px;background:#16243b;border:1px solid #26334a;border-radius:8px;color:white;outline:none;}
+.gw-chat-input-box button{background:#38bdf8;color:#0b1325;border:none;border-radius:8px;padding:8px 14px;cursor:pointer;font-weight:bold;}
+</style>
+
+<div class="gw-chat-badge" onclick="document.getElementById('gwChat').classList.toggle('show')"
+     style="width:56px;height:56px;">
+  <img src="http://127.0.0.1:5000/clean_high_resolution_modern_ui_style_icon_brand.png"
+       alt="GW Assistant"
+       style="width:56px;height:56px;object-fit:cover;border-radius:50%;display:block;">
+</div>
+<div class="gw-chat-window" id="gwChat">
+    <div class="gw-chat-head">
+        <div style="font-weight:bold;font-size:14px;">Swati – GW Assistant</div>
+        <button style="background:none;border:none;color:#94a3b8;font-size:18px;cursor:pointer;" onclick="document.getElementById('gwChat').classList.remove('show')">&times;</button>
+    </div>
+    <div class="gw-chat-msgs" id="gwMsgs">
+        <div class="gw-msg-bot">Hello! I'm Swati. I can help you generate any of the 10 dashboards or assist with dataset analysis. How can I help?</div>
+    </div>
+    <div class="gw-chat-input-box">
+        <input type="text" id="gwInp" placeholder="Ask a question..." onkeydown="if(event.key==='Enter') sendGwMsg()">
+        <button onclick="sendGwMsg()">Send</button>
+    </div>
+</div>
+
+<script>
+function sendGwMsg() {
+    const inp = document.getElementById("gwInp");
+    const q = inp.value.trim();
+    if (!q) return;
+    inp.value = "";
+    const msgs = document.getElementById("gwMsgs");
+    const u = document.createElement("div");
+    u.style.cssText = "align-self:flex-end;background:#38bdf8;color:#0b1325;padding:8px 12px;border-radius:12px;font-size:13px;font-weight:bold;max-width:85%;";
+    u.innerText = q;
+    msgs.appendChild(u);
+    setTimeout(() => {
+        const b = document.createElement("div");
+        b.className = "gw-msg-bot";
+        const ql = q.toLowerCase();
+        if (ql.includes("theme")) b.innerText = "Pick a theme in the 'Choose dashboard theme' box. Your PDF will download in that theme.";
+        else if (ql.includes("filter")) b.innerText = "Click any bar, slice, table row or line point to filter all charts together. Use the dropdowns at the top for more filters.";
+        else if (ql.includes("dashboard") || ql.includes("business")) b.innerText = `You are currently in ${selectedDashboard || "the Dashboard Generator"}. Upload your file above to compute real-time KPIs and download full PDF reports.`;
+        else b.innerText = "I have noted your question! You can upload your dataset anytime above or explore our 10 dashboard templates.";
+        msgs.appendChild(b);
+        msgs.scrollTop = msgs.scrollHeight;
+    }, 400);
+}
+</script>
+<!-- ===== END GW ASSISTANT ===== -->
+
+</body>
+</html>

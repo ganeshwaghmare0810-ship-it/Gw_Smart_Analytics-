@@ -1,0 +1,939 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Gw Smart Analytics - Features</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f4f7fb;
+            color: #172033;
+            line-height: 1.6;
+        }
+
+        /* ================= HEADER ================= */
+
+        .header {
+            background: linear-gradient(135deg, #071b45, #0d47a1);
+            color: white;
+            padding: 16px 6%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 18px rgba(0,0,0,0.15);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand img {
+            width: 48px;
+            height: 48px;
+            object-fit: contain;
+            border-radius: 10px;
+        }
+
+        .brand h2 {
+            font-size: 21px;
+        }
+
+        .home-btn {
+            text-decoration: none;
+            color: white;
+            padding: 9px 17px;
+            border-radius: 9px;
+            background: rgba(255,255,255,0.14);
+            border: 1px solid rgba(255,255,255,0.28);
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .home-btn:hover {
+            background: white;
+            color: #0d47a1;
+        }
+
+
+        /* ================= HERO ================= */
+
+        .hero {
+            background: white;
+            text-align: center;
+            padding: 65px 20px 50px;
+        }
+
+        .hero h1 {
+            color: #0d47a1;
+            font-size: 42px;
+            margin-bottom: 12px;
+        }
+
+        .hero p {
+            max-width: 780px;
+            margin: auto;
+            color: #667085;
+            font-size: 17px;
+        }
+
+
+        /* ================= CONTAINER ================= */
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 45px auto 70px;
+        }
+
+
+        /* ================= SECTION TITLE ================= */
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .section-title h2 {
+            color: #0d47a1;
+            font-size: 30px;
+            margin-bottom: 8px;
+        }
+
+        .section-title p {
+            color: #667085;
+        }
+
+
+        /* ================= FEATURE GRID ================= */
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 22px;
+        }
+
+        .feature-card {
+            background: white;
+            border: 1px solid #e4eaf2;
+            border-radius: 18px;
+            padding: 28px 23px;
+            box-shadow: 0 7px 23px rgba(0,0,0,0.07);
+            transition: 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-7px);
+            box-shadow: 0 14px 32px rgba(0,0,0,0.12);
+            border-color: #b9d0f5;
+        }
+
+        .feature-icon {
+            width: 58px;
+            height: 58px;
+            border-radius: 15px;
+            background: #eaf2ff;
+            color: #0d47a1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 29px;
+            margin-bottom: 17px;
+        }
+
+        .feature-card h3 {
+            color: #172b4d;
+            font-size: 20px;
+            margin-bottom: 9px;
+        }
+
+        .feature-card p {
+            color: #667085;
+            font-size: 14px;
+        }
+
+
+        /* ================= DASHBOARD TYPES ================= */
+
+        .dashboard-section {
+            margin-top: 60px;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+        }
+
+        .dashboard-card {
+            background: white;
+            border: 1px solid #e5eaf1;
+            border-radius: 14px;
+            padding: 20px 10px;
+            text-align: center;
+            box-shadow: 0 5px 17px rgba(0,0,0,0.06);
+            transition: 0.3s;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-4px);
+            border-color: #0d47a1;
+        }
+
+        .dashboard-card .icon {
+            font-size: 28px;
+            margin-bottom: 7px;
+        }
+
+        .dashboard-card h4 {
+            color: #263b5c;
+            font-size: 14px;
+        }
+
+
+        /* ================= ANALYTICS ================= */
+
+        .analytics-section {
+            margin-top: 60px;
+        }
+
+        .analytics-box {
+            background: linear-gradient(135deg, #071b45, #0d47a1);
+            color: white;
+            padding: 38px 30px;
+            border-radius: 22px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.14);
+        }
+
+        .analytics-box h2 {
+            text-align: center;
+            font-size: 29px;
+            margin-bottom: 25px;
+        }
+
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        .analytics-item {
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 13px;
+            padding: 17px;
+            text-align: center;
+        }
+
+        .analytics-item span {
+            display: block;
+            font-size: 25px;
+            margin-bottom: 5px;
+        }
+
+        .analytics-item p {
+            font-size: 14px;
+            color: #e0eaff;
+        }
+
+
+        /* ================= PREMIUM ================= */
+
+        .premium-section {
+            margin-top: 60px;
+        }
+
+        .premium-box {
+            background: white;
+            border-radius: 22px;
+            padding: 40px 30px;
+            text-align: center;
+            border: 1px solid #e3e9f2;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.07);
+        }
+
+        .premium-box .premium-icon {
+            font-size: 45px;
+            margin-bottom: 10px;
+        }
+
+        .premium-box h2 {
+            color: #0d47a1;
+            margin-bottom: 10px;
+        }
+
+        .premium-box > p {
+            color: #667085;
+            max-width: 700px;
+            margin: 0 auto 25px;
+        }
+
+        .premium-list {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            list-style: none;
+        }
+
+        .premium-list li {
+            background: #eef5ff;
+            color: #0d47a1;
+            padding: 10px 15px;
+            border-radius: 22px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+
+        /* ================= WORKFLOW ================= */
+
+        .workflow-section {
+            margin-top: 60px;
+        }
+
+        .workflow {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .workflow-item {
+            background: white;
+            border: 1px solid #dfe6ef;
+            padding: 15px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            color: #172b4d;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.06);
+        }
+
+        .workflow-arrow {
+            color: #0d47a1;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+
+        /* ================= CTA ================= */
+
+        .cta {
+            margin-top: 60px;
+            background: linear-gradient(135deg, #071b45, #0d47a1);
+            color: white;
+            text-align: center;
+            padding: 45px 20px;
+            border-radius: 22px;
+        }
+
+        .cta h2 {
+            font-size: 30px;
+            margin-bottom: 10px;
+        }
+
+        .cta p {
+            color: #dbe7ff;
+            margin-bottom: 22px;
+        }
+
+        .cta-btn {
+            display: inline-block;
+            text-decoration: none;
+            background: white;
+            color: #0d47a1;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .cta-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 18px rgba(0,0,0,0.2);
+        }
+
+
+        /* ================= FOOTER ================= */
+
+        .footer {
+            background: #071b45;
+            color: #cbd5e1;
+            text-align: center;
+            padding: 28px 15px;
+        }
+
+        .footer strong {
+            color: white;
+            font-size: 16px;
+        }
+
+        .footer p {
+            font-size: 13px;
+            margin-top: 5px;
+        }
+
+
+        /* ================= RESPONSIVE ================= */
+
+        @media (max-width: 1000px) {
+
+            .feature-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .dashboard-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .analytics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+
+        @media (max-width: 650px) {
+
+            .header {
+                padding: 13px 4%;
+            }
+
+            .brand h2 {
+                font-size: 17px;
+            }
+
+            .brand img {
+                width: 40px;
+                height: 40px;
+            }
+
+            .hero {
+                padding: 45px 15px 35px;
+            }
+
+            .hero h1 {
+                font-size: 30px;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .analytics-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .workflow {
+                flex-direction: column;
+            }
+
+            .workflow-arrow {
+                transform: rotate(90deg);
+            }
+        }
+    </style>
+</head>
+
+
+<body>
+
+    <!-- ================= HEADER ================= -->
+
+   <header class="header">
+
+    <div class="brand">
+
+        <img
+            src="logo.png"
+            alt="GW Smart Analytics Logo">
+
+        <h2>GW Smart Analytics</h2>
+
+    </div>
+
+    <div class="header-buttons">
+
+        <a href="howtowoek.html" class="home-btn">
+            📖 How It Works
+        </a>
+
+        <a href="index.html" class="home-btn">
+            🏠 Home
+        </a>
+
+    </div>
+
+</header>
+
+
+    <!-- ================= HERO ================= -->
+
+    <section class="hero">
+
+        <h1>🚀 Powerful Features</h1>
+
+        <p>
+            Explore the powerful features of GW Smart Analytics designed
+            to make data analysis simple, visual and meaningful.
+        </p>
+
+    </section>
+
+
+    <main class="container">
+
+
+        <!-- ================= MAIN FEATURES ================= -->
+
+        <section>
+
+            <div class="section-title">
+
+                <h2>Everything You Need for Data Analysis</h2>
+
+                <p>
+                    Analyze, visualize and understand your data with ease.
+                </p>
+
+            </div>
+
+
+            <div class="feature-grid">
+
+
+                <div class="feature-card">
+
+                    <div class="feature-icon">📊</div>
+
+                    <h3>Interactive Dashboards</h3>
+
+                    <p>
+                        Create interactive dashboards that present
+                        important information through clear charts,
+                        graphs and performance indicators.
+                    </p>
+
+                </div>
+
+
+                <div class="feature-card">
+
+                    <div class="feature-icon">📁</div>
+
+                    <h3>Easy Data Upload</h3>
+
+                    <p>
+                        Upload your data easily and prepare it for
+                        analysis without complicated procedures.
+                    </p>
+
+                </div>
+
+
+                <div class="feature-card">
+
+                    <div class="feature-icon">📈</div>
+
+                    <h3>Data Visualization</h3>
+
+                    <p>
+                        Convert raw data into meaningful visualizations
+                        to quickly understand trends and patterns.
+                    </p>
+
+                </div>
+
+
+                <div class="feature-card">
+
+                    <div class="feature-icon">💰</div>
+
+                    <h3>Profit & Loss Analysis</h3>
+
+                    <p>
+                        Analyze revenue, costs, profit, loss and
+                        profit margins to understand financial performance.
+                    </p>
+
+                </div>
+
+
+                <div class="feature-card">
+
+                    <div class="feature-icon">🎯</div>
+
+                    <h3>Performance Analysis</h3>
+
+                    <p>
+                        Identify top-performing products, categories
+                        and other important performance indicators.
+                    </p>
+
+                </div>
+
+
+                <div class="feature-card">
+
+                    <div class="feature-icon">🔎</div>
+
+                    <h3>Smart Filters</h3>
+
+                    <p>
+                        Explore specific information using filters
+                        and quickly focus on the data that matters.
+                    </p>
+
+                </div>
+
+
+                <div class="feature-card">
+
+                    <div class="feature-icon">📅</div>
+
+                    <h3>Trend Analysis</h3>
+
+                    <p>
+                        Understand changes over time and identify
+                        important business and performance trends.
+                    </p>
+
+                </div>
+
+
+                <div class="feature-card">
+
+                    <div class="feature-icon">📋</div>
+
+                    <h3>Detailed Data Tables</h3>
+
+                    <p>
+                        View important information in organized tables
+                        for easier understanding and comparison.
+                    </p>
+
+                </div>
+
+
+                <div class="feature-card">
+
+                    <div class="feature-icon">💡</div>
+
+                    <h3>Business Insights</h3>
+
+                    <p>
+                        Discover useful insights from your data to
+                        support better planning and decision-making.
+                    </p>
+
+                </div>
+
+
+                <div class="feature-card">
+
+                    <div class="feature-icon">📄</div>
+
+                    <h3>Professional Reports</h3>
+
+                    <p>
+                        Generate professional analytical reports
+                        that can be used for presentations, projects
+                        and business reviews.
+                    </p>
+
+                </div>
+
+
+                <div class="feature-card">
+
+                    <div class="feature-icon">🔐</div>
+
+                    <h3>Secure User Access</h3>
+
+                    <p>
+                        User accounts and premium features are protected
+                        through secure access and verification.
+                    </p>
+
+                </div>
+
+
+                <div class="feature-card">
+
+                    <div class="feature-icon">📱</div>
+
+                    <h3>Responsive Design</h3>
+
+                    <p>
+                        Access the platform through different screen
+                        sizes with a clean and user-friendly interface.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ================= DASHBOARD TYPES ================= -->
+
+        <section class="dashboard-section">
+
+            <div class="section-title">
+
+                <h2>📊 Dashboard Categories</h2>
+
+                <p>
+                    Choose a dashboard according to your analysis requirement.
+                </p>
+
+            </div>
+
+
+            <div class="dashboard-grid">
+
+                <div class="dashboard-card">
+                    <div class="icon">🏢</div>
+                    <h4>Business</h4>
+                </div>
+
+                <div class="dashboard-card">
+                    <div class="icon">💰</div>
+                    <h4>Financial</h4>
+                </div>
+
+                <div class="dashboard-card">
+                    <div class="icon">🛒</div>
+                    <h4>Sales</h4>
+                </div>
+
+                <div class="dashboard-card">
+                    <div class="icon">📦</div>
+                    <h4>Inventory</h4>
+                </div>
+
+                <div class="dashboard-card">
+                    <div class="icon">👥</div>
+                    <h4>HR</h4>
+                </div>
+
+                <div class="dashboard-card">
+                    <div class="icon">📣</div>
+                    <h4>Marketing</h4>
+                </div>
+
+                <div class="dashboard-card">
+                    <div class="icon">🎓</div>
+                    <h4>Student</h4>
+                </div>
+
+                <div class="dashboard-card">
+                    <div class="icon">👤</div>
+                    <h4>Customer</h4>
+                </div>
+
+                <div class="dashboard-card">
+                    <div class="icon">🏭</div>
+                    <h4>Production</h4>
+                </div>
+
+                <div class="dashboard-card">
+                    <div class="icon">📊</div>
+                    <h4>Data Analytics</h4>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ================= ANALYTICS ================= -->
+
+        <section class="analytics-section">
+
+            <div class="analytics-box">
+
+                <h2>📈 Key Analytics</h2>
+
+                <div class="analytics-grid">
+
+                    <div class="analytics-item">
+                        <span>💵</span>
+                        <p>Total Sales</p>
+                    </div>
+
+                    <div class="analytics-item">
+                        <span>💸</span>
+                        <p>Total Cost</p>
+                    </div>
+
+                    <div class="analytics-item">
+                        <span>📈</span>
+                        <p>Profit</p>
+                    </div>
+
+                    <div class="analytics-item">
+                        <span>📉</span>
+                        <p>Loss</p>
+                    </div>
+
+                    <div class="analytics-item">
+                        <span>🎯</span>
+                        <p>Profit Margin</p>
+                    </div>
+
+                    <div class="analytics-item">
+                        <span>🏆</span>
+                        <p>Top Products</p>
+                    </div>
+
+                    <div class="analytics-item">
+                        <span>📅</span>
+                        <p>Monthly Trends</p>
+                    </div>
+
+                    <div class="analytics-item">
+                        <span>🔍</span>
+                        <p>Performance Insights</p>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ================= PREMIUM ================= -->
+
+        <section class="premium-section">
+
+            <div class="premium-box">
+
+                <div class="premium-icon">⭐</div>
+
+                <h2>Premium Features</h2>
+
+                <p>
+                    Unlock premium reporting capabilities and get more
+                    value from your analytics.
+                </p>
+
+                <ul class="premium-list">
+
+                    <li>📄 Analytical PDF Reports</li>
+
+                    <li>📊 Detailed Report Summary</li>
+
+                    <li>💡 Advanced Insights</li>
+
+                    <li>📥 Report Download</li>
+
+                    <li>🔐 Verified Premium Access</li>
+
+                </ul>
+
+            </div>
+
+        </section>
+
+
+        <!-- ================= WORKFLOW ================= -->
+
+        <section class="workflow-section">
+
+            <div class="section-title">
+
+                <h2>⚡ Simple Workflow</h2>
+
+                <p>
+                    From raw data to meaningful insights in a few simple steps.
+                </p>
+
+            </div>
+
+
+            <div class="workflow">
+
+                <div class="workflow-item">
+                    📁 Upload Data
+                </div>
+
+                <div class="workflow-arrow">
+                    →
+                </div>
+
+                <div class="workflow-item">
+                    ⚙️ Analyze
+                </div>
+
+                <div class="workflow-arrow">
+                    →
+                </div>
+
+                <div class="workflow-item">
+                    📊 Visualize
+                </div>
+
+                <div class="workflow-arrow">
+                    →
+                </div>
+
+                <div class="workflow-item">
+                    💡 Get Insights
+                </div>
+
+                <div class="workflow-arrow">
+                    →
+                </div>
+
+                <div class="workflow-item">
+                    📄 Generate Report
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ================= CTA ================= -->
+
+
+    </main>
+
+
+    <!-- ================= FOOTER ================= -->
+
+    <footer class="footer">
+
+        <strong>GW Smart Analytics</strong>
+
+        <p>
+            Making Data Simple, Visual & Meaningful.
+        </p>
+
+        <p>
+            © 2026 GW Smart Analytics. All Rights Reserved.
+        </p>
+
+    </footer>
+
+</body>
+</html>
+

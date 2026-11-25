@@ -1,0 +1,645 @@
+<!-- ================= GW PERSONAL AI ASSISTANT: SWATI ================= -->
+<style>
+#gwBot, #gwBot * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
+#gwBotBtn {
+  position: fixed; right: 24px; bottom: 24px; width: 60px; height: 60px; border-radius: 50%; padding: 0;
+  background: linear-gradient(135deg, #20c4cf, #2689eb); color: #fff;
+  box-shadow: 0 10px 28px rgba(32, 196, 207, .45); z-index: 9999; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+#gwBotBtn:hover { transform: scale(1.08); box-shadow: 0 14px 34px rgba(38, 137, 235, .55); }
+#gwBotBtn img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
+#gwBotBtn .gw-badge-pulse {
+  position: absolute; top: 2px; right: 2px; width: 14px; height: 14px; border-radius: 50%;
+  background: #10b981; border: 2.5px solid #10182b;
+}
+
+#gwBotBox {
+  position: fixed; right: 24px; bottom: 96px; width: 390px; max-width: calc(100vw - 32px); height: 580px; max-height: calc(100vh - 120px);
+  background: #10182b; border: 1px solid #26334a; border-radius: 18px; display: none; flex-direction: column;
+  overflow: hidden; z-index: 9999; box-shadow: 0 25px 60px rgba(0, 0, 0, .6);
+}
+#gwBotBox.open { display: flex; }
+
+/* HEADER */
+#gwBotHead {
+  background: linear-gradient(135deg, #141e34, #162746); padding: 12px 14px; display: flex;
+  justify-content: space-between; align-items: center; color: #fff; border-bottom: 1px solid #26334a;
+}
+.gw-head-info { display: flex; align-items: center; gap: 10px; }
+.gw-head-avatar { width: 34px; height: 34px; border-radius: 50%; background: #20c4cf; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: bold; }
+.gw-head-title b { font-size: 14px; display: flex; align-items: center; gap: 6px; }
+.gw-head-title small { display: block; color: #7dffb0; font-size: 11px; margin-top: 1px; }
+
+.gw-head-actions { display: flex; align-items: center; gap: 6px; }
+.gw-icon-btn { background: transparent; color: #9eaac2; border: none; border-radius: 6px; padding: 5px 7px; cursor: pointer; font-size: 14px; transition: .2s; }
+.gw-icon-btn:hover { background: #1c2b48; color: #38bdf8; }
+.gw-lang-select {
+  background: #0d1526; color: #38bdf8; border: 1px solid #26334a; border-radius: 6px;
+  font-size: 11px; font-weight: bold; padding: 4px 6px; cursor: pointer; outline: none;
+}
+
+/* HISTORY DRAWER */
+#gwHistoryDrawer {
+  display: none; position: absolute; top: 58px; left: 0; right: 0; bottom: 0; background: #0d1526;
+  z-index: 10; padding: 14px; overflow-y: auto; flex-direction: column; gap: 8px; border-top: 1px solid #26334a;
+}
+#gwHistoryDrawer.show { display: flex; }
+.gw-hist-item {
+  background: #141e34; border: 1px solid #26334a; border-radius: 10px; padding: 10px 12px;
+  cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: .2s;
+}
+.gw-hist-item:hover { background: #1a2744; border-color: #38bdf8; }
+.gw-hist-title { font-size: 13px; color: #e6eefc; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 250px; }
+.gw-hist-time { font-size: 10px; color: #64748b; margin-top: 3px; }
+.gw-hist-del { background: transparent; border: none; color: #f87171; cursor: pointer; padding: 4px; font-size: 14px; }
+
+/* MESSAGES */
+#gwBotMsgs { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.gwm { max-width: 86%; padding: 10px 13px; border-radius: 14px; font-size: 13px; line-height: 1.5; word-break: break-word; }
+.gwm.bot {
+  background: #162746; color: #e6eefc; border: 1px solid #2d4570; align-self: flex-start;
+  border-bottom-left-radius: 3px; box-shadow: 0 4px 14px rgba(0,0,0,.2);
+}
+.gwm.me {
+  background: linear-gradient(135deg, #2689eb, #8b54ee); color: #fff; align-self: flex-end;
+  border-bottom-right-radius: 3px; box-shadow: 0 4px 14px rgba(38,137,235,.25);
+}
+.gwm img { max-width: 100%; border-radius: 8px; margin-bottom: 6px; }
+.gwm .gwfile { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,.12); border-radius: 6px; padding: 5px 9px; margin-bottom: 6px; font-size: 12px; }
+.gwm-footer { display: flex; gap: 8px; margin-top: 8px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,.1); font-size: 11px; }
+.gwm-action-btn { background: transparent; border: none; color: #38bdf8; cursor: pointer; padding: 2px 4px; display: inline-flex; align-items: center; gap: 3px; font-size: 11px; border-radius: 4px; }
+.gwm-action-btn:hover { background: rgba(56,189,248,.15); }
+
+/* TYPING INDICATOR */
+.gw-typing { display: none; align-items: center; gap: 4px; padding: 8px 12px; background: #162746; border: 1px solid #2d4570; border-radius: 12px; width: fit-content; align-self: flex-start; }
+.gw-typing.show { display: flex; }
+.gw-dot { width: 6px; height: 6px; border-radius: 50%; background: #38bdf8; animation: gwPulse 1.4s infinite ease-in-out both; }
+.gw-dot:nth-child(1) { animation-delay: -0.32s; }
+.gw-dot:nth-child(2) { animation-delay: -0.16s; }
+@keyframes gwPulse { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+
+/* CHIPS */
+#gwBotChips { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 12px 10px; max-height: 85px; overflow-y: auto; }
+#gwBotChips button {
+  background: #0d1526; color: #38bdf8; border: 1px solid #2d4570; border-radius: 14px;
+  padding: 5px 11px; font-size: 11.5px; font-weight: 600; cursor: pointer; transition: .2s;
+}
+#gwBotChips button:hover { background: #162746; border-color: #38bdf8; transform: translateY(-1px); }
+
+/* PENDING ATTACHMENT BAR */
+#gwBotPending {
+  display: none; align-items: center; gap: 8px; padding: 7px 12px; background: #0d1526;
+  border-top: 1px solid #26334a; color: #7dffb0; font-size: 12px;
+}
+#gwBotPending.show { display: flex; }
+#gwBotPending span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#gwBotPending button { background: transparent; border: none; color: #ff7b7b; font-size: 15px; cursor: pointer; }
+
+/* INPUT FORM */
+#gwBotForm { display: flex; gap: 8px; padding: 10px; border-top: 1px solid #26334a; background: #0b1325; align-items: center; }
+#gwBotInput {
+  flex: 1; min-width: 0; background: #0d1526; color: #fff; border: 1px solid #34435d;
+  border-radius: 10px; padding: 10px 12px; font-size: 13px; outline: none; transition: .2s;
+}
+#gwBotInput:focus { border-color: #38bdf8; box-shadow: 0 0 0 2px rgba(56,189,248,.2); }
+.gw-btn-tool {
+  background: #0d1526; color: #38bdf8; border: 1px solid #34435d; border-radius: 10px;
+  width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
+  font-size: 16px; cursor: pointer; transition: .2s; flex-shrink: 0;
+}
+.gw-btn-tool:hover { background: #162746; border-color: #38bdf8; }
+.gw-btn-tool.recording { background: #ef4444; color: #fff; border-color: #dc2626; animation: gwMicPulse 1.2s infinite; }
+@keyframes gwMicPulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+#gwBotSend {
+  background: #2689eb; color: #fff; border: none; border-radius: 10px; padding: 0 16px;
+  height: 38px; font-weight: bold; font-size: 13px; cursor: pointer; transition: .2s; flex-shrink: 0;
+}
+#gwBotSend:hover { background: #1d72c6; }
+</style>
+
+<div id="gwBot">
+  <button id="gwBotBtn" type="button" aria-label="Open Swati AI Assistant" title="Swati - GW Smart Analytics AI Assistant">
+    <img src="clean_high_resolution_modern_ui_style_icon_brand.png" onerror="this.src='scanner.png'" alt="Swati">
+    <span class="gw-badge-pulse"></span>
+  </button>
+
+  <div id="gwBotBox" role="dialog" aria-label="Swati AI Assistant">
+    <!-- Header -->
+    <div id="gwBotHead">
+      <div class="gw-head-info">
+        <div class="gw-head-avatar">🤖</div>
+        <div class="gw-head-title">
+          <b>Swati <span style="font-size:10px;background:#10b981;color:#042f2e;padding:1px 5px;border-radius:6px;">PRO AI</span></b>
+          <small id="gwBotSubtitle">GW Smart Analytics Assistant</small>
+        </div>
+      </div>
+      <div class="gw-head-actions">
+        <select id="gwLangSelect" class="gw-lang-select" title="Change Language">
+          <option value="en">English</option>
+          <option value="mr" selected>मराठी</option>
+          <option value="hi">हिंदी</option>
+        </select>
+        <button type="button" class="gw-icon-btn" id="gwHistBtn" title="Chat History">🕒</button>
+        <button type="button" class="gw-icon-btn" id="gwNewBtn" title="New Chat">+</button>
+        <button type="button" class="gw-icon-btn" id="gwCloseBtn" title="Close">✕</button>
+      </div>
+    </div>
+
+    <!-- History Drawer -->
+    <div id="gwHistoryDrawer">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <b style="color:#38bdf8;font-size:13px;">Saved Conversations</b>
+        <button type="button" id="gwCloseHistBtn" style="background:none;border:none;color:#94a3b8;font-size:16px;cursor:pointer;">✕</button>
+      </div>
+      <div id="gwHistoryList" style="display:flex;flex-direction:column;gap:8px;"></div>
+    </div>
+
+    <!-- Message Area -->
+    <div id="gwBotMsgs"></div>
+
+    <!-- Typing Indicator -->
+    <div class="gw-typing" id="gwTyping">
+      <span class="gw-dot"></span><span class="gw-dot"></span><span class="gw-dot"></span>
+      <span style="font-size:11px;color:#94a3b8;margin-left:4px;" id="gwTypingText">Swati is analyzing...</span>
+    </div>
+
+    <!-- Suggested Question Chips -->
+    <div id="gwBotChips"></div>
+
+    <!-- Pending Attachment Bar -->
+    <div id="gwBotPending">
+      <span id="gwBotPendingName">📎 dataset.csv (124 KB)</span>
+      <button type="button" id="gwBotPendingX" title="Remove attachment">✕</button>
+    </div>
+
+    <!-- Input Form -->
+    <div id="gwBotForm">
+      <button type="button" class="gw-btn-tool" id="gwBotAttach" title="Attach CSV, Excel, PDF, TXT or Image">📎</button>
+      <input type="file" id="gwBotFile" accept=".csv,.xlsx,.xls,.pdf,.txt,image/*" style="display:none">
+      <input type="text" id="gwBotInput" placeholder="Ask Swati anything about your data..." autocomplete="off">
+      <button type="button" class="gw-btn-tool" id="gwBotMic" title="Voice Input (Speech-to-Text)">🎙️</button>
+      <button type="button" class="gw-btn-tool" id="gwBotReportBtn" title="Generate Executive Report">📑</button>
+      <button type="button" id="gwBotSend">Send</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const msgs = $("gwBotMsgs"), chips = $("gwBotChips"), input = $("gwBotInput"), box = $("gwBotBox");
+  const fileInput = $("gwBotFile"), pending = $("gwBotPending"), pendingName = $("gwBotPendingName");
+  const typing = $("gwTyping"), langSelect = $("gwLangSelect");
+  const historyDrawer = $("gwHistoryDrawer"), historyList = $("gwHistoryList");
+  const micBtn = $("gwBotMic");
+
+  let currentLang = "mr";
+  let activeConversationId = localStorage.getItem("gw_active_conv_id") || "";
+  let activeDatasetId = "";
+  let pendingFile = null;
+  let recognition = null;
+  let isRecording = false;
+
+  // WELCOME MESSAGES
+  const GREETINGS = {
+    mr: "नमस्कार! 👋 मी **स्वाती (Swati)**, GW Smart Analytics ची अधिकृत AI पर्सनल असिस्टंट.\n\nमी तुमच्या डॅशबोर्डचे विश्लेषण करू शकते, अपलोड केलेल्या CSV/Excel डेटासेटमधून प्रत्यक्ष आकडेवारी (विक्री, नफा, आउटलायर्स) काढू शकते, आणि 14-कलमी व्यावसायिक अहवाल तयार करू शकते.\n\nआज मी तुम्हाला कशात मदत करू?",
+    hi: "नमस्ते! 👋 मैं **स्वाती (Swati)**, GW Smart Analytics की AI पर्सनल असिस्टेंट।\n\nमैं आपके डेटा का विश्लेषण, डैशबोर्ड KPIs की गणना और संपूर्ण बिज़नेस रिपोर्ट तैयार कर सकती हूँ।\n\nआज मैं आपकी क्या सहायता करूँ?",
+    en: "Hello! 👋 I am **Swati**, the AI Personal Analytics Assistant at GW Smart Analytics.\n\nI can analyze your dashboards, compute verified statistics from your uploaded CSV/Excel files, identify anomalies, and generate comprehensive executive reports.\n\nHow can I help you today?"
+  };
+
+  // RECOGNIZE ACTIVE DASHBOARD & DATA CONTEXT
+  function getActiveDashboardContext() {
+    let dashType = "Data Analytics";
+    if (typeof selectedDashboard !== "undefined" && selectedDashboard) dashType = selectedDashboard;
+    else if (document.title.includes("Sales")) dashType = "Sales";
+    else if (document.title.includes("ShopPulse")) dashType = "Business";
+
+    // Extract rendered KPIs from page if available
+    const kpiSummary = {};
+    document.querySelectorAll(".kpi-card, .kpi-val, .metric-value").forEach((el, idx) => {
+      const text = el.innerText.trim();
+      if (text) kpiSummary[`metric_${idx+1}`] = text;
+    });
+
+    return {
+      dashboard_type: dashType,
+      url: location.href,
+      kpis: kpiSummary
+    };
+  }
+
+  // UPDATE CHIPS
+  function setChips(list) {
+    chips.innerHTML = "";
+    list.forEach(label => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.textContent = label;
+      b.onclick = () => {
+        addUserMsg(label);
+        sendQuery(label);
+      };
+      chips.appendChild(b);
+    });
+  }
+
+  function loadDefaultChips() {
+    const dash = getActiveDashboardContext().dashboard_type;
+    const chipsMap = {
+      mr: ["📊 डेटासेट समजावून सांगा", "💰 एकूण विक्री किती?", "🏆 सर्वोच्च प्रॉडक्ट कोणते?", "⚠️ डेटा मधील विसंगती शोधा", "📑 संपूर्ण अहवाल तयार करा", "💳 ₹10 पेमेंट व डाऊनलोड"],
+      hi: ["📊 डेटासेट समझाएं", "💰 कुल बिक्री कितनी है?", "🏆 शीर्ष उत्पाद कौन सा है?", "⚠️ विसंगतियां खोजें", "📑 संपूर्ण रिपोर्ट बनाएं", "💳 ₹10 भुगतान और डाउनलोड"],
+      en: ["📊 Explain my dataset", "💰 What is total revenue?", "🏆 Best performing product?", "⚠️ Find data anomalies", "📑 Generate full report", "💳 ₹10 Payment & Access"]
+    };
+    setChips(chipsMap[currentLang] || chipsMap.en);
+  }
+
+  // ADD MESSAGES
+  function addBotMsg(text, actions = true) {
+    const d = document.createElement("div");
+    d.className = "gwm bot";
+    
+    // Simple markdown renderer (bold, lists, code)
+    let formatted = text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/`([^`]+)`/g, '<code style="background:#0d1526;padding:2px 5px;border-radius:4px;color:#38bdf8;">$1</code>')
+      .replace(/\n\n/g, '<br><br>')
+      .replace(/\n/g, '<br>');
+    d.innerHTML = formatted;
+
+    if (actions) {
+      const footer = document.createElement("div");
+      footer.className = "gwm-footer";
+
+      // Copy Button
+      const copyBtn = document.createElement("button");
+      copyBtn.className = "gwm-action-btn";
+      copyBtn.innerHTML = "📋 Copy";
+      copyBtn.onclick = () => {
+        navigator.clipboard.writeText(text);
+        copyBtn.innerHTML = "✓ Copied!";
+        setTimeout(() => { copyBtn.innerHTML = "📋 Copy"; }, 2000);
+      };
+      footer.appendChild(copyBtn);
+
+      // Listen / Speak Button
+      const speakBtn = document.createElement("button");
+      speakBtn.className = "gwm-action-btn";
+      speakBtn.innerHTML = "🔊 Listen";
+      speakBtn.onclick = () => speakText(text);
+      footer.appendChild(speakBtn);
+
+      d.appendChild(footer);
+    }
+
+    msgs.appendChild(d);
+    msgs.scrollTop = msgs.scrollHeight;
+    return d;
+  }
+
+  function addUserMsg(text, file) {
+    const d = document.createElement("div");
+    d.className = "gwm me";
+    if (file) {
+      const f = document.createElement("div");
+      f.className = "gwfile";
+      f.innerHTML = "📄 " + file.name;
+      d.appendChild(f);
+    }
+    if (text) {
+      d.appendChild(document.createTextNode(text));
+    }
+    msgs.appendChild(d);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  // VOICE SYNTHESIS (TEXT TO SPEECH)
+  function speakText(text) {
+    if (!('speechSynthesis' in window)) {
+      alert("Text-to-speech is not supported in this browser.");
+      return;
+    }
+    window.speechSynthesis.cancel();
+    // Clean text of markdown characters
+    const clean = text.replace(/[*_#`]/g, '');
+    const utterance = new SpeechSynthesisUtterance(clean);
+    utterance.lang = currentLang === "mr" ? "mr-IN" : (currentLang === "hi" ? "hi-IN" : "en-US");
+    window.speechSynthesis.speak(utterance);
+  }
+
+  // VOICE RECOGNITION (SPEECH TO TEXT)
+  function setupSpeechRecognition() {
+    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRec) {
+      micBtn.style.display = "none";
+      return;
+    }
+    recognition = new SpeechRec();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    recognition.onstart = () => {
+      isRecording = true;
+      micBtn.classList.add("recording");
+      input.placeholder = currentLang === "mr" ? "ऐकत आहे..." : (currentLang === "hi" ? "सुन रहा हूँ..." : "Listening...");
+    };
+
+    recognition.onresult = (e) => {
+      const transcript = e.results[0][0].transcript;
+      input.value = transcript;
+      input.focus();
+    };
+
+    recognition.onerror = () => {
+      isRecording = false;
+      micBtn.classList.remove("recording");
+      input.placeholder = "Ask Swati anything about your data...";
+    };
+
+    recognition.onend = () => {
+      isRecording = false;
+      micBtn.classList.remove("recording");
+      input.placeholder = "Ask Swati anything about your data...";
+    };
+
+    micBtn.onclick = () => {
+      if (isRecording) {
+        recognition.stop();
+      } else {
+        recognition.lang = currentLang === "mr" ? "mr-IN" : (currentLang === "hi" ? "hi-IN" : "en-IN");
+        try { recognition.start(); } catch(err){}
+      }
+    };
+  }
+
+  // SERVER API CALLS
+  async function sendQuery(queryText) {
+    typing.classList.add("show");
+    msgs.scrollTop = msgs.scrollHeight;
+
+    const ctx = getActiveDashboardContext();
+    try {
+      const res = await fetch("/api/swati/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          message: queryText,
+          conversation_id: activeConversationId,
+          dashboard_type: ctx.dashboard_type,
+          dashboard_context: ctx.kpis,
+          dataset_id: activeDatasetId,
+          lang: currentLang
+        })
+      });
+      const data = await res.json();
+      typing.classList.remove("show");
+
+      if (data.success && data.reply) {
+        if (data.conversation_id) {
+          activeConversationId = data.conversation_id;
+          localStorage.setItem("gw_active_conv_id", activeConversationId);
+        }
+        addBotMsg(data.reply);
+        if (data.suggested_questions && data.suggested_questions.length) {
+          setChips(data.suggested_questions);
+        }
+      } else {
+        addBotMsg("⚠️ " + (data.message || "Could not generate response. Please retry."));
+      }
+    } catch(err) {
+      typing.classList.remove("show");
+      addBotMsg("⚠️ Network error communicating with Swati AI backend.");
+    }
+  }
+
+  async function uploadFile(file, commentText) {
+    typing.classList.add("show");
+    $("gwTypingText").textContent = "Processing dataset with Pandas...";
+    
+    const formData = new FormData();
+    formData.append("file", file);
+    try {
+      const res = await fetch("/api/swati/upload", {
+        method: "POST",
+        credentials: "include",
+        body: formData
+      });
+      const data = await res.json();
+      typing.classList.remove("show");
+      $("gwTypingText").textContent = "Swati is analyzing...";
+
+      if (data.success) {
+        activeDatasetId = data.dataset_id;
+        const prof = data.profile;
+        const msg = (currentLang === "mr")
+          ? `✅ **'${data.filename}' यशस्वीरित्या अपलोड केली!**\n\n- **रेकॉर्ड्स संख्या:** ${prof.row_count || 0}\n- **कॉलम्स संख्या:** ${prof.col_count || 0}\n- **डेटासेट विश्लेषण तयार आहे.**\n\nतुम्ही आता विक्री, नफा, किंवा विसंगतीबद्दल थेट प्रश्न विचारू शकता!`
+          : `✅ **'${data.filename}' analyzed successfully!**\n\n- **Total Records:** ${prof.row_count || 0} rows across ${prof.col_count || 0} columns.\n- **Data Profile:** Ready for deep querying.\n\nAsk me about totals, best products, anomalies, or request an executive report!`;
+        addBotMsg(msg);
+        if (data.suggested_questions) setChips(data.suggested_questions);
+
+        if (commentText) {
+          sendQuery(commentText);
+        }
+      } else {
+        addBotMsg("⚠️ " + (data.message || "Failed to process dataset."));
+      }
+    } catch(err) {
+      typing.classList.remove("show");
+      addBotMsg("⚠️ Upload error. Please verify the file format and size.");
+    }
+  }
+
+  async function generateExecutiveReport() {
+    addUserMsg("📑 Generate an executive analytics report for my dataset");
+    typing.classList.add("show");
+    $("gwTypingText").textContent = "Compiling 14-section report & ReportLab PDF...";
+
+    const ctx = getActiveDashboardContext();
+    try {
+      const res = await fetch("/api/swati/report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          dataset_id: activeDatasetId,
+          dashboard_type: ctx.dashboard_type,
+          conversation_id: activeConversationId
+        })
+      });
+      const data = await res.json();
+      typing.classList.remove("show");
+      $("gwTypingText").textContent = "Swati is analyzing...";
+
+      if (data.success) {
+        const reportCard = `📋 **${data.title}**\n\n` +
+          `अहवाल यशस्वीपणे तयार झाला आहे. खालील लिंकवरून अधिकृत PDF अहवाल डाऊनलोड करा:\n\n` +
+          `📥 [**Download Official PDF Report**](${data.download_url})\n\n` +
+          `*(हा अहवाल 14 सर्वसमावेशक कलमे, डेटा गुणवत्ता विश्लेषण, ट्रेंड्स आणि धोरणात्मक शिफारशींसह तयार केला आहे.)*`;
+        addBotMsg(reportCard);
+      } else {
+        addBotMsg("⚠️ " + (data.message || "Could not generate report."));
+      }
+    } catch(err) {
+      typing.classList.remove("show");
+      addBotMsg("⚠️ Report compilation failed. Please retry.");
+    }
+  }
+
+  // CHAT HISTORY DRAWER
+  async function loadHistoryList() {
+    try {
+      const res = await fetch("/api/swati/history", { cache: "no-store", credentials: "include" });
+      const data = await res.json();
+      historyList.innerHTML = "";
+      if (data.guest) {
+        historyList.innerHTML = `<p style="color:#94a3b8;font-size:12px;">${data.message} <a href="login.html" style="color:#38bdf8;">Login here</a></p>`;
+        return;
+      }
+      if (!data.conversations || !data.conversations.length) {
+        historyList.innerHTML = `<p style="color:#94a3b8;font-size:12px;">No past conversations found.</p>`;
+        return;
+      }
+      data.conversations.forEach(c => {
+        const item = document.createElement("div");
+        item.className = "gw-hist-item";
+        item.innerHTML = `
+          <div>
+            <div class="gw-hist-title">${c.title || "Conversation"}</div>
+            <div class="gw-hist-time">${new Date(c.updated_at).toLocaleDateString()} · ${c.dashboard_type}</div>
+          </div>
+          <button class="gw-hist-del" title="Delete conversation">🗑️</button>
+        `;
+        item.querySelector(".gw-hist-title").onclick = () => loadConversation(c.id);
+        item.querySelector(".gw-hist-del").onclick = (e) => {
+          e.stopPropagation();
+          deleteConversation(c.id);
+        };
+        historyList.appendChild(item);
+      });
+    } catch(err){}
+  }
+
+  async function loadConversation(convId) {
+    activeConversationId = convId;
+    localStorage.setItem("gw_active_conv_id", convId);
+    historyDrawer.classList.remove("show");
+    msgs.innerHTML = "";
+    try {
+      const res = await fetch(`/api/swati/history/${convId}`, { credentials: "include" });
+      const data = await res.json();
+      if (data.success && data.messages) {
+        data.messages.forEach(m => {
+          if (m.role === "user") addUserMsg(m.content);
+          else addBotMsg(m.content);
+        });
+      }
+    } catch(err){}
+  }
+
+  async function deleteConversation(convId) {
+    if (!confirm("Delete this conversation?")) return;
+    try {
+      await fetch(`/api/swati/history/${convId}`, { method: "DELETE", credentials: "include" });
+      if (activeConversationId === convId) {
+        startNewConversation();
+      } else {
+        loadHistoryList();
+      }
+    } catch(err){}
+  }
+
+  function startNewConversation() {
+    activeConversationId = "";
+    localStorage.removeItem("gw_active_conv_id");
+    historyDrawer.classList.remove("show");
+    msgs.innerHTML = "";
+    addBotMsg(GREETINGS[currentLang] || GREETINGS.mr);
+    loadDefaultChips();
+  }
+
+  // ATTACHMENT HANDLERS
+  function setPending(file) {
+    pendingFile = file;
+    if (file) {
+      pendingName.textContent = "📎 " + file.name + " (" + Math.max(1, Math.round(file.size/1024)) + " KB)";
+      pending.classList.add("show");
+    } else {
+      pendingName.textContent = "";
+      pending.classList.remove("show");
+      fileInput.value = "";
+    }
+  }
+
+  fileInput.addEventListener("change", () => {
+    const f = fileInput.files[0];
+    if (!f) return;
+    if (f.size > 50 * 1024 * 1024) {
+      alert("File exceeds maximum upload size of 50 MB.");
+      return;
+    }
+    setPending(f);
+    input.focus();
+  });
+  $("gwBotPendingX").onclick = () => setPending(null);
+  $("gwBotAttach").onclick = () => fileInput.click();
+  $("gwBotReportBtn").onclick = generateExecutiveReport;
+
+  // TOGGLE WINDOW
+  function toggle(force) {
+    const isOpen = typeof force === "boolean" ? force : !box.classList.contains("open");
+    box.classList.toggle("open", isOpen);
+    if (isOpen) {
+      if (!msgs.children.length) {
+        addBotMsg(GREETINGS[currentLang] || GREETINGS.mr);
+        loadDefaultChips();
+      }
+      input.focus();
+    }
+  }
+
+  $("gwBotBtn").onclick = () => toggle();
+  $("gwCloseBtn").onclick = () => toggle(false);
+  $("gwNewBtn").onclick = startNewConversation;
+  $("gwHistBtn").onclick = () => {
+    historyDrawer.classList.toggle("show");
+    if (historyDrawer.classList.contains("show")) loadHistoryList();
+  };
+  $("gwCloseHistBtn").onclick = () => historyDrawer.classList.remove("show");
+
+  langSelect.onchange = () => {
+    currentLang = langSelect.value;
+    loadDefaultChips();
+  };
+
+  // SEND HANDLER
+  function handleSend() {
+    const text = input.value.trim();
+    const file = pendingFile;
+    if (!text && !file) return;
+
+    input.value = "";
+    if (file) {
+      addUserMsg(text, file);
+      setPending(null);
+      uploadFile(file, text);
+      return;
+    }
+
+    addUserMsg(text);
+    sendQuery(text);
+  }
+
+  $("gwBotSend").onclick = handleSend;
+  input.addEventListener("keydown", e => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleSend();
+    }
+  });
+
+  setupSpeechRecognition();
+})();
+</script>
+<!-- ================= END SWATI AI ASSISTANT ================= -->

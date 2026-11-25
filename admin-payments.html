@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payment Approvals | GW Smart Analytics</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;padding:24px;background:#080f1e;color:#eef4ff;font:15px Arial,sans-serif}
+main{max-width:1400px;margin:0 auto}
+a{color:#38bdf8}
+h1{margin-bottom:8px}
+.note,.message{padding:14px;border:1px solid #2b4164;border-radius:10px;background:#10192c;color:#b9c9e5}
+.message{margin:16px 0}
+.error{color:#fecaca;border-color:#7f1d1d}
+.success{color:#bbf7d0;border-color:#166534}
+.table-wrap{overflow-x:auto;margin-top:18px}
+table{width:100%;border-collapse:collapse;background:#10192c}
+th,td{padding:12px;text-align:left;border-bottom:1px solid #26334a;white-space:nowrap}
+th{color:#9db4d8}
+button{padding:9px 13px;border:0;border-radius:7px;background:#10b981;color:#06251c;font-weight:bold;cursor:pointer}
+button:disabled{opacity:.55;cursor:wait}
+.empty{text-align:center;color:#9db4d8;padding:26px}
+.admin-section{margin-top:30px}
+.admin-section h2{margin-bottom:10px}
+.code-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;border-bottom:1px solid #26334a;background:#10192c}
+.code-row button{background:#38bdf8;color:#082f49}
+.secondary-table{margin-top:12px}
+.details-panel{display:none;margin-top:12px;padding:16px;border:1px solid #2b4164;border-radius:10px;background:#10192c;overflow:auto}
+.details-panel table{margin-top:10px}
+@media(max-width:720px){body{padding:14px}.code-row{align-items:flex-start;flex-direction:column}}
+</style>
+</head>
+<body>
+<main>
+    <p><a href="h.html">← Dashboard</a></p>
+    <h1>UPI Payment Approvals</h1>
+    <p class="note">Compare each submitted UTR with your UPI/bank transaction records before approving. Approval activates the 30-day subscription, enables PDF exports and makes the receipt available to that user.</p>
+    <div id="message" class="message" role="status">Checking administrator access…</div>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>User</th><th>Email</th><th>Amount</th><th>UTR</th><th>Submitted</th><th>Action</th></tr></thead>
+            <tbody id="paymentRows"></tbody>
+        </table>
+    </div>
+    <section class="admin-section">
+        <h2>Special Access Codes</h2>
+        <p class="note">Only code status and redemption counts are shown. The code itself is never returned to the browser.</p>
+        <div id="codeRows" class="table-wrap"></div>
+        <h2 style="margin-top:26px">Registered Users &amp; Dashboard Access</h2>
+        <p id="billingMessage" class="message" role="status">Loading dashboard payment records…</p>
+        <div class="table-wrap secondary-table">
+            <table><thead><tr><th>User ID</th><th>User</th><th>Email</th><th>Dashboards</th><th>Paid Access</th><th>Free Access</th><th>Details</th></tr></thead><tbody id="billingUserRows"></tbody></table>
+        </div>
+        <div id="userDashboardDetails" class="details-panel"></div>
+        <h2 style="margin-top:26px">Paid Access Users</h2>
+        <div class="table-wrap secondary-table">
+            <table><thead><tr><th>User</th><th>Email</th><th>Mobile</th><th>Paid Dashboards</th></tr></thead><tbody id="paidUserRows"></tbody></table>
+        </div>
+        <h2 style="margin-top:26px">Free Access Users</h2>
+        <div class="table-wrap secondary-table">
+            <table><thead><tr><th>User</th><th>Email</th><th>Mobile</th><th>Special-Code Dashboards</th></tr></thead><tbody id="freeUserRows"></tbody></table>
+        </div>
+        <h2 style="margin-top:26px">Cashfree Dashboard Transactions</h2>
+        <div class="table-wrap secondary-table">
+            <table><thead><tr><th>User</th><th>Dashboard / Report</th><th>Amount</th><th>Status</th><th>Order ID</th><th>Transaction ID</th><th>Date</th></tr></thead><tbody id="dashboardPaymentRows"></tbody></table>
+        </div>
+    </section>
+</main>
+<script>
+const message = document.getElementById("message");
+const paymentRows = document.getElementById("paymentRows");
+const billingMessage = document.getElementById("billingMessage");
+
+function showMessage(text, type) {
+    message.textContent = text;
+    message.className = `message ${type || ""}`;
+}
+
+async function loadPendingPayments() {
+    try {
+        const userResponse = await fetch("/api/me", { cache: "no-store", credentials: "include" });
+        const userData = await userResponse.json();
+        if (!userResponse.ok || !userData.authenticated || !userData.user) {
+            window.location.href = "login.html";
+            return;
+        }
+        if (String(userData.user.role || "").toLowerCase() !== "admin") {
+            showMessage("Admin access required. Sign in with an administrator account.", "error");
+            return;
+        }
+
+        const response = await fetch("/api/admin/payments/pending", { cache: "no-store", credentials: "include" });
+        const data = await response.json();
+        if (!response.ok || !data.success) throw new Error(data.message || "Could not load pending UPI requests.");
+
+        paymentRows.replaceChildren();
+        if (!data.payments.length) {
+            paymentRows.innerHTML = '<tr><td class="empty" colspan="6">No UPI payments are awaiting review.</td></tr>';
+        } else {
+            for (const payment of data.payments) {
+                const row = document.createElement("tr");
+                const values = [
+                    payment.customer_name || "User",
+                    payment.email || "",
+                    `₹${Number(payment.amount).toFixed(2)}`,
+                    payment.utr_number || "",
+                    payment.created_at || ""
+                ];
+                for (const value of values) {
+                    const cell = document.createElement("td");
+                    cell.textContent = value;
+                    row.appendChild(cell);
+                }
+                const actionCell = document.createElement("td");
+                const approveButton = document.createElement("button");
+                approveButton.type = "button";
+                approveButton.textContent = "Verify & approve";
+                approveButton.addEventListener("click", () => approvePayment(payment.id, approveButton));
+                actionCell.appendChild(approveButton);
+                row.appendChild(actionCell);
+                paymentRows.appendChild(row);
+            }
+        }
+        showMessage(`${data.payments.length} payment request(s) awaiting verification.`, "success");
+        await loadDashboardBilling();
+    } catch (error) {
+        showMessage(error.message || "Unable to load payment requests.", "error");
+    }
+}
+
+function addCell(row, value) {
+    const cell = document.createElement("td");
+    cell.textContent = value == null ? "" : String(value);
+    row.appendChild(cell);
+    return cell;
+}
+
+async function loadDashboardBilling() {
+    try {
+        const [overviewResponse, codesResponse] = await Promise.all([
+            fetch("/api/dashboard-payments/admin/overview", { cache: "no-store", credentials: "include" }),
+            fetch("/api/dashboard-payments/admin/codes", { cache: "no-store", credentials: "include" })
+        ]);
+        const overview = await overviewResponse.json();
+        const codes = await codesResponse.json();
+        if (!overviewResponse.ok || !overview.success) throw new Error(overview.message || "Could not load billing data.");
+        if (!codesResponse.ok || !codes.success) throw new Error(codes.message || "Could not load special-code status.");
+
+        const usersBody = document.getElementById("billingUserRows");
+        usersBody.replaceChildren();
+        for (const user of overview.users) {
+            const row = document.createElement("tr");
+            addCell(row, user.user_id);
+            addCell(row, user.name);
+            addCell(row, user.email);
+            addCell(row, user.dashboard_count || 0);
+            addCell(row, user.paid_count || 0);
+            addCell(row, user.free_count || 0);
+            const action = addCell(row, "");
+            const button = document.createElement("button");
+            button.type = "button";
+            button.textContent = "View dashboards";
+            button.addEventListener("click", () => loadUserDashboards(user.user_id));
+            action.appendChild(button);
+            usersBody.appendChild(row);
+        }
+        if (!overview.users.length) usersBody.innerHTML = '<tr><td class="empty" colspan="7">No users found.</td></tr>';
+
+        const freeBody = document.getElementById("freeUserRows");
+        freeBody.replaceChildren();
+        for (const user of overview.free_users) {
+            const row = document.createElement("tr");
+            addCell(row, user.name);
+            addCell(row, user.email);
+            addCell(row, user.mobile);
+            addCell(row, user.free_dashboard_count);
+            freeBody.appendChild(row);
+        }
+        if (!overview.free_users.length) freeBody.innerHTML = '<tr><td class="empty" colspan="4">No special-code access users.</td></tr>';
+
+        const paidBody = document.getElementById("paidUserRows");
+        paidBody.replaceChildren();
+        for (const user of overview.paid_users) {
+            const row = document.createElement("tr");
+            addCell(row, user.name);
+            addCell(row, user.email);
+            addCell(row, user.mobile);
+            addCell(row, user.paid_dashboard_count);
+            paidBody.appendChild(row);
+        }
+        if (!overview.paid_users.length) paidBody.innerHTML = '<tr><td class="empty" colspan="4">No paid dashboard access users.</td></tr>';
+
+        const paymentBody = document.getElementById("dashboardPaymentRows");
+        paymentBody.replaceChildren();
+        for (const payment of overview.payments) {
+            const row = document.createElement("tr");
+            addCell(row, `${payment.user_name || ""} · ${payment.email || ""}`);
+            addCell(row, `${payment.dashboard_name || payment.dashboard_id || ""} / ${payment.report_name || ""}`);
+            addCell(row, `₹${Number(payment.amount || 0).toFixed(2)} ${payment.currency || "INR"}`);
+            addCell(row, payment.payment_status);
+            addCell(row, payment.order_id);
+            addCell(row, payment.gateway_transaction_id);
+            addCell(row, payment.paid_at || payment.created_at);
+            paymentBody.appendChild(row);
+        }
+        if (!overview.payments.length) paymentBody.innerHTML = '<tr><td class="empty" colspan="7">No Cashfree dashboard transactions found.</td></tr>';
+
+        const codeRows = document.getElementById("codeRows");
+        codeRows.replaceChildren();
+        for (const code of codes.codes) {
+            const row = document.createElement("div");
+            row.className = "code-row";
+            const status = document.createElement("span");
+            status.textContent = `${code.label} · ${code.is_active ? "Active" : "Inactive"} · ${code.redemption_count} redemption(s)`;
+            const button = document.createElement("button");
+            button.type = "button";
+            button.textContent = code.is_active ? "Deactivate" : "Activate";
+            button.addEventListener("click", () => setCodeStatus(code.id, !code.is_active, button));
+            row.append(status, button);
+            codeRows.appendChild(row);
+        }
+        if (!codes.codes.length) codeRows.textContent = "No code configured. Set GW_SPECIAL_ACCESS_CODE in the server environment and restart.";
+        billingMessage.textContent = `Loaded ${overview.users.length} user(s), ${overview.payments.length} Cashfree transaction(s), ${overview.paid_users.length} paid user(s), and ${overview.free_users.length} special-access user(s).`;
+        billingMessage.className = "message success";
+    } catch (error) {
+        billingMessage.textContent = error.message || "Could not load admin billing data.";
+        billingMessage.className = "message error";
+    }
+}
+
+async function setCodeStatus(codeId, active, button) {
+    button.disabled = true;
+    try {
+        const response = await fetch(`/api/dashboard-payments/admin/codes/${encodeURIComponent(codeId)}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ active })
+        });
+        const data = await response.json();
+        if (!response.ok || !data.success) throw new Error(data.message || "Could not update code status.");
+        await loadDashboardBilling();
+    } catch (error) {
+        billingMessage.textContent = error.message || "Could not update code status.";
+        billingMessage.className = "message error";
+        button.disabled = false;
+    }
+}
+
+async function loadUserDashboards(userId) {
+    const panel = document.getElementById("userDashboardDetails");
+    panel.style.display = "block";
+    panel.textContent = "Loading dashboards and reports…";
+    try {
+        const response = await fetch(`/api/dashboard-payments/admin/users/${encodeURIComponent(userId)}/dashboards`, {
+            cache: "no-store",
+            credentials: "include"
+        });
+        const data = await response.json();
+        if (!response.ok || !data.success) throw new Error(data.message || "Could not load user dashboards.");
+        panel.replaceChildren();
+        const heading = document.createElement("strong");
+        heading.textContent = `${data.user.name} · ${data.user.email}`;
+        panel.appendChild(heading);
+        const table = document.createElement("table");
+        table.innerHTML = "<thead><tr><th>Dashboard ID</th><th>Dashboard</th><th>Report ID</th><th>Report</th><th>Access</th><th>Payment</th><th>Transaction</th></tr></thead>";
+        const body = document.createElement("tbody");
+        for (const dashboard of data.dashboards) {
+            const row = document.createElement("tr");
+            addCell(row, dashboard.dashboard_id);
+            addCell(row, dashboard.dashboard_name);
+            addCell(row, dashboard.report_id);
+            addCell(row, dashboard.report_name);
+            addCell(row, dashboard.access_type || "Locked");
+            addCell(row, dashboard.payment_status || "—");
+            addCell(row, dashboard.gateway_transaction_id || "—");
+            body.appendChild(row);
+        }
+        if (!data.dashboards.length) body.innerHTML = '<tr><td class="empty" colspan="7">This user has no saved dashboards.</td></tr>';
+        table.appendChild(body);
+        panel.append(table);
+    } catch (error) {
+        panel.textContent = error.message || "Could not load this user's dashboards.";
+    }
+}
+
+async function approvePayment(paymentId, button) {
+    if (!window.confirm("Verify this UTR in the bank/UPI records before approving. Continue?")) return;
+    button.disabled = true;
+    try {
+        const response = await fetch(`/api/admin/payments/${encodeURIComponent(paymentId)}/approve`, {
+            method: "POST",
+            credentials: "include"
+        });
+        const data = await response.json();
+        if (!response.ok || !data.success || !data.receipt) throw new Error(data.message || "Payment could not be approved.");
+        showMessage(`Approved ${data.receipt.receipt_no} for ${data.receipt.customer_email}. Subscription is active for 30 days.`, "success");
+        await loadPendingPayments();
+    } catch (error) {
+        button.disabled = false;
+        showMessage(error.message || "Unable to approve this payment.", "error");
+    }
+}
+
+loadPendingPayments();
+</script>
+</body>
+</html>

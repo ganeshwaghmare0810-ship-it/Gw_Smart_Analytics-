@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShopPulse – Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root{--or:#2563eb;--or-d:#1d4ed8;--navy:#0c1e3e;--teal:#0e9384;--blue:#4f46e5;--bg:#f7f7f7;--card:#fff;--bd:#e8eaee;--tx:#1f2937;--mu:#6b7280;--gr:#16a34a;--rd:#e11d48}
+*{box-sizing:border-box;margin:0;padding:0;font-family:"Inter",-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+body{background:var(--bg);color:var(--tx);font-size:13px;display:flex;min-height:100vh}
+a{text-decoration:none;color:inherit}
+/* Sidebar */
+.sb{width:240px;background:#fff;border-right:1px solid var(--bd);padding:18px 14px;position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0}
+.logo{font-size:20px;font-weight:800;color:var(--or-d);margin:0 6px 18px;display:flex;align-items:center;gap:8px}
+.logo i{background:var(--or-d);color:#fff;border-radius:6px;width:26px;height:26px;display:grid;place-items:center;font-style:normal;font-size:14px}
+.sb h6{font-size:11px;font-weight:700;color:var(--mu);margin:16px 8px 6px;text-transform:uppercase;letter-spacing:.5px}
+.sb a{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:6px;color:#4b5563;font-weight:500;margin-bottom:2px}
+.sb a:hover{background:#f3f4f6}
+.sb a.on{background:#e8efff;color:var(--or-d)}
+/* Main */
+.mn{flex:1;min-width:0}
+.top{background:#fff;border-bottom:1px solid var(--bd);padding:10px 24px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:5}
+.top input{border:1px solid var(--bd);background:#f9fafb;border-radius:8px;padding:9px 12px;width:260px;outline:none}
+.sp{flex:1}
+.b{border:0;border-radius:8px;padding:9px 14px;font-weight:600;cursor:pointer;font-size:13px}
+.b-or{background:var(--or);color:#fff}.b-nv{background:var(--navy);color:#fff}
+.sel{border:1px solid var(--bd);background:#fff;border-radius:8px;padding:8px 12px;font-weight:600}
+.av{width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,var(--or),var(--or-d));color:#fff;display:grid;place-items:center;font-weight:700}
+.ct{padding:24px;max-width:1500px}
+.hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+.hd h1{font-size:22px}.hd p{color:var(--mu);margin-top:4px}.hd b{color:var(--or-d)}
+.date{border:1px solid var(--bd);background:#fff;border-radius:8px;padding:9px 14px;font-weight:500}
+.alert{background:#fdecea;color:#b4232a;border-radius:6px;padding:11px 14px;margin-bottom:18px;display:flex;justify-content:space-between}
+.alert b{color:#111}.alert u{color:var(--or-d);cursor:pointer;font-weight:600}.alert span.x{cursor:pointer}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:16px}
+.k{border-radius:8px;padding:16px;color:#fff;display:flex;gap:12px;align-items:center}
+.k .ic{width:38px;height:38px;border-radius:8px;background:rgba(255,255,255,.95);display:grid;place-items:center;font-size:18px}
+.k small{opacity:.9;font-size:12px}.k .v{font-size:19px;font-weight:700;margin-top:4px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.chip{background:#fff;color:var(--gr);font-size:10px;padding:2px 6px;border-radius:4px;font-weight:700}
+.k1{background:var(--or)}.k2{background:var(--navy)}.k3{background:var(--teal)}.k4{background:var(--blue)}
+.s{background:#fff;border:1px solid var(--bd);border-radius:8px;padding:16px}
+.s .r{display:flex;justify-content:space-between;align-items:center}
+.s .v{font-size:17px;font-weight:700}.s .l{color:var(--mu);margin-top:4px}
+.s .ic{width:40px;height:40px;border-radius:8px;display:grid;place-items:center;font-size:18px}
+.s .f{margin-top:14px;padding-top:12px;border-top:1px dashed var(--bd);display:flex;justify-content:space-between;color:var(--mu);font-size:12px}
+.up{color:var(--gr);font-weight:700}.dn{color:var(--rd);font-weight:700}.s .f a{text-decoration:underline;color:var(--tx);font-weight:600}
+.row{display:grid;grid-template-columns:2fr 1fr;gap:16px}
+.card{background:#fff;border:1px solid var(--bd);border-radius:8px;padding:16px}
+.card .t{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.card h3{font-size:15px}
+.tabs{display:flex;border:1px solid var(--bd);border-radius:6px;overflow:hidden}
+.tabs button{border:0;background:#fff;padding:6px 10px;cursor:pointer;font-size:12px;color:var(--mu)}
+.tabs button.on{background:var(--or-d);color:#fff}
+.mini{display:flex;gap:10px;margin-bottom:10px}
+.mini div{border:1px solid var(--bd);border-radius:6px;padding:6px 12px;color:var(--mu);font-size:12px}
+.mini b{display:block;color:var(--tx);font-size:16px}
+.cv{position:relative;height:290px}
+.oi{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.oi div{background:#f9fafb;border:1px solid var(--bd);border-radius:8px;text-align:center;padding:12px 6px;color:var(--mu)}
+.oi b{display:block;font-size:17px;color:var(--tx);margin-top:4px}
+.co{display:flex;align-items:center;justify-content:space-around;gap:10px}
+.co .cv2{width:130px;height:130px;position:relative}
+.co .n{font-size:20px;font-weight:700}
+@media(max-width:1100px){.g4{grid-template-columns:repeat(2,1fr)}.row{grid-template-columns:1fr}}
+@media(max-width:800px){.sb{display:none}.top input{width:120px}.g4{grid-template-columns:1fr}.ct{padding:14px}}
+</style>
+</head>
+<body>
+
+<aside class="sb">
+  <div class="logo"><i>S</i> ShopPulse</div>
+  <h6>Main</h6>
+  <a class="on" href="dashboard.html">📊 Dashboard</a>
+  <h6>Inventory</h6>
+  <a href="shoppulse.html#products">📦 Products</a>
+  <a href="shoppulse.html#products">➕ Create Product</a>
+  <a href="shoppulse.html#inventory">⚠️ Low Stocks</a>
+  <a href="shoppulse.html#top-products">🏆 Top Products</a>
+  <h6>Stock</h6>
+  <a href="shoppulse.html#inventory">📋 Manage Stock</a>
+  <a href="shoppulse.html#inventory">🔧 Stock Adjustment</a>
+  <h6>Sales</h6>
+  <a href="shoppulse.html#sales">🛒 Sales</a>
+  <a href="shoppulse.html#customers">👥 Customers</a>
+  <h6>Finance</h6>
+  <a href="shoppulse.html#expenses">💸 Expenses</a>
+  <a href="shoppulse.html#profit">📈 Profit & Loss</a>
+  <a href="shoppulse.html#payments">💳 Payment Modes</a>
+  <a href="shoppulse.html#reports">📑 Reports</a>
+  <h6>Tools</h6>
+  <a href="shoppulse.html#assistant">🤖 AI Assistant</a>
+</aside>
+
+<div class="mn">
+  <div class="top">
+    <input placeholder="🔍 Search">
+    <div class="sp"></div>
+    <span class="sel" id="shopName">🏪 My Shop</span>
+    <a class="b b-or" href="shoppulse.html#sales">⊕ Add New</a>
+    <a class="b b-nv" href="shoppulse.html#sales">🖥 POS</a>
+    <div class="av" id="avatar">A</div>
+  </div>
+
+  <div class="ct">
+    <div class="hd">
+      <div>
+        <h1>Welcome, <span id="owner">Admin</span></h1>
+        <p>You have <b id="todayOrders">0</b> Orders, Today</p>
+      </div>
+      <div class="date" id="dateRange">📅</div>
+    </div>
+
+    <div class="alert" id="alertBox" style="display:none">
+      <div>⚠ Your Product <b id="alertProd"></b> is running Low, already below <span id="alertQty"></span> Pcs., <u onclick="location.href='shoppulse.html#inventory'">Add Stock</u></div>
+      <span class="x" onclick="this.parentElement.style.display='none'">✕</span>
+    </div>
+
+    <div class="g4">
+      <div class="k k1"><div class="ic">🧾</div><div><small>Total Sales</small><div class="v"><span id="kSales">₹0</span><span class="chip" id="kSalesC">↑ 0%</span></div></div></div>
+      <div class="k k2"><div class="ic">🔁</div><div><small>Total Sales Return</small><div class="v"><span id="kRet">₹0</span><span class="chip" style="color:var(--rd)">cancelled</span></div></div></div>
+      <div class="k k3"><div class="ic">🎁</div><div><small>Total Purchase</small><div class="v"><span id="kPur">₹0</span><span class="chip" id="kPurC">↑ 0%</span></div></div></div>
+      <div class="k k4"><div class="ic">🛡</div><div><small>Total Purchase Return</small><div class="v"><span id="kPurRet">₹0</span><span class="chip">0%</span></div></div></div>
+    </div>
+
+    <div class="g4">
+      <div class="s"><div class="r"><div><div class="v" id="sProfit">₹0</div><div class="l">Profit</div></div><div class="ic" style="background:#e0f7fa">🧊</div></div><div class="f"><span><span class="up" id="sProfitC">+0%</span> vs Last Month</span><a href="shoppulse.html#profit">View All</a></div></div>
+      <div class="s"><div class="r"><div><div class="v" id="sStock">₹0</div><div class="l">Stock Value</div></div><div class="ic" style="background:#e6f4ea">🕒</div></div><div class="f"><span id="sStockC">0 items</span><a href="shoppulse.html#products">View All</a></div></div>
+      <div class="s"><div class="r"><div><div class="v" id="sExp">₹0</div><div class="l">Total Expenses</div></div><div class="ic" style="background:#ffece5">⛔</div></div><div class="f"><span><span class="up" id="sExpC">+0%</span> vs Last Month</span><a href="shoppulse.html#expenses">View All</a></div></div>
+      <div class="s"><div class="r"><div><div class="v" id="sRet">₹0</div><div class="l">Total Payment Returns</div></div><div class="ic" style="background:#ede9fe">#</div></div><div class="f"><span><span class="dn" id="sRetC">0</span> orders cancelled</span><a href="shoppulse.html#sales">View All</a></div></div>
+    </div>
+
+    <div class="row">
+      <div class="card">
+        <div class="t"><h3>🛍 Sales & Purchase</h3>
+          <div class="tabs" id="tabs"><button data-r="1D">1D</button><button data-r="1W">1W</button><button data-r="1M">1M</button><button data-r="3M">3M</button><button data-r="6M">6M</button><button class="on" data-r="1Y">1Y</button></div>
+        </div>
+        <div class="mini"><div>Total Purchase<b id="mPur">0</b></div><div>Total Sales<b id="mSal">0</b></div></div>
+        <div class="cv"><canvas id="chSP"></canvas></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="card">
+          <div class="t"><h3>ℹ Overall Information</h3></div>
+          <div class="oi">
+            <div>Suppliers<b id="oSup">0</b></div>
+            <div>Customer<b id="oCus">0</b></div>
+            <div>Orders<b id="oOrd">0</b></div>
+          </div>
+          <div class="t"><h3 style="font-size:13px">Customers Overview</h3><span class="sel" style="font-size:12px">Today ▾</span></div>
+          <div class="co">
+            <div class="cv2"><canvas id="chCu"></canvas></div>
+            <div><div class="n" id="cFirst">0</div><div style="color:var(--mu)">First Time</div></div>
+            <div><div class="n" id="cRet">0</div><div style="color:var(--mu)">Return</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const fmt = n => "₹" + Math.round(n).toLocaleString("en-IN");
+const ymd = d => d.toISOString().slice(0,10);
+let S = {shop:{name:"My Shop",owner_name:"Admin"},products:[],sales:[],customers:[],expenses:[]};
+try { const raw = localStorage.getItem("sp_shop_state"); if (raw) S = Object.assign(S, JSON.parse(raw)); } catch(e){}
+
+const done = S.sales.filter(s => s.order_status === "Completed");
+const canc = S.sales.filter(s => s.order_status === "Cancelled");
+const cogsOf = s => s.items.reduce((a,i) => a + i.quantity*(i.cost_price||0), 0);
+const sum = (arr, f) => arr.reduce((a,x) => a + f(x), 0);
+const pct = (a,b) => b > 0 ? ((a-b)/b*100) : 0;
+const pctTxt = p => (p>=0?"↑ +":"↓ ") + p.toFixed(0) + "%";
+
+/* Month comparison */
+const now = new Date(), thisM = ymd(now).slice(0,7);
+const lm = new Date(now.getFullYear(), now.getMonth()-1, 1), lastM = ymd(lm).slice(0,7);
+const inM = (arr, m, key) => arr.filter(x => (x[key]||"").startsWith(m));
+const salesTM = sum(inM(done,thisM,"sale_date"), s=>s.total_amount), salesLM = sum(inM(done,lastM,"sale_date"), s=>s.total_amount);
+const purTM = sum(inM(done,thisM,"sale_date"), cogsOf), purLM = sum(inM(done,lastM,"sale_date"), cogsOf);
+const expTM = sum(inM(S.expenses,thisM,"date"), e=>e.amount), expLM = sum(inM(S.expenses,lastM,"date"), e=>e.amount);
+
+/* Header */
+document.getElementById("shopName").textContent = "🏪 " + (S.shop.name || "My Shop");
+document.getElementById("owner").textContent = S.shop.owner_name || "Admin";
+document.getElementById("avatar").textContent = (S.shop.owner_name || "A")[0].toUpperCase();
+document.getElementById("todayOrders").textContent = done.filter(s => s.sale_date.startsWith(ymd(now))).length;
+const d1 = new Date(now); d1.setDate(d1.getDate()-6);
+const dfmt = d => d.toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});
+document.getElementById("dateRange").textContent = "📅 " + dfmt(d1) + " - " + dfmt(now);
+
+/* Low stock alert */
+const low = S.products.filter(p => p.stock <= p.reorder_level).sort((a,b)=>a.stock-b.stock)[0];
+if (low) { document.getElementById("alertBox").style.display = "flex"; alertProd.textContent = low.name; alertQty.textContent = low.reorder_level; }
+
+/* KPI cards */
+const totSales = sum(done, s=>s.total_amount), totPur = sum(done, cogsOf), totRet = sum(canc, s=>s.total_amount);
+const totExp = sum(S.expenses, e=>e.amount), profit = totSales - totPur - totExp;
+kSales.textContent = fmt(totSales); kSalesC.textContent = pctTxt(pct(salesTM, salesLM));
+kRet.textContent = fmt(totRet); kPur.textContent = fmt(totPur); kPurC.textContent = pctTxt(pct(purTM, purLM));
+kPurRet.textContent = fmt(0);
+sProfit.textContent = fmt(profit); sProfitC.textContent = pctTxt(pct(salesTM-purTM-expTM, salesLM-purLM-expLM));
+sStock.textContent = fmt(sum(S.products, p=>p.stock*p.cost_price)); sStockC.textContent = S.products.length + " products";
+sExp.textContent = fmt(totExp); sExpC.textContent = pctTxt(pct(expTM, expLM));
+sRet.textContent = fmt(totRet); sRetC.textContent = canc.length;
+
+/* Overall info */
+oSup.textContent = new Set(S.products.map(p=>p.supplier).filter(Boolean)).size;
+oCus.textContent = S.customers.length; oOrd.textContent = done.length;
+
+/* Customers overview doughnut */
+const perCust = {}; done.forEach(s => perCust[s.customer_id] = (perCust[s.customer_id]||0) + 1);
+const rep = Object.values(perCust).filter(n=>n>1).length, first = Object.values(perCust).filter(n=>n===1).length;
+const tc = (rep+first) || 1;
+cFirst.textContent = first + " (" + Math.round(first/tc*100) + "%)"; cRet.textContent = rep + " (" + Math.round(rep/tc*100) + "%)";
+new Chart(chCu, {type:"doughnut", data:{labels:["First Time","Return"], datasets:[{data:[first,rep], backgroundColor:["#0e9384","#2563eb"], borderWidth:0}]}, options:{cutout:"68%", maintainAspectRatio:false, plugins:{legend:{display:false}}}});
+
+/* Sales & Purchase chart with range tabs */
+let chart;
+function buckets(range) {
+  const out = {}, add = (k) => out[k] = {s:0, p:0};
+  const today = new Date();
+  if (range === "1D") for (let h=0; h<24; h+=2) add(String(h).padStart(2,"0"));
+  else if (range === "1W" || range === "1M") { const n = range==="1W"?7:30; for (let i=n-1;i>=0;i--){const d=new Date(today);d.setDate(d.getDate()-i);add(ymd(d));} }
+  else { const n = range==="3M"?3:range==="6M"?6:12; for (let i=n-1;i>=0;i--){add(ymd(new Date(today.getFullYear(),today.getMonth()-i,1)).slice(0,7));} }
+  done.forEach(s => {
+    let k = range==="1D" ? (s.sale_date.startsWith(ymd(today)) ? String(Math.floor(+s.sale_date.slice(11,13)/2)*2).padStart(2,"0") : null)
+          : (range==="1W"||range==="1M") ? s.sale_date.slice(0,10) : s.sale_date.slice(0,7);
+    if (k && out[k]) { out[k].s += s.total_amount; out[k].p += cogsOf(s); }
+  });
+  return out;
+}
+function drawChart(range) {
+  const b = buckets(range), keys = Object.keys(b);
+  const label = k => range==="1D" ? k+":00" : (range==="1W"||range==="1M") ? k.slice(5) : new Date(k+"-01").toLocaleString("en",{month:"short"});
+  mPur.textContent = Math.round(sum(keys, k=>b[k].p)/1000) + "K"; mSal.textContent = Math.round(sum(keys, k=>b[k].s)/1000) + "K";
+  if (chart) chart.destroy();
+  chart = new Chart(chSP, {type:"bar", data:{labels:keys.map(label), datasets:[
+    {label:"Total Sales", data:keys.map(k=>b[k].s), backgroundColor:"#2563eb", borderRadius:4, stack:"a"},
+    {label:"Total Purchase", data:keys.map(k=>b[k].p), backgroundColor:"#bfd4fb", borderRadius:4, stack:"a"}]},
+    options:{maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{stacked:true,grid:{display:false}}, y:{stacked:true,beginAtZero:true,ticks:{callback:v=>v>=1000?(v/1000)+"K":v}}}}});
+}
+document.querySelectorAll("#tabs button").forEach(btn => btn.onclick = () => {
+  document.querySelectorAll("#tabs button").forEach(x=>x.classList.remove("on")); btn.classList.add("on"); drawChart(btn.dataset.r);
+});
+drawChart("1Y");
+</script>
+</body>
+</html>

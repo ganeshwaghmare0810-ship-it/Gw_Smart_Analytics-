@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>GW Smart Analytics | Login</title>
+<script>
+if (window.location.protocol === "file:") {
+  window.location.replace("http://127.0.0.1:5000/login");
+}
+</script>
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f0f4ff 0%, #ffffff 50%, #e6f0ff 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  color: #172033;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Animated background shapes */
+body::before,
+body::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.6;
+  z-index: 0;
+  animation: float 12s ease-in-out infinite;
+}
+
+body::before {
+  width: 400px;
+  height: 400px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  top: -100px;
+  left: -100px;
+}
+
+body::after {
+  width: 500px;
+  height: 500px;
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  bottom: -150px;
+  right: -150px;
+  animation-delay: -6s;
+}
+
+@keyframes float {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(30px, 30px); }
+}
+
+.login-wrapper {
+  width: 100%;
+  max-width: 1100px;
+  min-height: 650px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 28px;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  box-shadow: 0 30px 80px rgba(30, 70, 130, 0.2), 0 10px 30px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 1;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* LEFT SIDE */
+.login-left {
+  background: linear-gradient(145deg, #0b3b91, #1769e0);
+  color: white;
+  padding: 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+
+.login-left::before {
+  content: "";
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  top: -100px;
+  right: -100px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.logo img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+
+.left-content h1 {
+  font-size: 46px;
+  line-height: 1.1;
+  margin-bottom: 22px;
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+
+.left-content p {
+  color: #dbe9ff;
+  line-height: 1.8;
+  font-size: 16px;
+  max-width: 400px;
+  font-weight: 300;
+}
+
+.features {
+  margin-top: 35px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.feature {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: #eaf2ff;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.feature span {
+  width: 28px;
+  height: 28px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.left-footer {
+  font-size: 13px;
+  color: #c8ddff;
+  opacity: 0.8;
+}
+
+/* RIGHT SIDE */
+.login-right {
+  padding: 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: #ffffff;
+}
+
+/* Server status pill */
+.server-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 20px;
+  width: fit-content;
+  margin-bottom: 16px;
+  transition: all 0.3s ease;
+}
+
+.server-badge.online {
+  background: linear-gradient(135deg, #e6f9ed, #d1f5e0);
+  color: #16834b;
+  border: 1px solid #b7ebd0;
+  box-shadow: 0 2px 8px rgba(22, 131, 75, 0.15);
+}
+
+.server-badge.offline {
+  background: linear-gradient(135deg, #fff1f0, #fee2e2);
+  color: #d13c3c;
+  border: 1px solid #fecaca;
+  box-shadow: 0 2px 8px rgba(209, 60, 60, 0.15);
+}
+
+.server-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.2); }
+}
+
+.login-right h2 {
+  font-size: 36px;
+  margin-bottom: 8px;
+  font-weight: 800;
+  color: #1a2332;
+  letter-spacing: -0.5px;
+}
+
+.subtitle {
+  color: #7a8498;
+  font-size: 15px;
+  margin-bottom: 28px;
+  font-weight: 400;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #303b50;
+  letter-spacing: 0.2px;
+}
+
+.input-wrapper {
+  position: relative;
+}
+
+.input-wrapper input {
+  width: 100%;
+  padding: 16px 50px 16px 18px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 15px;
+  outline: none;
+  transition: all 0.3s ease;
+  background: #f8fafc;
+  color: #1a2332;
+  font-weight: 500;
+}
+
+.input-wrapper input:focus {
+  border-color: #1769e0;
+  box-shadow: 0 0 0 4px rgba(23, 105, 224, 0.1);
+  background: #ffffff;
+}
+
+.input-icon {
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9aa5b8;
+  font-size: 18px;
+  transition: color 0.3s ease;
+  cursor: pointer;
+}
+
+.input-icon:hover {
+  color: #1769e0;
+}
+
+.form-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 26px;
+  font-size: 14px;
+}
+
+.remember {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #667085;
+  cursor: pointer;
+  font-weight: 500;
+  user-select: none;
+}
+
+.remember input {
+  accent-color: #1769e0;
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+}
+
+.forgot {
+  color: #1769e0;
+  text-decoration: none;
+  font-weight: 700;
+  transition: all 0.2s ease;
+}
+
+.forgot:hover {
+  text-decoration: underline;
+  color: #0b3b91;
+}
+
+.login-btn {
+  width: 100%;
+  padding: 17px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #1769e0, #0b3b91);
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 4px 15px rgba(23, 105, 224, 0.3);
+  letter-spacing: 0.3px;
+}
+
+.login-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(23, 105, 224, 0.4);
+}
+
+.login-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 28px 0;
+  color: #a0a9b8;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
+  flex: 1;
+}
+
+.signup {
+  text-align: center;
+  font-size: 15px;
+  color: #7a8498;
+  font-weight: 500;
+}
+
+.signup a {
+  color: #1769e0;
+  text-decoration: none;
+  font-weight: 700;
+  transition: all 0.2s ease;
+}
+
+.signup a:hover {
+  text-decoration: underline;
+  color: #0b3b91;
+}
+
+.message {
+  display: none;
+  padding: 14px 16px;
+  border-radius: 10px;
+  margin-bottom: 18px;
+  font-size: 14px;
+  line-height: 1.6;
+  text-align: left;
+  font-weight: 500;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.message.success {
+  display: block;
+  background: linear-gradient(135deg, #e7f8ef, #d1f5e0);
+  border: 1px solid #a3e6be;
+  color: #16834b;
+}
+
+.message.error {
+  display: block;
+  background: linear-gradient(135deg, #fff0f0, #fee2e2);
+  border: 1px solid #fecaca;
+  color: #d13c3c;
+}
+
+/* Quick test pill */
+.test-hint {
+  margin-top: 18px;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+  border: 1px dashed #cbd5e1;
+  border-radius: 10px;
+  font-size: 13px;
+  color: #64748b;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 500;
+}
+
+.test-hint button {
+  background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  color: #334155;
+  transition: all 0.2s ease;
+}
+
+.test-hint button:hover {
+  background: linear-gradient(135deg, #cbd5e1, #a0aec0);
+  transform: translateY(-1px);
+}
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .login-wrapper {
+    grid-template-columns: 1fr;
+    max-width: 500px;
+  }
+
+  .login-left {
+    padding: 45px;
+    min-height: 280px;
+  }
+
+  .left-content h1 {
+    font-size: 34px;
+  }
+
+  .left-content p {
+    font-size: 15px;
+  }
+
+  .features {
+    margin-top: 25px;
+  }
+
+  .left-footer {
+    display: none;
+  }
+
+  .login-right {
+    padding: 45px;
+  }
+}
+
+@media (max-width: 500px) {
+  .login-left,
+  .login-right {
+    padding: 30px;
+  }
+
+  .login-right h2 {
+    font-size: 30px;
+  }
+
+  .login-left h1 {
+    font-size: 28px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="login-wrapper">
+
+  <!-- LEFT SIDE -->
+  <div class="login-left">
+
+    <div class="logo">
+      <img src="logo.png" alt="GW Logo" onerror="this.style.display='none'">
+      <span>GW Smart Analytics</span>
+    </div>
+
+    <div class="left-content">
+      <h1>Turn your data<br>into insights.</h1>
+
+      <p>
+        Create powerful dashboards, explore business
+        performance and make smarter decisions with
+        GW Smart    Analytics.
+      </p>
+
+      <div class="features">
+        <div class="feature">
+          <span>✓</span>
+          Interactive Analytics Dashboards
+        </div>
+
+        <div class="feature">
+          <span>✓</span>
+          SQLite Secure Authentication
+        </div>
+
+        <div class="feature">
+          <span>✓</span>
+          Easy Data Upload & Visualization
+        </div>
+
+        <div class="feature">
+          <span>✓</span>
+          Export Your Business PDF Reports
+        </div>
+      </div>
+    </div>
+
+    <div class="left-footer">
+      © 2026 GW Smart Analytics. All rights reserved.
+    </div>
+
+  </div>
+
+  <!-- RIGHT SIDE -->
+  <div class="login-right">
+
+    <!-- Server health status indicator -->
+    <div id="serverBadge" class="server-badge online">
+      <span class="server-dot"></span>
+      <span id="serverStatusText">Checking Backend Server...</span>
+    </div>
+
+    <h2>Welcome back</h2>
+    <p class="subtitle">Login to continue to your dashboard</p>
+
+    <div id="message" class="message"></div>
+
+    <form id="loginForm">
+
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <div class="input-wrapper">
+          <input
+            type="email"
+            id="email"
+            placeholder="Enter your email"
+            required
+            autocomplete="email"
+          >
+          <span class="input-icon">✉</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="input-wrapper">
+          <input
+            type="password"
+            id="password"
+            placeholder="Enter your password"
+            required
+            autocomplete="current-password"
+          >
+          <span
+            class="input-icon show-password"
+            id="togglePassword"
+            title="Show/Hide password"
+          >👁</span>
+        </div>
+      </div>
+
+      <div class="form-options">
+        <label class="remember">
+          <input type="checkbox" id="remember">
+          Remember me
+        </label>
+
+        <a href="#" class="forgot" onclick="forgotPassword(event)">
+          Forgot Password?
+        </a>
+      </div>
+
+      <button type="submit" id="submitBtn" class="login-btn">
+        <span>Login to Dashboard</span> →
+      </button>
+
+    </form>
+
+    <div class="divider">OR</div>
+
+    <div class="signup">
+      Don't have an account?
+      <a href="register.html">Create Account</a>
+    </div>
+
+    <!-- Quick Test Account Helper -->
+    
+
+  </div>
+</div>
+
+<script>
+// Automatically detect Python server host
+const API_BASE = window.location.protocol === "http:" || window.location.protocol === "https:"
+  ? ""
+  : "http://127.0.0.1:5000";
+
+const loginForm = document.getElementById("loginForm");
+const message = document.getElementById("message");
+const emailInput = document.getElementById("email");
+const passwordInput = document.getElementById("password");
+const togglePassword = document.getElementById("togglePassword");
+const submitBtn = document.getElementById("submitBtn");
+const serverBadge = document.getElementById("serverBadge");
+const serverStatusText = document.getElementById("serverStatusText");
+
+// Check server status and existing session on page load
+async function checkBackendStatus() {
+  try {
+    const res = await fetch(`${API_BASE}/api/health`, { method: "GET", credentials: "include" });
+    if (res.ok) {
+      serverBadge.className = "server-badge online";
+      serverStatusText.innerText = "🟢 Python Server Connected (SQLite DB)";
+
+      // Check if already authenticated via server session
+      try {
+        const meRes = await fetch(`${API_BASE}/api/me`, { method: "GET", credentials: "include" });
+        const meData = await meRes.json();
+        if (meRes.ok && meData.authenticated && meData.user) {
+          showCurrentUser(meData.user);
+          setTimeout(() => {
+            window.location.href = "index.html";
+          }, 900);
+        }
+      } catch (err) {
+        console.warn("Could not confirm the signed-in account with the server:", err);
+      }
+    } else {
+      throw new Error();
+    }
+  } catch (e) {
+    serverBadge.className = "server-badge offline";
+    serverStatusText.innerText = "🔴 Python Server Offline (Run: streamlit run hh.py)";
+  }
+}
+
+// Autofill saved email or credentials from register/remember
+window.addEventListener("DOMContentLoaded", () => {
+  checkBackendStatus();
+
+  const registeredEmail = sessionStorage.getItem("registered_email");
+  if (registeredEmail) {
+    emailInput.value = registeredEmail;
+    showMessage("Registration यशस्वी झाले! आता पासवर्ड टाकून Login करा.", "success");
+    sessionStorage.removeItem("registered_email");
+    passwordInput.focus();
+    return;
+  }
+
+  const savedEmail = localStorage.getItem("remembered_email");
+  if (savedEmail) {
+    emailInput.value = savedEmail;
+    document.getElementById("remember").checked = true;
+  }
+});
+
+// Quick fill helper for testing
+function fillTestAccount() {
+  emailInput.value = "ganesh@example.com";
+  passwordInput.value = "mypassword123";
+  showMessage("Test credentials भरले आहेत. आता 'Login to Dashboard' वर क्लिक करा.", "success");
+}
+
+/* SHOW / HIDE PASSWORD TOGGLE */
+togglePassword.addEventListener("click", function () {
+  if (passwordInput.type === "password") {
+    passwordInput.type = "text";
+    togglePassword.textContent = "🙈";
+  } else {
+    passwordInput.type = "password";
+    togglePassword.textContent = "👁";
+  }
+});
+
+/* LOGIN FORM SUBMIT */
+loginForm.addEventListener("submit", async function (event) {
+  event.preventDefault();
+
+  const email = emailInput.value.trim();
+  const passwordValue = passwordInput.value;
+  const rememberMe = document.getElementById("remember").checked;
+
+  if (!email || !passwordValue) {
+    showMessage("कृपया Email आणि Password दोन्ही प्रविष्ट करा.", "error");
+    return;
+  }
+
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = "⏳ Verifying with SQLite DB...";
+  showMessage("लॉगिन पडताळणी होत आहे, कृपया थांबा...", "");
+
+  try {
+    const response = await fetch(`${API_BASE}/api/login`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        email: email,
+        password: passwordValue
+      })
+    });
+
+    const data = await response.json();
+
+    if (response.ok && data.success) {
+      showMessage("✅ " + data.message + " Home page उघडत आहे...", "success");
+
+      const userData = data.user || {};
+      if (!userData.name && !userData.email) userData.email = email;
+      if (data.subscription) {
+        userData.subscription = data.subscription;
+        userData.is_paid = data.subscription.active;
+      }
+      showCurrentUser(userData);
+      if (data.subscription && data.subscription.active) {
+        localStorage.setItem("gwPaymentVerified", "true");
+      }
+
+      if (rememberMe) {
+        localStorage.setItem("remembered_email", email);
+      } else {
+        localStorage.removeItem("remembered_email");
+      }
+
+      setTimeout(function () {
+        window.location.href = "index.html";
+      }, 800);
+
+    } else {
+      showMessage("⚠️ " + (data.message || "चुकीचा Email किंवा Password."), "error");
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = "<span>Login to Dashboard</span> →";
+    }
+
+  } catch (error) {
+    console.error("Login Network Error:", error);
+    serverBadge.className = "server-badge offline";
+    serverStatusText.innerText = "🔴 Python Server Offline";
+
+    showMessage(
+      "⚠️ Python Server शी संपर्क होऊ शकला नाही.<br>" +
+      "कृपया टर्मिनल / CMD मध्ये <b>streamlit run hh.py</b> चालू करा.",
+      "error"
+    );
+
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = "<span>Login to Dashboard</span> →";
+  }
+});
+
+/* SHOW MESSAGE HELPER */
+function showMessage(htmlContent, type) {
+  if (!htmlContent) {
+    message.style.display = "none";
+    return;
+  }
+  message.innerHTML = htmlContent;
+  message.className = "message " + (type || "");
+  message.style.display = "block";
+}
+
+function showCurrentUser(user) {
+  const displayName = String(user.name || user.email || "").trim();
+  if (!displayName) return;
+
+  const safeName = escapeHTML(displayName);
+  showMessage(`👤 Logged in as <b>${safeName}</b>. <a href="index.html">Continue to home page</a>`, "success");
+}
+
+function escapeHTML(value) {
+  return String(value).replace(/[&<>"']/g, character => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  }[character]));
+}
+
+/* FORGOT PASSWORD */
+function forgotPassword(event) {
+  event.preventDefault();
+  showMessage("Password reset करण्यासाठी <b>ganesh@example.com</b> किंवा admin शी संपर्क साधा.", "error");
+}
+</script>
+
+</body>
+</html>

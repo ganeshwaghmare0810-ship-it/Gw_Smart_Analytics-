@@ -1,0 +1,581 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>GW Smart Analytics - How It Works</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f5f8fc;
+            color: #172033;
+            line-height: 1.6;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #071b45, #0d47a1);
+            color: white;
+            text-align: center;
+            padding: 70px 20px;
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            margin-bottom: 15px;
+            border-radius: 15px;
+        }
+
+        .hero h1 {
+            font-size: 42px;
+            margin-bottom: 12px;
+        }
+
+        .hero p {
+            max-width: 750px;
+            margin: auto;
+            font-size: 18px;
+            opacity: 0.92;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1150px;
+            margin: 50px auto;
+        }
+
+        .intro {
+            text-align: center;
+            margin-bottom: 45px;
+        }
+
+        .intro h2 {
+            font-size: 30px;
+            color: #0d47a1;
+            margin-bottom: 10px;
+        }
+
+        .intro p {
+            max-width: 800px;
+            margin: auto;
+            color: #5c667a;
+        }
+
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+        }
+
+        .step-card {
+            background: white;
+            border-radius: 18px;
+            padding: 28px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e4eaf2;
+            transition: 0.3s ease;
+            position: relative;
+        }
+
+        .step-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 14px 35px rgba(0, 0, 0, 0.12);
+        }
+
+        .step-number {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #0d47a1;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 21px;
+            font-weight: bold;
+            margin-bottom: 18px;
+        }
+
+        .step-card h3 {
+            font-size: 21px;
+            margin-bottom: 10px;
+            color: #102a56;
+        }
+
+        .step-card p {
+            color: #626d80;
+            font-size: 15px;
+        }
+
+        .feature-list {
+            margin-top: 15px;
+            padding-left: 20px;
+            color: #626d80;
+        }
+
+        .feature-list li {
+            margin-bottom: 6px;
+        }
+
+        .dashboard-types {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 9px;
+            margin-top: 15px;
+        }
+
+        .dashboard-types span {
+            background: #eaf2ff;
+            color: #0d47a1;
+            padding: 7px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .workflow {
+            margin-top: 55px;
+            background: linear-gradient(135deg, #071b45, #0d47a1);
+            color: white;
+            padding: 40px 25px;
+            border-radius: 22px;
+            text-align: center;
+        }
+
+        .workflow h2 {
+            font-size: 28px;
+            margin-bottom: 25px;
+        }
+
+        .flow-box {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .flow-item {
+            background: rgba(255, 255, 255, 0.14);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            padding: 13px 18px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        .arrow {
+            font-size: 24px;
+        }
+
+        .why-section {
+            margin-top: 55px;
+            text-align: center;
+        }
+
+        .why-section h2 {
+            color: #0d47a1;
+            font-size: 30px;
+            margin-bottom: 25px;
+        }
+
+        .why-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+        }
+
+        .why-card {
+            background: white;
+            padding: 22px 15px;
+            border-radius: 15px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.07);
+            border: 1px solid #e5eaf1;
+        }
+
+        .why-card .icon {
+            font-size: 30px;
+            margin-bottom: 8px;
+        }
+
+        .why-card h4 {
+            color: #172b4d;
+        }
+
+        .footer {
+            margin-top: 60px;
+            background: #071b45;
+            color: #cbd5e1;
+            text-align: center;
+            padding: 25px 15px;
+            font-size: 14px;
+        }
+
+        .footer strong {
+            color: white;
+        }
+
+        @media (max-width: 850px) {
+            .steps {
+                grid-template-columns: 1fr;
+            }
+
+            .why-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .hero h1 {
+                font-size: 34px;
+            }
+        }
+
+        @media (max-width: 500px) {
+            .why-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero {
+                padding: 50px 15px;
+            }
+
+            .hero h1 {
+                font-size: 29px;
+            }
+
+            .flow-box {
+                flex-direction: column;
+            }
+
+            .arrow {
+                transform: rotate(90deg);
+            }
+        }
+    </style>
+</head>
+ <a href="index.html" class="home-btn">
+        back to home
+    </a>
+<body>
+
+    <!-- Hero Section -->
+    <section class="hero">
+
+        <!-- Replace logo image with your project logo -->
+        <img src="logo.png"
+             alt="GW Smart Analytics Logo"
+             class="logo">
+
+        <h1>How GW Smart Analytics Works</h1>
+    
+
+
+        <p>
+            Turn your data into meaningful dashboards, insights and
+            professional reports with a simple and user-friendly process.
+        </p>
+
+    </section>
+
+
+    <main class="container">
+
+        <!-- Introduction -->
+        <section class="intro">
+
+            <h2>Simple. Smart. Powerful.</h2>
+
+            <p>
+                GW Smart Analytics makes data analysis easier by converting
+                your data into interactive visualizations, performance
+                insights and analytical reports.
+            </p>
+
+        </section>
+
+
+        <!-- Steps -->
+        <section class="steps">
+
+            <!-- Step 1 -->
+            <div class="step-card">
+
+                <div class="step-number">1</div>
+
+                <h3>👤 Create Your Account</h3>
+
+                <p>
+                    Start by creating your account using your name, email,
+                    mobile number and password.
+                </p>
+
+            </div>
+
+
+            <!-- Step 2 -->
+            <div class="step-card">
+
+                <div class="step-number">2</div>
+
+                <h3>🔐 Login Securely</h3>
+
+                <p>
+                    Login using your registered email and password to access
+                    the analytics platform and your available features.
+                </p>
+
+            </div>
+
+
+            <!-- Step 3 -->
+            <div class="step-card">
+
+                <div class="step-number">3</div>
+
+                <h3>📊 Choose Your Dashboard</h3>
+
+                <p>
+                    Select the dashboard according to the type of data
+                    you want to analyze.
+                </p>
+
+                <div class="dashboard-types">
+                    <span>Business</span>
+                    <span>Sales</span>
+                    <span>Financial</span>
+                    <span>Inventory</span>
+                    <span>HR</span>
+                    <span>Marketing</span>
+                    <span>Student</span>
+                    <span>Customer</span>
+                    <span>Production</span>
+                    <span>Data Analytics</span>
+                </div>
+
+            </div>
+
+
+            <!-- Step 4 -->
+            <div class="step-card">
+
+                <div class="step-number">4</div>
+
+                <h3>📁 Upload Your Data</h3>
+
+                <p>
+                    Upload your business or project data in a supported
+                    spreadsheet format and get it ready for analysis.
+                </p>
+
+            </div>
+
+
+            <!-- Step 5 -->
+            <div class="step-card">
+
+                <div class="step-number">5</div>
+
+                <h3>⚙️ Automatic Data Analysis</h3>
+
+                <p>
+                    Your data is analyzed to identify important values,
+                    trends and performance indicators.
+                </p>
+
+                <ul class="feature-list">
+                    <li>Total Sales</li>
+                    <li>Total Cost</li>
+                    <li>Profit & Loss</li>
+                    <li>Profit Margin</li>
+                    <li>Product Performance</li>
+                    <li>Category Performance</li>
+                </ul>
+
+            </div>
+
+
+            <!-- Step 6 -->
+            <div class="step-card">
+
+                <div class="step-number">6</div>
+
+                <h3>📈 Interactive Dashboard</h3>
+
+                <p>
+                    Your data is transformed into an interactive dashboard
+                    with charts, graphs, KPIs and useful filters.
+                </p>
+
+            </div>
+
+
+            <!-- Step 7 -->
+            <div class="step-card">
+
+                <div class="step-number">7</div>
+
+                <h3>💡 Get Analytical Insights</h3>
+
+                <p>
+                    Understand your data through visual trends, comparisons
+                    and performance insights that can support better
+                    decision-making.
+                </p>
+
+            </div>
+
+
+            <!-- Step 8 -->
+            <div class="step-card">
+
+                <div class="step-number">8</div>
+
+                <h3>💳 Activate Premium Access</h3>
+
+                <p>
+                    Complete the required subscription payment to unlock
+                    premium report and PDF download features.
+                </p>
+
+            </div>
+
+
+            <!-- Step 9 -->
+            <div class="step-card">
+
+                <div class="step-number">9</div>
+
+                <h3>📄 Generate Your Report</h3>
+
+                <p>
+                    After premium access is successfully activated, generate
+                    your professional analytical report.
+                </p>
+
+            </div>
+
+
+            <!-- Step 10 -->
+            <div class="step-card">
+
+                <div class="step-number">10</div>
+
+                <h3>⬇️ Download Your PDF</h3>
+
+                <p>
+                    Download your analytical report in PDF format and use it
+                    for business reviews, presentations, projects or
+                    record keeping.
+                </p>
+
+            </div>
+
+        </section>
+
+
+        <!-- Workflow -->
+        <section class="workflow">
+
+            <h2>🚀 Your Data to Your Insights</h2>
+
+            <div class="flow-box">
+
+                <div class="flow-item">📁 Upload Data</div>
+
+                <div class="arrow">→</div>
+
+                <div class="flow-item">⚙️ Analyze</div>
+
+                <div class="arrow">→</div>
+
+                <div class="flow-item">📊 Visualize</div>
+
+                <div class="arrow">→</div>
+
+                <div class="flow-item">💡 Insights</div>
+
+                <div class="arrow">→</div>
+
+                <div class="flow-item">📄 Report</div>
+
+            </div>
+
+        </section>
+
+
+        <!-- Why GW Smart Analytics -->
+        <section class="why-section">
+
+            <h2>⭐ Why Use GW Smart Analytics?</h2>
+
+            <div class="why-grid">
+
+                <div class="why-card">
+                    <div class="icon">⚡</div>
+                    <h4>Easy to Use</h4>
+                </div>
+
+                <div class="why-card">
+                    <div class="icon">📊</div>
+                    <h4>Interactive Dashboards</h4>
+                </div>
+
+                <div class="why-card">
+                    <div class="icon">📈</div>
+                    <h4>Powerful Visualizations</h4>
+                </div>
+
+                <div class="why-card">
+                    <div class="icon">💡</div>
+                    <h4>Useful Insights</h4>
+                </div>
+
+                <div class="why-card">
+                    <div class="icon">💰</div>
+                    <h4>Profit & Loss Analysis</h4>
+                </div>
+
+                <div class="why-card">
+                    <div class="icon">🎯</div>
+                    <h4>Performance Analysis</h4>
+                </div>
+
+                <div class="why-card">
+                    <div class="icon">📄</div>
+                    <h4>Professional Reports</h4>
+                </div>
+
+                <div class="why-card">
+                    <div class="icon">🔒</div>
+                    <h4>Secure User Access</h4>
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- Footer -->
+    <footer class="footer">
+
+        <strong>GW Smart Analytics</strong>
+
+        <br>
+
+        Making Data Simple, Visual & Meaningful.
+
+    </footer>
+
+</body>
+</html>
+

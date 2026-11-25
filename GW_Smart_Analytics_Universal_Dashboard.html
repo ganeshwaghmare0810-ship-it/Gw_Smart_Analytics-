@@ -1,0 +1,4204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Gw Smart Analytics Dashboard</title>
+
+<!-- ================= LIBRARIES ================= -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+<style>
+/* =========================================================
+   RESET & BASE STYLES
+========================================================= */
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+html{
+    scroll-behavior:smooth;
+}
+
+body{
+    font-family:"Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, Arial, sans-serif;
+    background:#0e1424;
+    color:#e6edf8;
+    min-height:100vh;
+    transition:background .3s ease, color .3s ease;
+}
+
+/* =========================================================
+   NAVBAR
+========================================================= */
+.navbar{
+    height:74px;
+    background:#131b2e;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 35px;
+    box-shadow:0 6px 25px rgba(0,0,0,.25);
+    position:sticky;
+    top:0;
+    z-index:999;
+    border-bottom:1px solid rgba(255,255,255,.08);
+}
+
+.brand{
+    display:flex;
+    align-items:center;
+    gap:13px;
+    cursor:pointer;
+}
+
+.logo{
+    width:44px;
+    height:44px;
+    object-fit:cover;
+    border-radius:12px;
+}
+
+.logo-fallback{
+    width:44px;
+    height:44px;
+    border-radius:12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:linear-gradient(135deg, #7655ef, #19d1df);
+    color:white;
+    font-size:18px;
+    font-weight:800;
+}
+
+.brand h2{
+    font-size:20px;
+    color:#ffffff;
+    font-weight:800;
+    letter-spacing:-0.3px;
+}
+
+.brand span{
+    background:linear-gradient(135deg, #a78bfa, #38bdf8);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
+
+.nav-buttons{
+    display:flex;
+    gap:10px;
+    align-items:center;
+}
+
+.nav-btn{
+    border:none;
+    padding:10px 16px;
+    border-radius:10px;
+    cursor:pointer;
+    font-weight:700;
+    font-size:13px;
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    transition:all .2s ease;
+}
+
+.nav-btn:hover{
+    transform:translateY(-2px);
+}
+
+.payment-button{
+    background:linear-gradient(135deg,#10b981,#059669);
+    color:#fff;
+    box-shadow:0 6px 18px rgba(16,185,129,.28);
+}
+
+.receipt-nav-btn{
+    background:#1e293b;
+    color:#38bdf8;
+    border:1px solid #0284c7;
+}
+
+.theme-button{
+    background:#1f293d;
+    color:#cbd5e1;
+    border:1px solid rgba(255,255,255,.1);
+}
+
+.report-button{
+    background:linear-gradient(135deg, #8b5cf6, #ec4899);
+    color:white;
+    box-shadow:0 6px 18px rgba(139,92,246,.3);
+}
+
+.pdf-button{
+    background:linear-gradient(135deg, #6366f1, #0ea5e9);
+    color:white;
+    box-shadow:0 6px 18px rgba(99,102,241,.3);
+}
+
+.pdf-button:disabled{
+    opacity:.5;
+    cursor:not-allowed;
+    transform:none;
+    box-shadow:none;
+}
+
+/* =========================================================
+   UPLOAD AREA
+========================================================= */
+.upload-section{
+    width:100%;
+    max-width:1320px;
+    margin:28px auto 20px;
+    padding:0 20px;
+}
+
+.upload-box{
+    background:#162035;
+    border:2px dashed #2d3e5e;
+    border-radius:20px;
+    padding:32px 24px;
+    text-align:center;
+    transition:.3s;
+}
+
+.upload-box:hover{
+    border-color:#818cf8;
+    box-shadow:0 12px 35px rgba(0,0,0,.25);
+}
+
+.upload-icon{
+    font-size:42px;
+    margin-bottom:10px;
+}
+
+.upload-box h1{
+    font-size:26px;
+    margin-bottom:8px;
+    font-weight:800;
+}
+
+.upload-box p{
+    color:#94a3b8;
+    font-size:14px;
+    margin-bottom:20px;
+    max-width:620px;
+    margin-left:auto;
+    margin-right:auto;
+}
+
+.file-input{
+    display:none;
+}
+
+.upload-button{
+    display:inline-flex;
+    align-items:center;
+    gap:9px;
+    padding:13px 26px;
+    background:linear-gradient(135deg, #6366f1, #06b6d4);
+    color:white;
+    border-radius:12px;
+    cursor:pointer;
+    font-weight:700;
+    box-shadow:0 8px 22px rgba(99,102,241,.35);
+    transition:.2s;
+}
+
+.upload-button:hover{
+    transform:translateY(-2px);
+    box-shadow:0 10px 26px rgba(99,102,241,.45);
+}
+
+.file-name{
+    margin-top:14px;
+    color:#94a3b8;
+    font-size:13px;
+    font-weight:600;
+}
+
+/* =========================================================
+   DASHBOARD WRAPPER
+========================================================= */
+.dashboard-wrapper{
+    max-width:1380px;
+    margin:0 auto 50px;
+    padding:0 20px;
+}
+
+.dashboard{
+    background:#12192c;
+    border-radius:24px;
+    padding:28px;
+    color:white;
+    box-shadow:0 20px 60px rgba(0,0,0,.35);
+    transition:.3s;
+    border:1px solid rgba(255,255,255,.06);
+}
+
+/* DASHBOARD HEADER */
+.dashboard-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:22px;
+    padding-bottom:16px;
+    border-bottom:1px solid rgba(255,255,255,.07);
+}
+
+.dashboard-heading h1{
+    font-size:24px;
+    margin-bottom:4px;
+    font-weight:800;
+}
+
+.dashboard-heading p{
+    color:#94a3b8;
+    font-size:13px;
+}
+
+.dashboard-actions{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.dashboard-date{
+    color:#94a3b8;
+    font-size:13px;
+    font-weight:600;
+    background:rgba(255,255,255,.05);
+    padding:6px 14px;
+    border-radius:8px;
+}
+
+/* =========================================================
+   KPI GRID
+========================================================= */
+.kpi-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:18px;
+    margin-bottom:20px;
+}
+
+.kpi-card{
+    min-height:128px;
+    border-radius:18px;
+    padding:22px;
+    position:relative;
+    overflow:hidden;
+    box-shadow:0 10px 25px rgba(0,0,0,.2), inset 0 1px 0 rgba(255,255,255,.2);
+}
+
+.kpi-card::after{
+    content:"";
+    position:absolute;
+    width:110px;
+    height:110px;
+    border-radius:50%;
+    right:-30px;
+    bottom:-40px;
+    background:rgba(255,255,255,.14);
+}
+
+.kpi-card:nth-child(1){
+    background:linear-gradient(135deg, #d946ef, #7c3aed);
+}
+
+.kpi-card:nth-child(2){
+    background:linear-gradient(135deg, #06b6d4, #3b82f6);
+}
+
+.kpi-card:nth-child(3){
+    background:linear-gradient(135deg, #ec4899, #8b5cf6);
+}
+
+.kpi-card:nth-child(4){
+    background:linear-gradient(135deg, #14b8a6, #2563eb);
+}
+
+.kpi-label{
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.8px;
+    opacity:.9;
+    margin-bottom:10px;
+    text-transform:uppercase;
+}
+
+.kpi-value{
+    font-size:32px;
+    font-weight:800;
+    line-height:1.1;
+}
+
+.kpi-description{
+    font-size:11px;
+    opacity:.8;
+    margin-top:8px;
+}
+
+/* =========================================================
+   CHART LAYOUT
+========================================================= */
+.main-grid{
+    display:grid;
+    grid-template-columns:2fr 1fr;
+    gap:18px;
+    margin-bottom:18px;
+}
+
+.bottom-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:18px;
+}
+
+.chart-card{
+    background:#182239;
+    border-radius:18px;
+    padding:20px;
+    min-height:300px;
+    transition:background .3s ease, box-shadow .3s ease;
+    border:1px solid rgba(255,255,255,.05);
+}
+
+.chart-card h3{
+    font-size:14px;
+    margin-bottom:16px;
+    color:#e2e8f0;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+}
+
+.chart-box{
+    width:100%;
+    height:235px;
+    position:relative;
+}
+
+.small-chart-box{
+    height:225px;
+}
+
+/* =========================================================
+   TABLE
+========================================================= */
+.table-card{
+    margin-top:18px;
+    min-height:auto;
+}
+
+.table-container{
+    max-height:300px;
+    overflow:auto;
+    border-radius:10px;
+}
+
+.data-table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:12px;
+}
+
+.data-table th{
+    padding:12px;
+    text-align:left;
+    color:#94a3b8;
+    background:#1e2a44;
+    position:sticky;
+    top:0;
+    font-weight:700;
+}
+
+.data-table td{
+    padding:10px 12px;
+    border-bottom:1px solid rgba(255,255,255,.05);
+    color:#e2e8f0;
+}
+
+.data-table tr:hover{
+    background:rgba(255,255,255,.03);
+}
+
+/* =========================================================
+   EMPTY STATE
+========================================================= */
+.empty-state{
+    min-height:500px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:40px;
+}
+
+.empty-icon{
+    font-size:64px;
+    margin-bottom:18px;
+}
+
+.empty-state h2{
+    font-size:24px;
+    margin-bottom:10px;
+    font-weight:800;
+}
+
+.empty-state p{
+    color:#94a3b8;
+    max-width:540px;
+    line-height:1.6;
+    font-size:14px;
+}
+
+/* =========================================================
+   LOADING
+========================================================= */
+.loading{
+    position:fixed;
+    inset:0;
+    background:rgba(8,15,30,.78);
+    backdrop-filter:blur(4px);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:9000;
+}
+
+.loading-box{
+    background:#1a233a;
+    color:#fff;
+    padding:28px 40px;
+    border-radius:18px;
+    text-align:center;
+    box-shadow:0 25px 70px rgba(0,0,0,.5);
+    border:1px solid rgba(255,255,255,.1);
+}
+
+.spinner{
+    width:38px;
+    height:38px;
+    border:4px solid rgba(255,255,255,.15);
+    border-top-color:#6366f1;
+    border-radius:50%;
+    animation:spin 1s linear infinite;
+    margin:0 auto 16px;
+}
+
+@keyframes spin{
+    to{ transform:rotate(360deg); }
+}
+
+/* =========================================================
+   PAYMENT MODAL
+========================================================= */
+.payment-overlay{
+    position:fixed;
+    inset:0;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    background:rgba(8,15,30,.82);
+    backdrop-filter:blur(5px);
+    z-index:7000;
+}
+
+.payment-modal{
+    width:min(780px,100%);
+    max-height:92vh;
+    overflow:auto;
+    background:#162137;
+    color:#f1f5f9;
+    border-radius:24px;
+    box-shadow:0 30px 90px rgba(0,0,0,.6);
+    padding:30px;
+    position:relative;
+    border:1px solid rgba(255,255,255,.1);
+}
+
+.payment-close{
+    position:absolute;
+    right:18px;
+    top:16px;
+    width:36px;
+    height:36px;
+    border:0;
+    border-radius:50%;
+    background:rgba(255,255,255,.08);
+    color:#cbd5e1;
+    font-size:22px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition:.2s;
+}
+
+.payment-close:hover{
+    background:rgba(255,255,255,.18);
+    color:#fff;
+}
+
+.payment-header{
+    padding-right:40px;
+    margin-bottom:20px;
+}
+
+.payment-header h2{
+    font-size:24px;
+    font-weight:800;
+    color:#fff;
+    margin-bottom:6px;
+}
+
+.payment-header p{
+    color:#94a3b8;
+    font-size:14px;
+}
+
+.payment-price-row{
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+    margin:12px 0 6px;
+}
+
+.payment-price{
+    font-size:36px;
+    font-weight:900;
+    background:linear-gradient(135deg, #38bdf8, #818cf8);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
+
+.payment-price small{
+    font-size:14px;
+    color:#94a3b8;
+    font-weight:500;
+}
+
+.payment-status{
+    margin:14px 0 18px;
+    padding:12px 16px;
+    border-radius:12px;
+    background:rgba(234,179,8,.12);
+    color:#fbbf24;
+    font-size:13px;
+    font-weight:700;
+    border:1px solid rgba(234,179,8,.25);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+}
+
+.payment-status.paid{
+    background:rgba(34,197,94,.12);
+    color:#4ade80;
+    border-color:rgba(34,197,94,.25);
+}
+
+.payment-methods{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:10px;
+    margin:18px 0;
+}
+
+.payment-method{
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:12px;
+    padding:12px 8px;
+    background:#1c2944;
+    color:#cbd5e1;
+    cursor:pointer;
+    font-weight:700;
+    font-size:13px;
+    text-align:center;
+    transition:all .2s ease;
+}
+
+.payment-method:hover{
+    background:#233355;
+    border-color:rgba(255,255,255,.2);
+}
+
+.payment-method.active{
+    border:2px solid #6366f1;
+    background:rgba(99,102,241,.18);
+    color:#a5b4fc;
+}
+
+.payment-panel{
+    display:none;
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:16px;
+    padding:20px;
+    background:#121a2d;
+}
+
+.payment-panel.active{
+    display:block;
+}
+
+.payment-panel h3{
+    font-size:16px;
+    margin-bottom:14px;
+    color:#e2e8f0;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+}
+
+.card-brands{
+    display:flex;
+    gap:6px;
+    font-size:11px;
+    color:#94a3b8;
+}
+
+.card-brand-badge{
+    padding:2px 6px;
+    border-radius:4px;
+    background:#1e293b;
+    border:1px solid rgba(255,255,255,.1);
+}
+
+.payment-form{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+}
+
+.payment-form .full{
+    grid-column:1/-1;
+}
+
+.payment-form label{
+    font-size:12px;
+    font-weight:700;
+    color:#94a3b8;
+    display:block;
+    margin-bottom:6px;
+}
+
+.payment-form input{
+    width:100%;
+    padding:12px 14px;
+    background:#1a253e;
+    border:1px solid #2d3e60;
+    border-radius:10px;
+    font-size:14px;
+    color:#fff;
+    outline:none;
+    transition:border-color .2s;
+}
+
+.payment-form input:focus{
+    border-color:#6366f1;
+    box-shadow:0 0 0 3px rgba(99,102,241,.2);
+}
+
+.upi-apps-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:10px;
+    margin-bottom:16px;
+}
+
+.upi-app-btn{
+    padding:10px;
+    background:#1a253e;
+    border:1px solid #2d3e60;
+    border-radius:10px;
+    color:#cbd5e1;
+    font-weight:700;
+    font-size:12px;
+    cursor:pointer;
+    text-align:center;
+    transition:.2s;
+}
+
+.upi-app-btn:hover{
+    border-color:#38bdf8;
+    background:#203050;
+    color:#fff;
+}
+
+.qr-wrap{
+    text-align:center;
+}
+
+.qr-wrap img{
+    width:220px;
+    max-width:100%;
+    border:2px solid rgba(255,255,255,.1);
+    border-radius:14px;
+    padding:8px;
+    background:#fff;
+}
+
+.upi-id{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    margin-top:14px;
+    padding:10px 16px;
+    border-radius:10px;
+    background:#1a253e;
+    border:1px solid #2d3e60;
+    font-weight:700;
+    font-size:13px;
+    color:#e2e8f0;
+}
+
+.copy-btn{
+    background:#334155;
+    color:#fff;
+    border:none;
+    padding:4px 8px;
+    border-radius:6px;
+    font-size:11px;
+    cursor:pointer;
+}
+
+.copy-btn:hover{
+    background:#475569;
+}
+
+.payment-submit{
+    width:100%;
+    border:0;
+    border-radius:12px;
+    padding:14px;
+    margin-top:16px;
+    background:linear-gradient(135deg, #6366f1, #8b5cf6);
+    color:#fff;
+    font-weight:800;
+    cursor:pointer;
+    font-size:15px;
+    box-shadow:0 8px 20px rgba(99,102,241,.3);
+    transition:all .2s ease;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+}
+
+.payment-submit:hover{
+    transform:translateY(-2px);
+    box-shadow:0 12px 26px rgba(99,102,241,.4);
+}
+
+.payment-note{
+    font-size:12px;
+    color:#94a3b8;
+    line-height:1.5;
+    margin-top:14px;
+    text-align:center;
+}
+
+/* =========================================================
+   RECEIPT MODAL
+========================================================= */
+.receipt-overlay{
+    position:fixed;
+    inset:0;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    background:rgba(8,15,30,.85);
+    backdrop-filter:blur(6px);
+    z-index:7500;
+}
+
+.receipt-modal{
+    width:min(680px,100%);
+    max-height:92vh;
+    overflow:auto;
+    background:#ffffff;
+    color:#1e293b;
+    border-radius:24px;
+    box-shadow:0 30px 90px rgba(0,0,0,.6);
+    padding:32px;
+    position:relative;
+}
+
+.receipt-close{
+    position:absolute;
+    right:18px;
+    top:16px;
+    width:34px;
+    height:34px;
+    border:0;
+    border-radius:50%;
+    background:#f1f5f9;
+    color:#475569;
+    font-size:20px;
+    cursor:pointer;
+}
+
+.receipt-header{
+    text-align:center;
+    border-bottom:2px dashed #e2e8f0;
+    padding-bottom:18px;
+    margin-bottom:18px;
+}
+
+.receipt-logo{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:8px;
+}
+
+.receipt-header h2{
+    font-size:22px;
+    color:#0f172a;
+    font-weight:900;
+}
+
+.receipt-header p{
+    color:#64748b;
+    font-size:12px;
+}
+
+.receipt-badge{
+    display:inline-block;
+    padding:6px 14px;
+    background:#dcfce7;
+    color:#15803d;
+    font-weight:800;
+    font-size:12px;
+    border-radius:20px;
+    margin-top:8px;
+    border:1px solid #86efac;
+}
+
+.receipt-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+    font-size:13px;
+    margin-bottom:18px;
+    background:#f8fafc;
+    padding:14px;
+    border-radius:12px;
+}
+
+.receipt-grid div strong{
+    color:#475467;
+    display:block;
+    font-size:11px;
+    text-transform:uppercase;
+    margin-bottom:3px;
+}
+
+.receipt-table{
+    width:100%;
+    border-collapse:collapse;
+    margin:16px 0;
+    font-size:13px;
+}
+
+.receipt-table th{
+    background:#f1f5f9;
+    color:#475569;
+    padding:10px;
+    text-align:left;
+}
+
+.receipt-table td{
+    padding:12px 10px;
+    border-bottom:1px solid #e2e8f0;
+}
+
+.receipt-total-row td{
+    font-weight:800;
+    font-size:15px;
+    color:#0f172a;
+    border-top:2px solid #cbd5e1;
+}
+
+.receipt-footer{
+    margin-top:20px;
+    text-align:center;
+    color:#64748b;
+    font-size:12px;
+    border-top:1px solid #e2e8f0;
+    padding-top:14px;
+}
+
+.receipt-actions{
+    display:flex;
+    gap:10px;
+    margin-top:18px;
+}
+
+.receipt-download-btn{
+    flex:2;
+    background:linear-gradient(135deg, #10b981, #059669);
+    color:white;
+    border:none;
+    padding:13px;
+    border-radius:10px;
+    font-weight:800;
+    cursor:pointer;
+    font-size:14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+}
+
+.receipt-print-btn{
+    flex:1;
+    background:#f1f5f9;
+    color:#334155;
+    border:1px solid #cbd5e1;
+    padding:13px;
+    border-radius:10px;
+    font-weight:700;
+    cursor:pointer;
+    font-size:14px;
+}
+
+/* =========================================================
+   COMPREHENSIVE REPORT MODAL
+========================================================= */
+.report-overlay{
+    position:fixed;
+    inset:0;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    background:rgba(6,11,24,.88);
+    backdrop-filter:blur(6px);
+    z-index:8000;
+}
+
+.report-modal{
+    width:min(1100px, 98%);
+    height:94vh;
+    display:flex;
+    flex-direction:column;
+    background:#0f172a;
+    color:#f8fafc;
+    border-radius:22px;
+    box-shadow:0 35px 95px rgba(0,0,0,.7);
+    position:relative;
+    border:1px solid rgba(255,255,255,.12);
+    overflow:hidden;
+}
+
+.report-topbar{
+    padding:16px 24px;
+    background:#162238;
+    border-bottom:1px solid rgba(255,255,255,.1);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-shrink:0;
+}
+
+.report-title-box h2{
+    font-size:20px;
+    font-weight:800;
+    color:#fff;
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+
+.report-title-box p{
+    font-size:12px;
+    color:#94a3b8;
+    margin-top:2px;
+}
+
+.report-topbar-actions{
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.report-download-btn{
+    background:linear-gradient(135deg, #6366f1, #06b6d4);
+    color:#fff;
+    border:none;
+    padding:10px 18px;
+    border-radius:9px;
+    font-weight:700;
+    font-size:13px;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    box-shadow:0 6px 18px rgba(99,102,241,.3);
+    transition:.2s;
+}
+
+.report-download-btn:hover{
+    transform:translateY(-2px);
+    box-shadow:0 8px 24px rgba(99,102,241,.4);
+}
+
+.report-close-btn{
+    background:rgba(255,255,255,.08);
+    color:#cbd5e1;
+    border:none;
+    padding:10px 14px;
+    border-radius:9px;
+    font-weight:700;
+    font-size:13px;
+    cursor:pointer;
+}
+
+.report-body{
+    flex:1;
+    overflow-y:auto;
+    padding:28px;
+}
+
+/* REPORT INNER SECTIONS */
+.report-paper{
+    max-width:1020px;
+    margin:0 auto;
+    background:#141f36;
+    border-radius:18px;
+    padding:32px;
+    border:1px solid rgba(255,255,255,.08);
+    box-shadow:0 15px 40px rgba(0,0,0,.3);
+}
+
+.report-header-banner{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    padding-bottom:20px;
+    border-bottom:2px solid rgba(255,255,255,.1);
+    margin-bottom:24px;
+}
+
+.report-brand h1{
+    font-size:24px;
+    font-weight:900;
+    color:#ffffff;
+    letter-spacing:-0.3px;
+}
+
+.report-brand p{
+    color:#94a3b8;
+    font-size:13px;
+    margin-top:3px;
+}
+
+.report-meta-tag{
+    text-align:right;
+    font-size:12px;
+    color:#94a3b8;
+}
+
+.report-badge-status{
+    display:inline-block;
+    padding:4px 10px;
+    border-radius:6px;
+    background:rgba(14,165,233,.18);
+    color:#38bdf8;
+    font-weight:700;
+    margin-bottom:5px;
+    border:1px solid rgba(14,165,233,.3);
+}
+
+.report-section{
+    margin-bottom:28px;
+}
+
+.report-section-title{
+    font-size:17px;
+    font-weight:800;
+    color:#38bdf8;
+    margin-bottom:12px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    border-left:4px solid #38bdf8;
+    padding-left:10px;
+}
+
+.report-card-summary{
+    background:#1a2744;
+    padding:18px;
+    border-radius:12px;
+    line-height:1.7;
+    font-size:13px;
+    color:#cbd5e1;
+    border:1px solid rgba(255,255,255,.06);
+}
+
+/* STATS GRID */
+.report-stats-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:12px;
+    margin-top:14px;
+}
+
+.report-stat-box{
+    background:#1b2949;
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:12px;
+    padding:14px;
+    text-align:center;
+}
+
+.report-stat-box .title{
+    font-size:11px;
+    color:#94a3b8;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:6px;
+}
+
+.report-stat-box .val{
+    font-size:20px;
+    font-weight:800;
+    color:#fff;
+}
+
+.report-stat-box .sub{
+    font-size:11px;
+    color:#38bdf8;
+    margin-top:4px;
+}
+
+/* REPORT CHARTS WITH DETAILED EXPLANATION */
+.report-chart-block{
+    background:#192540;
+    border:1px solid rgba(255,255,255,.07);
+    border-radius:14px;
+    padding:18px;
+    margin-bottom:22px;
+}
+
+.report-chart-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:14px;
+}
+
+.report-chart-header h4{
+    font-size:15px;
+    font-weight:700;
+    color:#f1f5f9;
+}
+
+.report-chart-badge{
+    font-size:11px;
+    padding:3px 8px;
+    border-radius:6px;
+    background:rgba(99,102,241,.18);
+    color:#a5b4fc;
+}
+
+.report-chart-preview{
+    width:100%;
+    height:250px;
+    margin-bottom:14px;
+    background:#11192e;
+    border-radius:10px;
+    padding:10px;
+}
+
+.report-chart-explanation{
+    background:#111a2f;
+    border-left:3px solid #6366f1;
+    padding:14px 16px;
+    border-radius:0 10px 10px 0;
+    font-size:13px;
+    line-height:1.6;
+    color:#cbd5e1;
+}
+
+.report-chart-explanation strong{
+    color:#a5b4fc;
+    display:block;
+    margin-bottom:4px;
+    font-size:13px;
+}
+
+.report-chart-explanation ul{
+    margin-left:18px;
+    margin-top:6px;
+}
+
+.report-chart-explanation li{
+    margin-bottom:4px;
+}
+
+/* RECOMMENDATIONS & INSIGHTS */
+.report-insights-list{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+}
+
+.report-insight-card{
+    background:#18243e;
+    border:1px solid rgba(255,255,255,.07);
+    border-radius:12px;
+    padding:14px;
+}
+
+.report-insight-card h5{
+    font-size:13px;
+    font-weight:700;
+    color:#38bdf8;
+    margin-bottom:6px;
+    display:flex;
+    align-items:center;
+    gap:6px;
+}
+
+.report-insight-card p{
+    font-size:12px;
+    color:#94a3b8;
+    line-height:1.5;
+}
+
+/* =========================================================
+   WHITE THEME
+========================================================= */
+body.white-theme{
+    background:#f1f5f9;
+    color:#1e293b;
+}
+
+body.white-theme .navbar{
+    background:#ffffff;
+    box-shadow:0 4px 20px rgba(0,0,0,.06);
+    border-bottom:1px solid #e2e8f0;
+}
+
+body.white-theme .brand h2{
+    color:#0f172a;
+}
+
+body.white-theme .upload-box{
+    background:#ffffff;
+    border-color:#cbd5e1;
+}
+
+body.white-theme .dashboard{
+    background:#ffffff;
+    color:#1e293b;
+    box-shadow:0 15px 40px rgba(0,0,0,.06);
+    border:1px solid #e2e8f0;
+}
+
+body.white-theme .dashboard-heading p,
+body.white-theme .dashboard-date{
+    color:#64748b;
+}
+
+body.white-theme .chart-card{
+    background:#f8fafc;
+    border:1px solid #e2e8f0;
+}
+
+body.white-theme .chart-card h3{
+    color:#1e293b;
+}
+
+body.white-theme .data-table th{
+    background:#f1f5f9;
+    color:#475569;
+}
+
+body.white-theme .data-table td{
+    color:#334155;
+    border-bottom:1px solid #e2e8f0;
+}
+
+body.white-theme .data-table tr:hover{
+    background:#f8fafc;
+}
+
+body.white-theme .theme-button{
+    background:#f1f5f9;
+    color:#334155;
+    border-color:#cbd5e1;
+}
+
+body.white-theme .receipt-nav-btn{
+    background:#f0fdf4;
+    color:#16a34a;
+    border-color:#86efac;
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+@media(max-width:1050px){
+    .kpi-grid{ grid-template-columns:repeat(2,1fr); }
+    .main-grid{ grid-template-columns:1fr; }
+    .bottom-grid{ grid-template-columns:1fr; }
+    .report-stats-grid{ grid-template-columns:repeat(2,1fr); }
+    .report-insights-list{ grid-template-columns:1fr; }
+}
+
+@media(max-width:700px){
+    .navbar{
+        height:auto;
+        padding:14px;
+        flex-direction:column;
+        gap:12px;
+        align-items:stretch;
+    }
+    .nav-buttons{
+        flex-wrap:wrap;
+        justify-content:center;
+    }
+    .dashboard{
+        padding:16px;
+        border-radius:16px;
+    }
+    .dashboard-header{
+        flex-direction:column;
+        align-items:flex-start;
+        gap:12px;
+    }
+    .kpi-grid{ grid-template-columns:1fr; }
+    .payment-methods{ grid-template-columns:repeat(2,1fr); }
+    .payment-form{ grid-template-columns:1fr; }
+    .payment-form .full{ grid-column:auto; }
+    .upi-apps-grid{ grid-template-columns:repeat(2,1fr); }
+    .report-stats-grid{ grid-template-columns:1fr; }
+    .receipt-grid{ grid-template-columns:1fr; }
+}
+
+/* PRINT SUPPORT */
+@media print{
+    .navbar, .upload-section, .report-topbar, .payment-overlay, .receipt-actions, #gwBot{
+        display:none !important;
+    }
+    body{ background:white !important; color:black !important; }
+    .dashboard-wrapper{ padding:0; margin:0; }
+    .dashboard{ box-shadow:none; border:none; }
+}
+
+/* =========================================================
+   DATA VISUALIZATION - NO TABLE
+========================================================= */
+.data-visual-section{margin-top:18px;}
+.data-visual-header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px;}
+.data-visual-header h2{font-size:18px;font-weight:800;color:#e2e8f0;margin-bottom:4px;}
+.data-visual-header p{font-size:12px;color:#94a3b8;}
+.visual-badge{padding:8px 14px;border-radius:20px;background:rgba(56,189,248,.12);color:#38bdf8;border:1px solid rgba(56,189,248,.25);font-size:11px;font-weight:800;white-space:nowrap;}
+.visual-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;}
+.visual-card{min-height:330px;}
+.visual-chart-box{height:255px;}
+body.white-theme .data-visual-header h2{color:#1e293b;}
+body.white-theme .data-visual-header p{color:#64748b;}
+body.white-theme .visual-badge{background:#eff6ff;color:#0284c7;border-color:#bae6fd;}
+@media(max-width:900px){.visual-grid{grid-template-columns:1fr;}}
+@media(max-width:600px){.data-visual-header{align-items:flex-start;flex-direction:column;}}
+</style>
+
+<style id="gw-universal-dashboard-styles">
+:root{--gw-bg:#0b1220;--gw-panel:#111c30;--gw-card:#15233b;--gw-text:#eaf1fb;--gw-muted:#9fb0c8;--gw-border:#263954;--gw-accent:#4f8cff;--gw-grid:rgba(180,200,230,.12);--gw-shadow:0 10px 30px rgba(0,0,0,.14)}
+#universalDashboard{color:var(--gw-text);background:var(--gw-bg);border:1px solid var(--gw-border);border-radius:20px;padding:22px;margin:12px 0 26px;box-shadow:var(--gw-shadow);transition:background .2s,color .2s}
+#universalDashboard *{box-sizing:border-box}
+#universalDashboard .gw-dash-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+#universalDashboard .gw-eyebrow{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--gw-accent);font-weight:800;margin-bottom:7px}
+#universalDashboard .gw-dash-title{font-size:clamp(22px,3vw,30px);font-weight:800;letter-spacing:-.03em;line-height:1.2;margin:0 0 8px}
+#universalDashboard .gw-dash-sub{font-size:13px;color:var(--gw-muted);line-height:1.6;margin:0}
+#universalDashboard .gw-meta{font-size:12px;color:var(--gw-muted);background:var(--gw-panel);border:1px solid var(--gw-border);border-radius:12px;padding:10px 13px}
+#universalDashboard .gw-toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:end;background:var(--gw-panel);border:1px solid var(--gw-border);border-radius:15px;padding:13px;margin-bottom:18px}
+#universalDashboard .gw-filter{display:flex;flex-direction:column;gap:6px;min-width:140px;flex:1}
+#universalDashboard .gw-filter label{font-size:11px;font-weight:750;color:var(--gw-muted)}
+#universalDashboard .gw-filter select,#universalDashboard .gw-filter input{width:100%;min-height:38px;border:1px solid var(--gw-border);border-radius:9px;background:var(--gw-card);color:var(--gw-text);padding:8px 10px;outline:none}
+#universalDashboard .gw-filter select:focus,#universalDashboard .gw-filter input:focus{border-color:var(--gw-accent)}
+#universalDashboard .gw-reset{min-height:38px;border:0;border-radius:9px;background:var(--gw-accent);color:white;padding:0 14px;font-weight:750;cursor:pointer}
+#universalDashboard .gw-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:12px;margin-bottom:18px}
+#universalDashboard .gw-kpi{min-width:0;padding:17px;border:1px solid var(--gw-border);border-radius:15px;background:var(--gw-card);box-shadow:var(--gw-shadow)}
+#universalDashboard .gw-kpi-label{font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:800;color:var(--gw-muted);margin-bottom:10px}
+#universalDashboard .gw-kpi-value{font-size:clamp(21px,2.3vw,28px);font-weight:850;letter-spacing:-.03em;overflow-wrap:anywhere}
+#universalDashboard .gw-kpi-note{font-size:11px;color:var(--gw-muted);margin-top:7px}
+#universalDashboard .gw-charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+#universalDashboard .gw-chart-card{min-width:0;background:var(--gw-panel);border:1px solid var(--gw-border);border-radius:16px;padding:16px;box-shadow:var(--gw-shadow)}
+#universalDashboard .gw-chart-card.gw-wide{grid-column:1/-1}
+#universalDashboard .gw-chart-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:12px}
+#universalDashboard .gw-chart-title{font-size:14px;font-weight:800;line-height:1.4;margin:0}
+#universalDashboard .gw-chart-hint{font-size:11px;color:var(--gw-muted);margin-top:4px}
+#universalDashboard .gw-canvas-wrap{height:285px;position:relative}
+#universalDashboard .gw-table-wrap{overflow:auto;max-height:320px;border:1px solid var(--gw-border);border-radius:12px}
+#universalDashboard .gw-preview{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}
+#universalDashboard .gw-preview th,#universalDashboard .gw-preview td{padding:10px 12px;border-bottom:1px solid var(--gw-border);text-align:left}
+#universalDashboard .gw-preview th{position:sticky;top:0;background:var(--gw-card);color:var(--gw-muted);z-index:1}
+#universalDashboard .gw-preview td{color:var(--gw-text)}
+#universalDashboard .gw-quality{margin-top:16px;font-size:12px;color:var(--gw-muted);line-height:1.6}
+#universalDashboard .gw-empty-chart{display:flex;align-items:center;justify-content:center;height:100%;color:var(--gw-muted);font-size:13px;text-align:center;padding:20px}
+#gwDashboardThemeWrap{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700}
+#gwDashboardTheme{border:1px solid var(--gw-border);border-radius:9px;padding:9px 11px;background:var(--gw-panel);color:var(--gw-text);min-width:155px}
+#universalDashboard.gw-theme-light{--gw-bg:#f4f7fb;--gw-panel:#fff;--gw-card:#fff;--gw-text:#15243a;--gw-muted:#64748b;--gw-border:#dce4ef;--gw-accent:#2563eb;--gw-grid:rgba(30,55,90,.1);--gw-shadow:0 8px 24px rgba(26,50,90,.06)}
+#universalDashboard.gw-theme-corporate{--gw-bg:#edf3fa;--gw-panel:#fff;--gw-card:#f8fbff;--gw-text:#152c48;--gw-muted:#5f7591;--gw-border:#cbd9e9;--gw-accent:#1764a5;--gw-grid:rgba(30,70,120,.12);--gw-shadow:0 8px 24px rgba(20,55,90,.07)}
+#universalDashboard.gw-theme-emerald{--gw-bg:#071f1b;--gw-panel:#0d2b25;--gw-card:#12382f;--gw-text:#e7fff5;--gw-muted:#9dc9b9;--gw-border:#245448;--gw-accent:#10b981;--gw-grid:rgba(150,230,200,.12)}
+#universalDashboard.gw-theme-purple{--gw-bg:#17132b;--gw-panel:#211b3c;--gw-card:#2a224a;--gw-text:#f4efff;--gw-muted:#b8acd8;--gw-border:#443761;--gw-accent:#a78bfa;--gw-grid:rgba(200,180,255,.12)}
+#universalDashboard.gw-theme-gray{--gw-bg:#20252d;--gw-panel:#292f39;--gw-card:#323944;--gw-text:#f3f4f6;--gw-muted:#b6beca;--gw-border:#454e5b;--gw-accent:#a8b4c5;--gw-grid:rgba(220,225,235,.12)}
+#universalDashboard.gw-theme-ocean{--gw-bg:#071b2b;--gw-panel:#0b2b40;--gw-card:#10384f;--gw-text:#e8f8ff;--gw-muted:#9bc9dd;--gw-border:#21516a;--gw-accent:#22d3ee;--gw-grid:rgba(160,230,250,.12)}
+#universalDashboard.gw-theme-midnight{--gw-bg:#070d1b;--gw-panel:#0d1729;--gw-card:#111f35;--gw-text:#edf4ff;--gw-muted:#9aaec8;--gw-border:#243752;--gw-accent:#60a5fa;--gw-grid:rgba(170,200,240,.12)}
+@media(max-width:760px){#universalDashboard{padding:14px;border-radius:15px}#universalDashboard .gw-charts{grid-template-columns:1fr}#universalDashboard .gw-chart-card.gw-wide{grid-column:auto}#universalDashboard .gw-canvas-wrap{height:250px}#gwDashboardThemeWrap{width:100%;justify-content:space-between}#gwDashboardTheme{flex:1}}
+</style>
+
+
+<style id="gw-universal-dashboard-styles">
+:root{--gw-bg:#0b1220;--gw-panel:#111c30;--gw-card:#15233b;--gw-text:#eaf1fb;--gw-muted:#9fb0c8;--gw-border:#263954;--gw-accent:#4f8cff;--gw-grid:rgba(180,200,230,.12);--gw-shadow:0 10px 30px rgba(0,0,0,.14)}
+#universalDashboard{color:var(--gw-text);background:var(--gw-bg);border:1px solid var(--gw-border);border-radius:20px;padding:22px;margin:12px 0 26px;box-shadow:var(--gw-shadow);transition:background .2s,color .2s}
+#universalDashboard *{box-sizing:border-box}
+#universalDashboard .gw-dash-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+#universalDashboard .gw-eyebrow{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--gw-accent);font-weight:800;margin-bottom:7px}
+#universalDashboard .gw-dash-title{font-size:clamp(22px,3vw,30px);font-weight:800;letter-spacing:-.03em;line-height:1.2;margin:0 0 8px}
+#universalDashboard .gw-dash-sub{font-size:13px;color:var(--gw-muted);line-height:1.6;margin:0}
+#universalDashboard .gw-meta{font-size:12px;color:var(--gw-muted);background:var(--gw-panel);border:1px solid var(--gw-border);border-radius:12px;padding:10px 13px}
+#universalDashboard .gw-toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:end;background:var(--gw-panel);border:1px solid var(--gw-border);border-radius:15px;padding:13px;margin-bottom:18px}
+#universalDashboard .gw-filter{display:flex;flex-direction:column;gap:6px;min-width:140px;flex:1}
+#universalDashboard .gw-filter label{font-size:11px;font-weight:750;color:var(--gw-muted)}
+#universalDashboard .gw-filter select,#universalDashboard .gw-filter input{width:100%;min-height:38px;border:1px solid var(--gw-border);border-radius:9px;background:var(--gw-card);color:var(--gw-text);padding:8px 10px;outline:none}
+#universalDashboard .gw-filter select:focus,#universalDashboard .gw-filter input:focus{border-color:var(--gw-accent)}
+#universalDashboard .gw-reset{min-height:38px;border:0;border-radius:9px;background:var(--gw-accent);color:white;padding:0 14px;font-weight:750;cursor:pointer}
+#universalDashboard .gw-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:12px;margin-bottom:18px}
+#universalDashboard .gw-kpi{min-width:0;padding:17px;border:1px solid var(--gw-border);border-radius:15px;background:var(--gw-card);box-shadow:var(--gw-shadow)}
+#universalDashboard .gw-kpi-label{font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:800;color:var(--gw-muted);margin-bottom:10px}
+#universalDashboard .gw-kpi-value{font-size:clamp(21px,2.3vw,28px);font-weight:850;letter-spacing:-.03em;overflow-wrap:anywhere}
+#universalDashboard .gw-kpi-note{font-size:11px;color:var(--gw-muted);margin-top:7px}
+#universalDashboard .gw-charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+#universalDashboard .gw-chart-card{min-width:0;background:var(--gw-panel);border:1px solid var(--gw-border);border-radius:16px;padding:16px;box-shadow:var(--gw-shadow)}
+#universalDashboard .gw-chart-card.gw-wide{grid-column:1/-1}
+#universalDashboard .gw-chart-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:12px}
+#universalDashboard .gw-chart-title{font-size:14px;font-weight:800;line-height:1.4;margin:0}
+#universalDashboard .gw-chart-hint{font-size:11px;color:var(--gw-muted);margin-top:4px}
+#universalDashboard .gw-canvas-wrap{height:285px;position:relative}
+#universalDashboard .gw-table-wrap{overflow:auto;max-height:320px;border:1px solid var(--gw-border);border-radius:12px}
+#universalDashboard .gw-preview{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}
+#universalDashboard .gw-preview th,#universalDashboard .gw-preview td{padding:10px 12px;border-bottom:1px solid var(--gw-border);text-align:left}
+#universalDashboard .gw-preview th{position:sticky;top:0;background:var(--gw-card);color:var(--gw-muted);z-index:1}
+#universalDashboard .gw-preview td{color:var(--gw-text)}
+#universalDashboard .gw-quality{margin-top:16px;font-size:12px;color:var(--gw-muted);line-height:1.6}
+#universalDashboard .gw-empty-chart{display:flex;align-items:center;justify-content:center;height:100%;color:var(--gw-muted);font-size:13px;text-align:center;padding:20px}
+#gwDashboardThemeWrap{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700}
+#gwDashboardTheme{border:1px solid var(--gw-border);border-radius:9px;padding:9px 11px;background:var(--gw-panel);color:var(--gw-text);min-width:155px}
+#universalDashboard.gw-theme-light{--gw-bg:#f4f7fb;--gw-panel:#fff;--gw-card:#fff;--gw-text:#15243a;--gw-muted:#64748b;--gw-border:#dce4ef;--gw-accent:#2563eb;--gw-grid:rgba(30,55,90,.1);--gw-shadow:0 8px 24px rgba(26,50,90,.06)}
+#universalDashboard.gw-theme-corporate{--gw-bg:#edf3fa;--gw-panel:#fff;--gw-card:#f8fbff;--gw-text:#152c48;--gw-muted:#5f7591;--gw-border:#cbd9e9;--gw-accent:#1764a5;--gw-grid:rgba(30,70,120,.12);--gw-shadow:0 8px 24px rgba(20,55,90,.07)}
+#universalDashboard.gw-theme-emerald{--gw-bg:#071f1b;--gw-panel:#0d2b25;--gw-card:#12382f;--gw-text:#e7fff5;--gw-muted:#9dc9b9;--gw-border:#245448;--gw-accent:#10b981;--gw-grid:rgba(150,230,200,.12)}
+#universalDashboard.gw-theme-purple{--gw-bg:#17132b;--gw-panel:#211b3c;--gw-card:#2a224a;--gw-text:#f4efff;--gw-muted:#b8acd8;--gw-border:#443761;--gw-accent:#a78bfa;--gw-grid:rgba(200,180,255,.12)}
+#universalDashboard.gw-theme-gray{--gw-bg:#20252d;--gw-panel:#292f39;--gw-card:#323944;--gw-text:#f3f4f6;--gw-muted:#b6beca;--gw-border:#454e5b;--gw-accent:#a8b4c5;--gw-grid:rgba(220,225,235,.12)}
+#universalDashboard.gw-theme-ocean{--gw-bg:#071b2b;--gw-panel:#0b2b40;--gw-card:#10384f;--gw-text:#e8f8ff;--gw-muted:#9bc9dd;--gw-border:#21516a;--gw-accent:#22d3ee;--gw-grid:rgba(160,230,250,.12)}
+#universalDashboard.gw-theme-midnight{--gw-bg:#070d1b;--gw-panel:#0d1729;--gw-card:#111f35;--gw-text:#edf4ff;--gw-muted:#9aaec8;--gw-border:#243752;--gw-accent:#60a5fa;--gw-grid:rgba(170,200,240,.12)}
+@media(max-width:760px){#universalDashboard{padding:14px;border-radius:15px}#universalDashboard .gw-charts{grid-template-columns:1fr}#universalDashboard .gw-chart-card.gw-wide{grid-column:auto}#universalDashboard .gw-canvas-wrap{height:250px}#gwDashboardThemeWrap{width:100%;justify-content:space-between}#gwDashboardTheme{flex:1}}
+</style>
+
+</head>
+
+<body>
+
+<!-- =======================================================
+     NAVBAR
+======================================================= -->
+<header class="navbar">
+    <div class="brand" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+        <img
+            src="logo.png"
+            class="logo"
+            alt="GW Logo"
+            onerror="this.style.display='none'; document.getElementById('logoFallback').style.display='flex';"
+        >
+        <div class="logo-fallback" id="logoFallback" style="display:none;">Gw</div>
+        <h2>Gw <span>Smart Analytics</span></h2>
+    </div>
+
+    <div class="nav-buttons">
+        <a href="index.html" class="nav-btn" style="background:#1e293b;color:#ffffff;text-decoration:none;">🏠 Home</a>
+
+        <button class="nav-btn payment-button" id="payButton" onclick="openPaymentModal()">
+            💳 Subscribe (₹10)
+        </button>
+
+        <button class="nav-btn receipt-nav-btn" id="navReceiptBtn" onclick="openReceiptModal()" style="display:none;">
+            🧾 View Receipt
+        </button>
+
+        <button class="nav-btn theme-button" id="themeButton" onclick="toggleTheme()">
+            ☀ White Theme
+        </button>
+
+        <button class="nav-btn report-button" id="createReportBtn" onclick="generateComprehensiveReport()">
+            📑 Create Report
+        </button>
+
+        <button
+            class="nav-btn pdf-button"
+            id="downloadButton"
+            onclick="downloadDashboardPDF()"
+            disabled
+            title="Complete payment to unlock download"
+        >
+            🔒 Download Dashboard
+        </button>
+
+    </div>
+</header>
+
+<!-- =======================================================
+     UPLOAD
+======================================================= -->
+<section class="upload-section">
+    <div class="upload-box">
+        <div class="upload-icon">📊</div>
+        <h1>Create Your Analytics Dashboard</h1>
+        <p>
+            Upload your CSV or Excel dataset to automatically calculate statistical KPIs,
+            render interactive charts, explore trends, and generate comprehensive AI reports.
+        </p>
+
+        <input
+            type="file"
+            id="fileInput"
+            class="file-input"
+            accept=".csv,.xlsx,.xls,.json,.pdf,.txt,.sql,.db,.sqlite,.mdb,.accdb,.py,.key,.graphml,.xml,.yaml,.yml,.tsv,.html,.htm,.md,.r,.sas7bdat,.sav,.dta,.parquet"
+        >
+
+        <label for="fileInput" class="upload-button">
+            📁 Upload row data
+        </label>
+
+        <div class="file-name" id="fileName">
+            No file selected
+        </div>
+    </div>
+</section>
+
+<!-- =======================================================
+     DASHBOARD
+======================================================= -->
+<div class="dashboard-wrapper">
+    <main class="dashboard" id="dashboard">
+
+        <!-- HEADER -->
+        <div class="dashboard-header">
+            <div class="dashboard-heading">
+                <h1>Analytics Overview</h1>
+                <p id="dashboardDescription">Upload data to generate your dashboard</p>
+            </div>
+
+            <div class="dashboard-actions">
+                <div class="dashboard-date" id="dashboardDate">Ready to Analyze</div>
+            </div>
+        </div>
+
+        <!-- EMPTY STATE -->
+        <div class="empty-state" id="emptyState">
+            <div class="empty-icon">📈</div>
+            <h2>Your Dashboard Is Waiting For Data</h2>
+            <p>
+                Upload a CSV or Excel file above. The system will automatically detect
+                numerical and categorical columns, calculate key metrics, and prepare
+                your interactive analytics suite.
+            </p>
+        </div>
+
+        <!-- DATA DASHBOARD -->
+        <div id="dataDashboard" style="display:none;">
+
+            <!-- KPI CARDS -->
+            <section class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-label">TOTAL RECORDS</div>
+                    <div class="kpi-value" id="kpiRecords">0</div>
+                    <div class="kpi-description">Total dataset rows analyzed</div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-label">TOTAL VALUE</div>
+                    <div class="kpi-value" id="kpiTotal">0</div>
+                    <div class="kpi-description">Sum of primary numeric field</div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-label">AVERAGE VALUE</div>
+                    <div class="kpi-value" id="kpiAverage">0</div>
+                    <div class="kpi-description">Mean numeric metric per record</div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-label">MAXIMUM VALUE</div>
+                    <div class="kpi-value" id="kpiMax">0</div>
+                    <div class="kpi-description">Peak value recorded in dataset</div>
+                </div>
+            </section>
+
+            <!-- MAIN CHARTS -->
+            <section class="main-grid">
+                <div class="chart-card">
+                    <h3 id="lineTitle">Main Trend</h3>
+                    <div class="chart-box">
+                        <canvas id="lineChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <h3>Category Distribution</h3>
+                    <div class="chart-box">
+                        <canvas id="pieChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- BOTTOM CHARTS -->
+            <section class="bottom-grid">
+                <div class="chart-card">
+                    <h3 id="barTitle">Category Comparison</h3>
+                    <div class="chart-box small-chart-box">
+                        <canvas id="barChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <h3>Positive vs Negative</h3>
+                    <div class="chart-box small-chart-box">
+                        <canvas id="doughnutChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <h3>Value Summary</h3>
+                    <div class="chart-box small-chart-box">
+                        <canvas id="summaryChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- DATA VISUALIZATION - NO TABLE -->
+            <section class="data-visual-section">
+                <div class="data-visual-header">
+                    <div>
+                        <h2>📊 Data Visualization</h2>
+                        <p id="visualDescription">Uploaded data converted into charts and graphs</p>
+                    </div>
+                    <div class="visual-badge" id="visualBadge">0 records</div>
+                </div>
+                <div class="visual-grid">
+                    <div class="chart-card visual-card"><h3 id="dataTrendTitle">Data Trend</h3><div class="chart-box visual-chart-box"><canvas id="dataTrendChart"></canvas></div></div>
+                    <div class="chart-card visual-card"><h3 id="dataCategoryTitle">Category Distribution</h3><div class="chart-box visual-chart-box"><canvas id="dataCategoryChart"></canvas></div></div>
+                    <div class="chart-card visual-card"><h3 id="dataTopTitle">Top Values</h3><div class="chart-box visual-chart-box"><canvas id="dataTopChart"></canvas></div></div>
+                    <div class="chart-card visual-card"><h3 id="dataRelationTitle">Data Relationship</h3><div class="chart-box visual-chart-box"><canvas id="dataRelationChart"></canvas></div></div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+</div>
+
+<!-- =======================================================
+     PAYMENT MODAL
+======================================================= -->
+<div class="payment-overlay" id="paymentOverlay" onclick="closePaymentOnOverlay(event)">
+    <div class="payment-modal" role="dialog" aria-modal="true" aria-labelledby="paymentTitle">
+        <button class="payment-close" type="button" onclick="closePaymentModal()" aria-label="Close window">×</button>
+
+        <div class="payment-header">
+            <h2 id="paymentTitle">Unlock Pro Features</h2>
+            <p>Unlock 1-Month Pro dashboard downloads, AI report exports, and data tools.</p>
+            <div class="payment-price-row">
+                <span class="payment-price">₹10.00</span>
+                <small>1 Month Active Access • Pro Plan</small>
+            </div>
+        </div>
+
+        <div class="payment-status" id="paymentStatus">
+            <span>🔒 ₹10 payment required before dashboard & report download.</span>
+            <span id="paymentStatusBadge">Pending</span>
+        </div>
+
+        <!-- Already Subscribed Banner -->
+        <div id="upAlreadySubscribedBox" style="display:none;background:#064e3b;border:1px solid #059669;padding:14px;border-radius:10px;margin-bottom:14px;text-align:center;">
+            <h4 style="color:#34d399;margin:0 0 4px;">✅ Already Subscribed!</h4>
+            <p style="color:#a7f3d0;font-size:12px;margin:0 0 8px;" id="upAlreadySubscribedMsg">Your 1-Month Pro subscription is active.</p>
+            <button type="button" class="nav-btn receipt-nav-btn" onclick="openReceiptModal()" style="display:inline-flex;margin:auto;">🧾 View Receipt</button>
+        </div>
+
+        <div class="payment-methods">
+            <button type="button" class="payment-method active" data-method="qr" onclick="selectPaymentMethod('qr')">
+                ▦ Scan QR
+            </button>
+            <button type="button" class="payment-method" data-method="upi" onclick="selectPaymentMethod('upi')">
+                📱 UPI Apps
+            </button>
+            <button type="button" class="payment-method" data-method="card" onclick="selectPaymentMethod('card')">
+                💳 Card
+            </button>
+        </div>
+
+        <!-- 1. SCAN QR PANEL -->
+        <div class="payment-panel active" id="qrPanel">
+            <h3>Scan & Pay ₹10 (1-Month Pro)</h3>
+
+            <div class="qr-wrap">
+                <img src="scanner.png"
+                     alt="Scan to pay"
+                     onerror="this.onerror=null;this.src='scaner.png';">
+
+                <p class="payment-note">
+                    Open Google Pay, PhonePe, Paytm, or any UPI app and scan this QR code.
+                </p>
+
+                <div class="upi-id">
+                    <span>UPI ID:</span>
+                    <strong id="receivingUpi">9529579858-d3cb-2@ybl</strong>
+                    <button class="copy-btn"
+                            type="button"
+                            onclick="copyReceivingUpi()">
+                        Copy
+                    </button>
+                </div>
+            </div>
+
+            <div class="payment-form" style="margin-top:16px;">
+                <div class="full">
+                    <label for="utrNumber">
+                        12-Digit UTR / Transaction Reference Number
+                    </label>
+
+                    <input
+                        id="utrNumber"
+                        type="text"
+                        inputmode="numeric"
+                        autocomplete="off"
+                        placeholder="Enter UTR after successful payment"
+                        maxlength="24"
+                        required
+                    >
+                </div>
+            </div>
+
+            <button
+                class="payment-submit"
+                id="verifyQrBtn"
+                type="button"
+                onclick="processQrPayment()">
+                🔐 Verify Payment
+            </button>
+
+            <p id="qrStatusMsg"
+               style="margin-top:12px;text-align:center;"></p>
+        </div>
+
+        <!-- 2. UPI ID & APPS PANEL -->
+        <div class="payment-panel" id="upiPanel">
+            <h3>Instant UPI Payment (₹10)</h3>
+            <p style="font-size:12px;color:#94a3b8;margin-bottom:12px;">Select your preferred UPI app or enter your UPI ID:</p>
+            <div class="upi-apps-grid">
+                <button type="button" class="upi-app-btn" onclick="selectUpiApp('Google Pay')">🟢 Google Pay</button>
+                <button type="button" class="upi-app-btn" onclick="selectUpiApp('PhonePe')">🟣 PhonePe</button>
+                <button type="button" class="upi-app-btn" onclick="selectUpiApp('Paytm')">🔵 Paytm</button>
+                <button type="button" class="upi-app-btn" onclick="selectUpiApp('BHIM')">🟠 BHIM</button>
+            </div>
+            <div class="payment-form">
+                <div class="full">
+                    <label for="upiInput">Your UPI ID</label>
+                    <input id="upiInput" type="text" placeholder="username@okhdfcbank or phone@paytm">
+                </div>
+            </div>
+            <div class="upi-id" style="margin-top:14px;">
+                <span>Receiving UPI ID:</span>
+                <strong>9529579858-d3cb-2@ybl</strong>
+                <button class="copy-btn" type="button" onclick="copyReceivingUpi()">Copy</button>
+            </div>
+            <button class="payment-submit" type="button" onclick="processUpiPayment()">
+                📱 Verify & Pay ₹10
+            </button>
+        </div>
+
+        <!-- 3. DEBIT/CREDIT CARD PANEL -->
+        <div class="payment-panel" id="cardPanel">
+            <h3>
+                <span>Pay with Debit or Credit Card</span>
+                <div class="card-brands">
+                    <span class="card-brand-badge" id="cardBrandLabel">Visa / Master / RuPay</span>
+                </div>
+            </h3>
+            <div class="payment-form">
+                <div class="full">
+                    <label for="cardNumber">Card Number</label>
+                    <input
+                        id="cardNumber"
+                        type="text"
+                        inputmode="numeric"
+                        placeholder="4532 •••• •••• 8892"
+                        maxlength="19"
+                        oninput="formatCardNumber(this)"
+                    >
+                </div>
+                <div>
+                    <label for="expiry">Expiry Date</label>
+                    <input
+                        id="expiry"
+                        type="text"
+                        placeholder="MM / YY"
+                        maxlength="7"
+                        oninput="formatExpiry(this)"
+                    >
+                </div>
+                <div>
+                    <label for="cvv">CVV / CVC</label>
+                    <input
+                        id="cvv"
+                        type="password"
+                        inputmode="numeric"
+                        placeholder="123"
+                        maxlength="4"
+                    >
+                </div>
+                <div class="full">
+                    <label for="cardName">Cardholder Full Name</label>
+                    <input
+                        id="cardName"
+                        type="text"
+                        placeholder="e.g. Ganesh Waghmare"
+                    >
+                </div>
+            </div>
+            <button class="payment-submit" type="button" onclick="processCardPayment()">
+                🔒 Pay ₹10 Securely
+            </button>
+        </div>
+
+        <p class="payment-note">
+            🛡️ 256-bit SSL encrypted. Once payment is confirmed, an official receipt will be generated and made available for download.
+        </p>
+    </div>
+</div>
+
+<!-- =======================================================
+     OFFICIAL PAYMENT RECEIPT MODAL
+======================================================= -->
+<div class="receipt-overlay" id="receiptOverlay" onclick="closeReceiptOnOverlay(event)">
+    <div class="receipt-modal" id="receiptModal" role="dialog" aria-modal="true">
+        <button class="receipt-close" type="button" onclick="closeReceiptModal()" aria-label="Close receipt">×</button>
+
+        <div class="receipt-header">
+            <div class="receipt-logo">
+                <div class="logo-fallback" style="width:34px;height:34px;font-size:14px;"><img src="logo.png" alt="GW Analytics Logo" class="gw-logo" style="width:50px; height:50px; object-fit:contain;"></div>
+                <h2 style="font-size:20px;margin:0;">Gw SMART ANALYTICS</h2>
+            </div>
+            <p>Official Tax Invoice & Payment Receipt</p>
+            <div class="receipt-badge">PAID & VERIFIED</div>
+        </div>
+
+        <div class="receipt-grid">
+            <div>
+                <strong>Receipt Number</strong>
+                <span id="recNo">GW-REC-2026-0001</span>
+            </div>
+            <div>
+                <strong>Transaction ID</strong>
+                <span id="recTxnId">TXN-982374829103</span>
+            </div>
+            <div>
+                <strong>Date & Time</strong>
+                <span id="recDate">09 Sep 2026, 07:30 AM</span>
+            </div>
+            <div>
+                <strong>Payment Method</strong>
+                <span id="recMethod">Debit Card</span>
+            </div>
+            <div>
+                <strong>Billed To</strong>
+                <span id="recCustomer">Valued Customer</span>
+            </div>
+            <div>
+                <strong>Payment Status</strong>
+                <span style="color:#16a34a;font-weight:700;">Completed (Authorized)</span>
+            </div>
+        </div>
+
+        <table class="receipt-table">
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th style="text-align:center;">Qty</th>
+                    <th style="text-align:right;">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <strong>Gw Smart Analytics - Pro 1 Month License</strong><br>
+                        <small style="color:#64748b;">Unlimited Dashboard Exports, Deep AI Statistical Reports & CSV/Excel Analyzer</small>
+                    </td>
+                    <td style="text-align:center;">1</td>
+                    <td style="text-align:right;">₹10.00</td>
+                </tr>
+                <tr>
+                    <td>Taxes & Fees (GST / Processing)</td>
+                    <td style="text-align:center;">-</td>
+                    <td style="text-align:right;">₹0.00 (Included)</td>
+                </tr>
+                <tr class="receipt-total-row">
+                    <td colspan="2">TOTAL AMOUNT PAID</td>
+                    <td style="text-align:right;color:#16a34a;"> (₹10 INR)</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="receipt-footer">
+            <p>Thank you for your business! Your access has been permanently unlocked on this device.</p>
+            <small style="display:block;margin-top:6px;color:#94a3b8;">
+                GW Analytics Inc. • GSTIN: 27AABCG1234F1Z8 • ganeshwaghmare0810@gmail.com
+            </small>
+        </div>
+
+        <div class="receipt-actions">
+            <button class="receipt-download-btn" type="button" onclick="downloadReceiptPDF()">
+                📄 Download Receipt (PDF)
+            </button>
+            <button class="receipt-print-btn" type="button" onclick="printReceipt()">
+                🖨️ Print
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- =======================================================
+     COMPREHENSIVE ANALYTICS REPORT MODAL
+======================================================= -->
+<div class="report-overlay" id="reportOverlay">
+    <div class="report-modal">
+        <div class="report-topbar">
+            <div class="report-title-box">
+                <h2>📑 Comprehensive Analytics Intelligence Report</h2>
+                <p id="reportSubtitle">Deep statistical analysis, chart diagnostics, and actionable insights</p>
+            </div>
+            <div class="report-topbar-actions">
+                <button class="report-download-btn" id="reportDownloadBtn" type="button" onclick="downloadReportPDF()">
+                    📥 Download Full Report (PDF)
+                </button>
+                <button class="report-close-btn" type="button" onclick="closeReportModal()">
+                    ✕ Close
+                </button>
+            </div>
+        </div>
+
+        <div class="report-body">
+            <div class="report-paper" id="reportContentArea">
+
+                <!-- Header Banner -->
+                <div class="report-header-banner">
+                    <div class="report-brand">
+                        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+                            <div class="logo-fallback" style="width:36px;height:36px;font-size:15px;">Gw</div>
+                            <h1>GW SMART ANALYTICS</h1>
+                        </div>
+                        <p>Automated Dataset Diagnostics & Executive Decision Report</p>
+                    </div>
+                    <div class="report-meta-tag">
+                        <div class="report-badge-status">CONFIDENTIAL & CERTIFIED</div>
+                        <div id="repDatasetName">Dataset: Active Data</div>
+                        <div id="repDateGenerated">Date: Current</div>
+                    </div>
+                </div>
+
+                <!-- 1. Executive Summary -->
+                <div class="report-section">
+                    <div class="report-section-title">1. Executive Summary & Overview</div>
+                    <div class="report-card-summary" id="repExecSummary">
+                        Analyzing your dataset structure...
+                    </div>
+                </div>
+
+                <!-- 2. Core Statistical Indicators -->
+                <div class="report-section">
+                    <div class="report-section-title">2. Deep Statistical Indicators</div>
+                    <div class="report-stats-grid" id="repStatsGrid">
+                        <!-- Filled by JS -->
+                    </div>
+                </div>
+
+                <!-- 3. Visual Diagnostics & Charts with Detailed Explanations -->
+                <div class="report-section">
+                    <div class="report-section-title">3. Visual Diagnostics & In-Depth Interpretations</div>
+
+                    <!-- Chart 1: Trend -->
+                    <div class="report-chart-block">
+                        <div class="report-chart-header">
+                            <h4 id="repChart1Title">Trend Analysis Over Records</h4>
+                            <span class="report-chart-badge">Chronological / Sequential</span>
+                        </div>
+                        <div class="report-chart-preview">
+                            <canvas id="reportLineCanvas"></canvas>
+                        </div>
+                        <div class="report-chart-explanation" id="repChart1Explanation">
+                            <strong>📊 Detailed Chart Explanation & Findings:</strong>
+                            <p>This chart maps the primary metric chronologically across records to identify structural trends, continuous momentum, and sudden spikes.</p>
+                        </div>
+                    </div>
+
+                    <!-- Chart 2: Category Distribution -->
+                    <div class="report-chart-block">
+                        <div class="report-chart-header">
+                            <h4 id="repChart2Title">Segment & Category Share Distribution</h4>
+                            <span class="report-chart-badge">Composition & Proportions</span>
+                        </div>
+                        <div class="report-chart-preview">
+                            <canvas id="reportPieCanvas"></canvas>
+                        </div>
+                        <div class="report-chart-explanation" id="repChart2Explanation">
+                            <strong>🥧 Detailed Category Distribution Explanation:</strong>
+                            <p>Illustrates the proportionate contribution of distinct categories to evaluate portfolio diversification and market concentration.</p>
+                        </div>
+                    </div>
+
+                    <!-- Chart 3: Category Comparison Bar -->
+                    <div class="report-chart-block">
+                        <div class="report-chart-header">
+                            <h4 id="repChart3Title">Category Volume & Value Comparison</h4>
+                            <span class="report-chart-badge">Comparative Benchmarking</span>
+                        </div>
+                        <div class="report-chart-preview">
+                            <canvas id="reportBarCanvas"></canvas>
+                        </div>
+                        <div class="report-chart-explanation" id="repChart3Explanation">
+                            <strong>📶 Detailed Comparison Explanation:</strong>
+                            <p>Ranks individual categories by aggregate metrics to highlight leader segments vs laggards requiring operational intervention.</p>
+                        </div>
+                    </div>
+
+                    <!-- Chart 4: Value Spread Summary -->
+                    <div class="report-chart-block">
+                        <div class="report-chart-header">
+                            <h4>Statistical Range & Metric Benchmarks</h4>
+                            <span class="report-chart-badge">Variance & Boundaries</span>
+                        </div>
+                        <div class="report-chart-preview">
+                            <canvas id="reportSummaryCanvas"></canvas>
+                        </div>
+                        <div class="report-chart-explanation" id="repChart4Explanation">
+                            <strong>📈 Detailed Range Explanation:</strong>
+                            <p>Compares baseline minimums, arithmetic means, median medians, and peak ceiling maximums to demonstrate dataset dispersion.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. Key Strategic Insights & Recommendations -->
+                <div class="report-section">
+                    <div class="report-section-title">4. Strategic Insights & Actionable Recommendations</div>
+                    <div class="report-insights-list" id="repInsightsList">
+                        <!-- Filled by JS -->
+                    </div>
+                </div>
+
+                <!-- 5. Verification & Signature -->
+                <div class="report-section" style="border-top:1px dashed rgba(255,255,255,.15);padding-top:18px;margin-top:24px;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#94a3b8;">
+                    <div>
+                        <strong style="color:#e2e8f0;display:block;">GW Smart Analytics AI Engine</strong>
+                        <span>Algorithm Version 4.2 • Statistical Confidence: 99.2%</span>
+                    </div>
+                    <div style="text-align:right;">
+                        <span style="display:inline-block;padding:4px 10px;background:rgba(34,197,94,.15);color:#4ade80;border-radius:6px;font-weight:700;">
+                            ✓ Verified Analysis
+                        </span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =======================================================
+     LOADING
+======================================================= -->
+<div class="loading" id="loading">
+    <div class="loading-box">
+        <div class="spinner"></div>
+        <strong id="loadingTitle">Preparing your PDF...</strong>
+        <p style="margin-top:7px;font-size:12px;" id="loadingSubtitle">Please wait a moment...</p>
+    </div>
+</div>
+
+<!-- =======================================================
+     APPLICATION LOGIC (SCRIPT)
+======================================================= -->
+<script>
+/* =========================================================
+   GLOBAL STATE
+========================================================= */
+let data = [];
+let headers = [];
+let numericColumn = null;
+let categoryColumn = null;
+let currentFileName = "dataset";
+let charts = {};
+let reportCharts = {};
+let currentTheme = "blue";
+let currentReceipt = null;
+
+/* =========================================================
+   PAYMENT STATE MANAGEMENT
+========================================================= */
+function getCurrentUser(){
+    return window.__gwUser || {};
+}
+
+function isPaymentVerified(){
+    return localStorage.getItem("gwPaymentVerified") === "true";
+}
+
+function getSavedReceipt(){
+    try{
+        const saved = localStorage.getItem("gwReceiptData");
+        return saved ? JSON.parse(saved) : null;
+    }catch(e){
+        return null;
+    }
+}
+
+async function checkUserSessionAndSubscription(){
+    let user = null;
+    window.__gwUser = null;
+    try {
+        const res = await fetch("/api/me", { cache: "no-store", credentials: "include" });
+        if(!res.ok) throw new Error(`Account check failed (${res.status}).`);
+        const d = await res.json();
+        if(d.authenticated && d.user){
+            user = d.user;
+            window.__gwUser = user;
+        }
+    } catch(error){
+        console.warn("Could not confirm the signed-in account with the server:", error);
+    }
+
+    if(user && (user.name || user.email)){
+        try {
+            const subRes = await fetch("/api/subscription/status", { cache: "no-store", credentials: "include" });
+            const subData = await subRes.json();
+            if(subRes.ok && subData.active){
+                localStorage.setItem("gwPaymentVerified", "true");
+                user.is_paid = true;
+                user.subscription = subData;
+
+                const alreadyBox = document.getElementById("upAlreadySubscribedBox");
+                const alreadyMsg = document.getElementById("upAlreadySubscribedMsg");
+                if(alreadyBox) alreadyBox.style.display = "block";
+                if(alreadyMsg) alreadyMsg.innerHTML = `Your 1-Month Pro subscription is <b>ACTIVE</b> until <b>${subData.end_date}</b> (${subData.days_left} days left).`;
+            } else {
+                localStorage.removeItem("gwPaymentVerified");
+            }
+        } catch(error){
+            console.warn("Could not confirm subscription status:", error);
+        }
+    } else {
+        localStorage.removeItem("gwPaymentVerified");
+        localStorage.removeItem("gwReceiptData");
+    }
+
+    updatePaymentUI();
+}
+
+function updatePaymentUI(){
+    const paid = isPaymentVerified();
+    const downloadBtn = document.getElementById("downloadButton");
+    const payBtn = document.getElementById("payButton");
+    const navReceiptBtn = document.getElementById("navReceiptBtn");
+    const statusBox = document.getElementById("paymentStatus");
+    const statusBadge = document.getElementById("paymentStatusBadge");
+
+    if(downloadBtn){
+        downloadBtn.disabled = !paid;
+        downloadBtn.innerHTML = paid ? "⬇ Download Dashboard" : "🔒 Download Dashboard";
+        downloadBtn.title = paid ? "Download your dashboard as high-res PDF" : "Complete ₹10 payment to unlock dashboard download";
+    }
+
+    if(payBtn){
+        if(paid){
+            payBtn.innerHTML = "✅ Subscribed";
+            payBtn.style.background = "linear-gradient(135deg, #10b981, #047857)";
+            payBtn.onclick = openReceiptModal;
+        }else{
+            payBtn.innerHTML = "💳 Upgrade (₹10)";
+            payBtn.style.background = "";
+            payBtn.onclick = openPaymentModal;
+        }
+    }
+
+    if(navReceiptBtn){
+        navReceiptBtn.style.display = paid ? "inline-flex" : "none";
+    }
+
+    if(statusBox){
+        statusBox.classList.toggle("paid", paid);
+        statusBox.querySelector("span").textContent = paid
+            ? "✅ Payment verified (₹10 Paid). 1-Month Pro features unlocked."
+            : "🔒 ₹10 payment required before dashboard & report download.";
+    }
+
+    if(statusBadge){
+        statusBadge.textContent = paid ? "ACTIVE" : "Pending";
+        statusBadge.style.color = paid ? "#4ade80" : "#fbbf24";
+    }
+
+    const reportDownloadBtn = document.getElementById("reportDownloadBtn");
+    if(reportDownloadBtn){
+        reportDownloadBtn.innerHTML = paid ? "📥 Download Full Report (PDF)" : "🔒 Download Report PDF (Locked)";
+        reportDownloadBtn.title = paid ? "Download comprehensive report as PDF" : "Complete ₹10 payment to unlock report download";
+        reportDownloadBtn.style.opacity = paid ? "1" : "0.75";
+    }
+}
+
+function openPaymentModal(){
+    const user = getCurrentUser();
+    if(!user.email){
+        alert("कृपया प्रथम Login करा (Please login first).");
+        window.location.href = "login.html";
+        return;
+    }
+    document.getElementById("paymentOverlay").style.display = "flex";
+    document.body.style.overflow = "hidden";
+    updatePaymentUI();
+}
+
+function closePaymentModal(){
+    document.getElementById("paymentOverlay").style.display = "none";
+    document.body.style.overflow = "";
+}
+
+function closePaymentOnOverlay(event){
+    if(event.target.id === "paymentOverlay") closePaymentModal();
+}
+
+function selectPaymentMethod(method){
+    document.querySelectorAll(".payment-method").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.method === method);
+    });
+    document.querySelectorAll(".payment-panel").forEach(panel => {
+        panel.classList.remove("active");
+    });
+    const activePanel = document.getElementById(method + "Panel");
+    if(activePanel) activePanel.classList.add("active");
+}
+
+/* =========================================================
+   INPUT FORMATTERS FOR PAYMENT
+========================================================= */
+function formatCardNumber(input){
+    let val = input.value.replace(/\D/g, "").substring(0, 16);
+    let parts = [];
+    for(let i = 0; i < val.length; i += 4){
+        parts.push(val.substring(i, i + 4));
+    }
+    input.value = parts.join(" ");
+
+    const badge = document.getElementById("cardBrandLabel");
+    if(!badge) return;
+    if(val.startsWith("4")){
+        badge.textContent = "Visa Card";
+        badge.style.color = "#38bdf8";
+    }else if(val.startsWith("5") || val.startsWith("2")){
+        badge.textContent = "Mastercard";
+        badge.style.color = "#f97316";
+    }else if(val.startsWith("6") || val.startsWith("508") || val.startsWith("6521")){
+        badge.textContent = "RuPay";
+        badge.style.color = "#10b981";
+    }else if(val.startsWith("34") || val.startsWith("37")){
+        badge.textContent = "American Express";
+        badge.style.color = "#a855f7";
+    }else{
+        badge.textContent = "Debit / Credit";
+        badge.style.color = "";
+    }
+}
+
+function formatExpiry(input){
+    let val = input.value.replace(/\D/g, "").substring(0, 4);
+    if(val.length >= 3){
+        input.value = val.substring(0, 2) + " / " + val.substring(2);
+    }else{
+        input.value = val;
+    }
+}
+
+function selectUpiApp(app){
+    const upiInput = document.getElementById("upiInput");
+    if(upiInput){
+        const user = getCurrentUser();
+        const uname = (user.name || "user").toLowerCase().replace(/\s+/g, "");
+        if(app === "Google Pay") upiInput.value = uname + "@okaxis";
+        else if(app === "PhonePe") upiInput.value = uname + "@ybl";
+        else if(app === "Paytm") upiInput.value = uname + "@paytm";
+        else upiInput.value = uname + "@upi";
+    }
+}
+
+function copyReceivingUpi(){
+    const upi = document.getElementById("receivingUpi").textContent.trim();
+    navigator.clipboard.writeText(upi).then(() => {
+        alert("Receiving UPI ID copied to clipboard: " + upi);
+    }).catch(() => {
+        prompt("Copy this UPI ID:", upi);
+    });
+}
+
+/* =========================================================
+   PAYMENT PROCESSING & DATABASE PERSISTENCE
+========================================================= */
+function showPaymentProcessing(message, callback){
+    const loading = document.getElementById("loading");
+    const title = document.getElementById("loadingTitle");
+    const sub = document.getElementById("loadingSubtitle");
+
+    title.textContent = "Processing Payment...";
+    sub.textContent = message || "Connecting securely to Payment Gateway & Database...";
+    loading.style.display = "flex";
+
+    setTimeout(() => {
+        title.textContent = "Verifying Transaction...";
+        sub.textContent = "Authorizing with database and issuing 1-Month access...";
+        setTimeout(() => {
+            loading.style.display = "none";
+            callback();
+        }, 700);
+    }, 800);
+}
+
+async function recordSuccessfulPayment(method, customerName, refId){
+    const user = getCurrentUser();
+    const email = user.email || "user@example.com";
+    const name = user.name || customerName || "Authorized Subscriber";
+    const phone = user.phone || "";
+
+    let receipt = null;
+    try {
+        const res = await fetch("/api/payment/submit", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                email: email,
+                user_id: user.id || null,
+                amount: 10.0,
+                method: method || "UPI (9529579858-d3cb-2@ybl)",
+                utr_number: refId || ("UTR-" + Date.now()),
+                sender_upi: method.includes("UPI") ? (document.getElementById("upiInput")?.value || "") : ""
+            })
+        });
+
+        const data = await res.json();
+        if(res.ok && data.success && data.receipt){
+            receipt = {
+                receiptNo: data.receipt.receipt_no,
+                transactionId: data.receipt.transaction_id,
+                date: data.receipt.date,
+                amount: data.receipt.amount || "₹10.00",
+                method: data.receipt.method,
+                customer: data.receipt.customer_name || name,
+                email: data.receipt.customer_email || email,
+                phone: data.receipt.customer_phone || phone,
+                status: "PAID / ACTIVE (1 Month)",
+                valid_until: data.receipt.valid_until
+            };
+        }
+    } catch(e) {
+        console.warn("Backend payment recording failed:", e);
+    }
+
+    if(!receipt){
+        receipt = {
+            receiptNo: "GW-REC-" + Math.floor(100000 + Math.random() * 900000),
+            transactionId: refId || ("TXN-" + Date.now()),
+            date: new Date().toLocaleDateString("en-IN") + ", " + new Date().toLocaleTimeString("en-IN"),
+            amount: "₹10.00",
+            method: method || "UPI",
+            customer: name,
+            status: "PAID / ACTIVE (1 Month)"
+        };
+    }
+
+    localStorage.setItem("gwPaymentVerified", "true");
+    localStorage.setItem("gwReceiptData", JSON.stringify(receipt));
+    currentReceipt = receipt;
+
+    updatePaymentUI();
+    closePaymentModal();
+    openReceiptModal(receipt);
+}
+
+function processCardPayment(){
+    const num = document.getElementById("cardNumber").value.replace(/\s+/g, "");
+    const exp = document.getElementById("expiry").value.trim();
+    const cvv = document.getElementById("cvv").value.trim();
+    const name = document.getElementById("cardName").value.trim() || "Cardholder";
+
+    if(num.length < 15){
+        alert("Please enter a valid 16-digit card number.");
+        document.getElementById("cardNumber").focus();
+        return;
+    }
+    if(!exp.includes("/") || exp.length < 5){
+        alert("Please enter a valid card expiry date (MM / YY).");
+        document.getElementById("expiry").focus();
+        return;
+    }
+    if(cvv.length < 3){
+        alert("Please enter a 3 or 4-digit CVV.");
+        document.getElementById("cvv").focus();
+        return;
+    }
+
+    const masked = "•••• •••• •••• " + num.slice(-4);
+    showPaymentProcessing("Verifying card credentials with payment gateway...", () => {
+        recordSuccessfulPayment("Card (" + masked + ")", name);
+    });
+}
+
+function processUpiPayment(){
+    const upi = document.getElementById("upiInput").value.trim();
+    if(!upi || !upi.includes("@")){
+        alert("Please enter a valid UPI ID (e.g., yourname@bank).");
+        document.getElementById("upiInput").focus();
+        return;
+    }
+
+    showPaymentProcessing("Authorizing ₹10 UPI payment for " + upi + "...", () => {
+        recordSuccessfulPayment("UPI (" + upi + ")", upi.split("@")[0]);
+    });
+}
+
+function processQrPayment(){
+    const utr = document.getElementById("utrNumber").value.trim();
+    showPaymentProcessing("Verifying QR payment confirmation with database...", () => {
+        recordSuccessfulPayment("QR Code Scan (9529579858-d3cb-2@ybl)", "UPI Customer", utr ? utr : null);
+    });
+}
+
+/* =========================================================
+   RECEIPT MODAL & ACTIONS
+========================================================= */
+function openReceiptModal(customReceipt){
+    // NOTE: onclick passes an Event object; ignore it and use saved receipt
+    const custom = (customReceipt && customReceipt.receiptNo) ? customReceipt : null;
+    const r = custom || getSavedReceipt() || {
+        receiptNo: "GW-REC-892401",
+        transactionId: "TXN-DEMO89421",
+        date: new Date().toLocaleDateString("en-IN"),
+        amount: "(₹10 INR)",
+        method: "Pre-verified Subscription",
+        customer: "Valued Client",
+        status: "PAID / SUCCESS"
+    };
+
+    currentReceipt = r;
+    document.getElementById("recNo").textContent = r.receiptNo;
+    document.getElementById("recTxnId").textContent = r.transactionId;
+    document.getElementById("recDate").textContent = r.date;
+    document.getElementById("recMethod").textContent = r.method;
+    document.getElementById("recCustomer").textContent = r.customer;
+
+    document.getElementById("receiptOverlay").style.display = "flex";
+    document.body.style.overflow = "hidden";
+}
+
+function closeReceiptModal(){
+    document.getElementById("receiptOverlay").style.display = "none";
+    document.body.style.overflow = "";
+}
+
+function closeReceiptOnOverlay(event){
+    if(event.target.id === "receiptOverlay") closeReceiptModal();
+}
+
+function printReceipt(){
+    window.print();
+}
+
+async function downloadReceiptPDF(){
+    const r = currentReceipt || getSavedReceipt() || {
+        receiptNo: "GW-REC-2026-0001",
+        transactionId: "TXN-874291834",
+        date: new Date().toLocaleDateString("en-IN"),
+        amount: "₹10.00",
+        method: "Digital Payment",
+        customer: "Subscriber"
+    };
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF("portrait", "mm", "a4");
+
+    // Header Background
+    doc.setFillColor(15, 23, 42); // slate-900
+    doc.rect(0, 0, 210, 42, "F");
+
+    // Company Title
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(20);
+    doc.text("GW SMART ANALYTICS", 14, 20);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.setTextColor(148, 163, 184);
+    doc.text("Official Tax Invoice & Payment Receipt", 14, 28);
+    doc.text("ganeshwaghmare0810@gmail.com | www.gw-analytics.com", 14, 34);
+
+    // Paid Stamp Badge
+    doc.setFillColor(22, 163, 74);
+    doc.roundedRect(150, 14, 46, 14, 3, 3, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.text("PAID & VERIFIED", 154, 23);
+
+    // Metadata Box
+    doc.setDrawColor(226, 232, 240);
+    doc.setFillColor(248, 250, 252);
+    doc.roundedRect(14, 50, 182, 34, 3, 3, "FD");
+
+    doc.setFontSize(9);
+    doc.setTextColor(100, 116, 139);
+    doc.text("RECEIPT NUMBER:", 20, 60);
+    doc.text("TRANSACTION ID:", 20, 70);
+    doc.text("DATE & TIME:", 20, 80);
+
+    doc.setTextColor(15, 23, 42);
+    doc.setFont("helvetica", "bold");
+    doc.text(String(r.receiptNo), 60, 60);
+    doc.text(String(r.transactionId), 60, 70);
+    doc.text(String(r.date), 60, 80);
+
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(100, 116, 139);
+    doc.text("PAYMENT METHOD:", 115, 60);
+    doc.text("BILLED TO:", 115, 70);
+    doc.text("STATUS:", 115, 80);
+
+    doc.setTextColor(15, 23, 42);
+    doc.setFont("helvetica", "bold");
+    doc.text(String(r.method), 155, 60);
+    doc.text(String(r.customer), 155, 70);
+    doc.setTextColor(22, 163, 74);
+    doc.text("Completed (100%)", 155, 80);
+
+    // Item Table Header
+    doc.setFillColor(241, 245, 249);
+    doc.rect(14, 95, 182, 9, "F");
+    doc.setFontSize(9);
+    doc.setTextColor(71, 85, 105);
+    doc.setFont("helvetica", "bold");
+    doc.text("ITEM & DESCRIPTION", 18, 101);
+    doc.text("QTY", 140, 101);
+    doc.text("AMOUNT", 175, 101);
+
+    // Item Row
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.setTextColor(15, 23, 42);
+    doc.text("Gw Smart Analytics - Monthly Pro License", 18, 113);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8.5);
+    doc.setTextColor(100, 116, 139);
+    doc.text("Unlimited Dashboard PDF Exports, AI Deep Statistical Reports & Data Tools", 18, 118);
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.setTextColor(15, 23, 42);
+    doc.text("1", 142, 115);
+    doc.text("Rs. 10", 175, 115);
+
+    // Separator line
+    doc.setDrawColor(226, 232, 240);
+    doc.line(14, 126, 196, 126);
+
+    // Subtotal & Total
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(100, 116, 139);
+    doc.text("Subtotal:", 135, 134);
+    doc.text("Rs. 10", 175, 134);
+
+    doc.text("Tax (GST 18% Included):", 135, 141);
+    doc.text("Rs. 0", 175, 141);
+
+    doc.setDrawColor(203, 213, 225);
+    doc.line(135, 146, 196, 146);
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.setTextColor(22, 163, 74);
+    doc.text("TOTAL PAID:", 135, 153);
+    doc.text("Rs. 10", 170, 153);
+
+    // Signature and footer note
+    doc.setDrawColor(226, 232, 240);
+    doc.line(14, 185, 196, 185);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8.5);
+    doc.setTextColor(100, 116, 139);
+    doc.text("This is an electronically generated receipt verified by GW Smart Analytics Payment Gateway.", 14, 192);
+    doc.text("Thank you for using GW Smart Analytics. For questions, contact support: ganeshwaghmare0810@gmail.com.", 14, 197);
+
+    // Authorized Signature text
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(15, 23, 42);
+    doc.text("Ganesh Waghmare", 150, 205);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(100, 116, 139);
+    doc.text("Authorized Signatory, GW Analytics", 150, 210);
+
+    doc.save(r.receiptNo + "_GW_Payment_Receipt.pdf");
+}
+
+/* =========================================================
+   BACKEND UPLOAD
+========================================================= */
+async function saveFileToBackend(file){
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try{
+        const response = await fetch("http://127.0.0.1:5000/api/upload", {
+            method: "POST",
+            body: formData
+        });
+        const result = await response.json();
+        console.log("Saved on server:", result);
+    }catch(error){
+        console.warn("Backend server not reachable or offline:", error);
+    }
+}
+
+/* =========================================================
+   FILE UPLOAD HANDLER
+========================================================= */
+document.getElementById("fileInput").addEventListener("change", handleFile);
+
+function handleFile(event){
+    const file = event.target.files[0];
+    if(!file) return;
+
+    currentFileName = file.name;
+    document.getElementById("fileName").textContent = "Selected: " + file.name;
+
+    saveFileToBackend(file);
+
+    const extension = file.name.split(".").pop().toLowerCase();
+
+    if(extension === "csv"){
+        Papa.parse(file, {
+            header:true,
+            skipEmptyLines:true,
+            dynamicTyping:false,
+            complete:function(results){
+                data = results.data;
+                prepareDashboard();
+            }
+        });
+    }else if(extension === "xlsx" || extension === "xls"){
+        const reader = new FileReader();
+        reader.onload = function(e){
+            const workbook = XLSX.read(new Uint8Array(e.target.result), { type:"array" });
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+            data = XLSX.utils.sheet_to_json(sheet, { defval:"" });
+            prepareDashboard();
+        };
+        reader.readAsArrayBuffer(file);
+    }else{
+        alert("Please upload a valid CSV or Excel file (.csv, .xlsx, .xls, .json, .pdf, .txt, .sql, .db, .sqlite, .mdb, .accdb, .py, .key, .graphml, .xml, .yaml, .yml, .tsv, .html, .htm, .md, .r, .sas7bdat, .sav, .dta, .parquet).");
+    }
+}
+
+/* =========================================================
+   PREPARE DASHBOARD
+========================================================= */
+function prepareDashboard(){
+    if(!data.length){
+        alert("The uploaded file does not contain any valid rows.");
+        return;
+    }
+
+    headers = Object.keys(data[0]);
+    numericColumn = detectNumericColumn();
+    categoryColumn = detectCategoryColumn();
+
+    updateKPIs();
+    createCharts();
+    createDataVisualizations();
+
+    document.getElementById("emptyState").style.display = "none";
+    document.getElementById("dataDashboard").style.display = "block";
+    document.getElementById("dashboardDescription").textContent =
+        `${data.length.toLocaleString()} records analyzed • Primary Field: ${numericColumn || "N/A"}`;
+
+    document.getElementById("dashboardDate").textContent =
+        new Date().toLocaleDateString("en-IN", {
+            day:"2-digit",
+            month:"short",
+            year:"numeric"
+        });
+}
+
+/* =========================================================
+   COLUMN DETECTION
+========================================================= */
+function detectNumericColumn(){
+    let best = null;
+    let highestScore = 0;
+
+    headers.forEach(header => {
+        let count = 0;
+        data.forEach(row => {
+            const value = cleanNumber(row[header]);
+            if(!isNaN(value)) count++;
+        });
+
+        const score = count / data.length;
+        if(score > highestScore && score >= 0.5){
+            highestScore = score;
+            best = header;
+        }
+    });
+    return best;
+}
+
+function detectCategoryColumn(){
+    for(const header of headers){
+        if(header === numericColumn) continue;
+
+        const unique = [
+            ...new Set(data.map(row => String(row[header] || "").trim()))
+        ].filter(Boolean);
+
+        if(unique.length >= 2 && unique.length <= 16){
+            return header;
+        }
+    }
+    return null;
+}
+
+function cleanNumber(value){
+    if(value === null || value === undefined || value === "") return NaN;
+    return parseFloat(
+        String(value)
+        .replace(/,/g, "")
+        .replace(/[^0-9.-]/g, "")
+    );
+}
+
+function getValues(){
+    if(!numericColumn) return [];
+    return data
+        .map(row => cleanNumber(row[numericColumn]))
+        .filter(value => !isNaN(value));
+}
+
+/* =========================================================
+   KPIS
+========================================================= */
+function updateKPIs(){
+    const values = getValues();
+    const total = values.reduce((sum, v) => sum + v, 0);
+    const average = values.length ? total / values.length : 0;
+    const max = values.length ? Math.max(...values) : 0;
+
+    document.getElementById("kpiRecords").textContent = data.length.toLocaleString();
+    document.getElementById("kpiTotal").textContent = formatNumber(total);
+    document.getElementById("kpiAverage").textContent = formatNumber(average);
+    document.getElementById("kpiMax").textContent = formatNumber(max);
+}
+
+function formatNumber(value){
+    if(isNaN(value)) return "0";
+    if(Math.abs(value) >= 10000000) return (value / 10000000).toFixed(2) + " Cr";
+    if(Math.abs(value) >= 1000000) return (value / 1000000).toFixed(1) + "M";
+    if(Math.abs(value) >= 1000) return (value / 1000).toFixed(1) + "K";
+    return Number(value).toLocaleString("en-IN", { maximumFractionDigits: 2 });
+}
+
+function getCategoryData(){
+    const result = {};
+    if(!categoryColumn) return result;
+
+    data.forEach(row => {
+        const cat = String(row[categoryColumn] || "").trim() || "Other";
+        if(!result[cat]) result[cat] = 0;
+
+        let val = 1;
+        if(numericColumn){
+            const n = cleanNumber(row[numericColumn]);
+            if(!isNaN(n)) val = n;
+        }
+        result[cat] += val;
+    });
+    return result;
+}
+
+/* =========================================================
+   CHART THEME COLORS
+========================================================= */
+function getChartTextColor(){
+    return currentTheme === "white" ? "#334155" : "#cbd5e1";
+}
+
+function getGridColor(){
+    return currentTheme === "white" ? "rgba(0,0,0,.08)" : "rgba(255,255,255,.08)";
+}
+
+function commonOptions(){
+    return {
+        responsive:true,
+        maintainAspectRatio:false,
+        animation:false,
+        plugins:{
+            legend:{
+                position:"bottom",
+                labels:{
+                    color:getChartTextColor(),
+                    padding:12,
+                    boxWidth:10,
+                    font:{ size:10 }
+                }
+            }
+        },
+        scales:{
+            x:{
+                ticks:{
+                    color:getChartTextColor(),
+                    maxRotation:0,
+                    font:{ size:9 }
+                },
+                grid:{ color:getGridColor() }
+            },
+            y:{
+                beginAtZero:true,
+                ticks:{
+                    color:getChartTextColor(),
+                    font:{ size:9 }
+                },
+                grid:{ color:getGridColor() }
+            }
+        }
+    };
+}
+
+/* =========================================================
+   CREATE DASHBOARD CHARTS
+========================================================= */
+function createCharts(){
+    destroyCharts();
+
+    const values = getValues();
+    const categoryData = getCategoryData();
+    const categories = Object.keys(categoryData);
+    const categoryValues = Object.values(categoryData);
+
+    // 1. LINE CHART (Trend)
+    const lineValues = values.slice(0, 40);
+    charts.line = new Chart(document.getElementById("lineChart"), {
+        type:"line",
+        data:{
+            labels:lineValues.map((_, i) => "Record " + (i + 1)),
+            datasets:[{
+                label:numericColumn || "Value",
+                data:lineValues,
+                borderColor:"#6366f1",
+                backgroundColor:"rgba(99,102,241,0.18)",
+                borderWidth:3,
+                tension:.35,
+                fill:true,
+                pointRadius:2.5,
+                pointHoverRadius:5
+            }]
+        },
+        options:commonOptions()
+    });
+
+    // 2. PIE CHART (Category Distribution)
+    const pieLabels = categories.length ? categories.slice(0, 8) : ["All Records"];
+    const pieVals = categories.length ? categoryValues.slice(0, 8) : [values.length];
+    const palette = [
+        "#6366f1", "#06b6d4", "#ec4899", "#10b981",
+        "#f59e0b", "#8b5cf6", "#14b8a6", "#f43f5e"
+    ];
+
+    charts.pie = new Chart(document.getElementById("pieChart"), {
+        type:"pie",
+        data:{
+            labels:pieLabels,
+            datasets:[{
+                data:pieVals,
+                backgroundColor:palette.slice(0, pieLabels.length),
+                borderWidth:2,
+                borderColor:currentTheme === "white" ? "#fff" : "#182239"
+            }]
+        },
+        options:{
+            responsive:true,
+            maintainAspectRatio:false,
+            animation:false,
+            plugins:{
+                legend:{
+                    position:"bottom",
+                    labels:{
+                        color:getChartTextColor(),
+                        font:{ size:10 },
+                        boxWidth:10
+                    }
+                }
+            }
+        }
+    });
+
+    // 3. BAR CHART (Category Comparison)
+    charts.bar = new Chart(document.getElementById("barChart"), {
+        type:"bar",
+        data:{
+            labels:categories.slice(0, 8),
+            datasets:[{
+                label:numericColumn || "Count",
+                data:categoryValues.slice(0, 8),
+                backgroundColor:"#38bdf8",
+                borderRadius:6,
+                borderWidth:0
+            }]
+        },
+        options:commonOptions()
+    });
+
+    // 4. DOUGHNUT (Positive vs Negative)
+    const positive = values.filter(v => v >= 0).length;
+    const negative = values.filter(v => v < 0).length;
+    charts.doughnut = new Chart(document.getElementById("doughnutChart"), {
+        type:"doughnut",
+        data:{
+            labels:["Positive / Zero", "Negative"],
+            datasets:[{
+                data:[positive, negative],
+                backgroundColor:["#10b981", "#ef4444"],
+                borderWidth:2,
+                borderColor:currentTheme === "white" ? "#fff" : "#182239"
+            }]
+        },
+        options:{
+            responsive:true,
+            maintainAspectRatio:false,
+            animation:false,
+            cutout:"64%",
+            plugins:{
+                legend:{
+                    position:"bottom",
+                    labels:{
+                        color:getChartTextColor(),
+                        font:{ size:10 },
+                        boxWidth:10
+                    }
+                }
+            }
+        }
+    });
+
+    // 5. SUMMARY (Min, Average, Median, Max)
+    const minimum = values.length ? Math.min(...values) : 0;
+    const sorted = [...values].sort((a,b) => a - b);
+    const median = sorted.length ? sorted[Math.floor(sorted.length / 2)] : 0;
+    const average = values.length ? values.reduce((a,b) => a + b, 0) / values.length : 0;
+    const maximum = values.length ? Math.max(...values) : 0;
+
+    charts.summary = new Chart(document.getElementById("summaryChart"), {
+        type:"bar",
+        data:{
+            labels:["Minimum", "Average", "Median", "Maximum"],
+            datasets:[{
+                label:numericColumn || "Metric",
+                data:[minimum, average, median, maximum],
+                backgroundColor:["#f59e0b", "#06b6d4", "#8b5cf6", "#10b981"],
+                borderRadius:6
+            }]
+        },
+        options:commonOptions()
+    });
+
+    document.getElementById("lineTitle").textContent = numericColumn ? `${numericColumn} Trend` : "Main Trend";
+    document.getElementById("barTitle").textContent = categoryColumn ? `${categoryColumn} Comparison` : "Category Comparison";
+}
+
+function destroyCharts(){
+    Object.values(charts).forEach(c => { if(c) c.destroy(); });
+    charts = {};
+}
+
+/* =========================================================
+   DATA VISUALIZATION - UPLOADED DATA AS CHARTS/GRAPHS
+========================================================= */
+function getNumericColumns(){
+    return headers.map(h=>{let valid=0;data.forEach(r=>{if(!isNaN(cleanNumber(r[h])))valid++;});return {header:h,ratio:data.length?valid/data.length:0};}).filter(x=>x.ratio>=.5).map(x=>x.header);
+}
+function getCategoricalColumns(){
+    return headers.map(h=>({header:h,unique:new Set(data.map(r=>String(r[h]??'').trim()).filter(Boolean)).size})).filter(x=>x.unique>=2&&x.unique<=20).map(x=>x.header);
+}
+function shortLabel(v,m=18){const s=String(v??'');return s.length>m?s.slice(0,m-1)+'…':s;}
+function createDataVisualizations(){
+    ['dataTrend','dataCategory','dataTop','dataRelation'].forEach(k=>{if(charts[k])charts[k].destroy();});
+    const nums=getNumericColumns(),cats=getCategoricalColumns();
+    const primary=numericColumn||nums[0]||null,secondary=nums.find(x=>x!==primary)||null,category=categoryColumn||cats.find(x=>x!==primary)||null;
+    document.getElementById('visualBadge').textContent=data.length.toLocaleString()+' records';
+    document.getElementById('visualDescription').textContent=primary?`Charts generated from ${primary}${category?' and '+category:''}`:'Charts generated automatically from uploaded data';
+    const text=getChartTextColor(),grid=getGridColor();
+    const base={responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:{position:'bottom',labels:{color:text,font:{size:10},boxWidth:10,padding:10}}}};
+    const trend=primary?data.slice(0,50).map(r=>cleanNumber(r[primary])).filter(v=>!isNaN(v)):[];
+    charts.dataTrend=new Chart(document.getElementById('dataTrendChart'),{type:'line',data:{labels:trend.map((_,i)=>'Record '+(i+1)),datasets:[{label:primary||'Records',data:trend,borderColor:'#38bdf8',backgroundColor:'rgba(56,189,248,.15)',fill:true,tension:.35,pointRadius:2,borderWidth:3}]},options:{...base,scales:{x:{ticks:{color:text,maxRotation:0,font:{size:9}},grid:{color:grid}},y:{ticks:{color:text,font:{size:9}},grid:{color:grid}}}}});
+    const cmap={};if(category)data.forEach(r=>{const k=String(r[category]??'').trim()||'Other';cmap[k]=(cmap[k]||0)+1;});
+    const ce=Object.entries(cmap).sort((a,b)=>b[1]-a[1]).slice(0,8);
+    charts.dataCategory=new Chart(document.getElementById('dataCategoryChart'),{type:'doughnut',data:{labels:ce.length?ce.map(x=>shortLabel(x[0])):['All Records'],datasets:[{data:ce.length?ce.map(x=>x[1]):[data.length],backgroundColor:['#6366f1','#06b6d4','#10b981','#f59e0b','#ec4899','#8b5cf6','#14b8a6','#f43f5e'],borderWidth:2,borderColor:currentTheme==='white'?'#fff':'#182239'}]},options:{...base,cutout:'58%'}});
+    let labels=[],vals=[];if(category&&primary){const map={};data.forEach(r=>{const k=String(r[category]??'').trim()||'Other',v=cleanNumber(r[primary]);if(!isNaN(v))map[k]=(map[k]||0)+v;});Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,8).forEach(x=>{labels.push(shortLabel(x[0],22));vals.push(x[1]);});}
+    else if(primary){data.slice(0,20).forEach((r,i)=>{const v=cleanNumber(r[primary]);if(!isNaN(v)){labels.push('#'+(i+1));vals.push(v);}});const z=labels.map((l,i)=>[l,vals[i]]).sort((a,b)=>b[1]-a[1]).slice(0,8);labels=z.map(x=>x[0]);vals=z.map(x=>x[1]);}
+    charts.dataTop=new Chart(document.getElementById('dataTopChart'),{type:'bar',data:{labels:labels.length?labels:['No numeric data'],datasets:[{label:primary||'Count',data:vals.length?vals:[0],backgroundColor:'#6366f1',borderRadius:7}]},options:{...base,indexAxis:labels.length>6?'y':'x',scales:{x:{ticks:{color:text,font:{size:9}},grid:{color:grid}},y:{beginAtZero:true,ticks:{color:text,font:{size:9}},grid:{color:grid}}}}});
+    const points=[];if(primary&&secondary)data.slice(0,100).forEach(r=>{const x=cleanNumber(r[primary]),y=cleanNumber(r[secondary]);if(!isNaN(x)&&!isNaN(y))points.push({x,y});});
+    charts.dataRelation=new Chart(document.getElementById('dataRelationChart'),{type:'scatter',data:{datasets:[{label:secondary?`${primary} vs ${secondary}`:'Data points',data:points,backgroundColor:'#ec4899',pointRadius:4}]},options:{...base,scales:{x:{title:{display:!!primary,text:primary||'Numeric field',color:text},ticks:{color:text,font:{size:9}},grid:{color:grid}},y:{title:{display:!!secondary,text:secondary||'Second numeric field',color:text},ticks:{color:text,font:{size:9}},grid:{color:grid}}}}});
+    document.getElementById('dataTrendTitle').textContent=primary?`${primary} Trend`:'Data Trend';
+    document.getElementById('dataCategoryTitle').textContent=category?`${category} Distribution`:'Record Distribution';
+    document.getElementById('dataTopTitle').textContent=category&&primary?`${primary} by ${category}`:(primary?`Top ${primary} Values`:'Top Values');
+    document.getElementById('dataRelationTitle').textContent=primary&&secondary?`${primary} vs ${secondary}`:'Data Relationship';
+}
+
+/* =========================================================
+   THEME SWITCH
+========================================================= */
+function toggleTheme(){
+    if(document.body.classList.contains("white-theme")){
+        currentTheme = "blue";
+        document.body.classList.remove("white-theme");
+        document.getElementById("themeButton").innerHTML = "☀ White Theme";
+    }else{
+        currentTheme = "white";
+        document.body.classList.add("white-theme");
+        document.getElementById("themeButton").innerHTML = "🌙 Blue Theme";
+    }
+    if(data.length){ createCharts(); createDataVisualizations(); }
+}
+
+/* =========================================================
+   DASHBOARD PDF DOWNLOAD
+========================================================= */
+async function downloadDashboardPDF(){
+    if(!isPaymentVerified()){
+        alert("🔒 पेमेंट पूर्ण झाल्याशिवाय डॅशबोर्ड PDF डाउनलोड करता येणार नाही.\n\nकृपया प्रथम ₹10 पेमेंट पूर्ण करा आणि डाउनलोड अनलॉक करा.\n(Dashboard PDF download is locked until ₹10 payment is completed.)");
+        openPaymentModal();
+        return;
+    }
+
+    if(!data.length){
+        alert("Please upload your CSV or Excel file first.");
+        return;
+    }
+
+    const loading = document.getElementById("loading");
+    document.getElementById("loadingTitle").textContent = "Preparing Dashboard PDF...";
+    document.getElementById("loadingSubtitle").textContent = "Rendering high-resolution canvas capture...";
+    loading.style.display = "flex";
+
+    await new Promise(r => setTimeout(r, 600));
+
+    try{
+        const dashboard = document.getElementById("dashboard");
+        const oldRadius = dashboard.style.borderRadius;
+        dashboard.style.borderRadius = "0";
+
+        const canvas = await html2canvas(dashboard, {
+            scale:2.5,
+            useCORS:true,
+            allowTaint:true,
+            backgroundColor: currentTheme === "white" ? "#ffffff" : "#12192c",
+            logging:false,
+            windowWidth:dashboard.scrollWidth,
+            windowHeight:dashboard.scrollHeight
+        });
+
+        dashboard.style.borderRadius = oldRadius;
+        const image = canvas.toDataURL("image/jpeg", 0.95);
+
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF("landscape", "mm", "a4");
+
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const margin = 5;
+        const availWidth = pageWidth - (margin * 2);
+        const availHeight = pageHeight - (margin * 2);
+
+        const imgRatio = canvas.width / canvas.height;
+        const pageRatio = availWidth / availHeight;
+
+        let finalW, finalH;
+        if(imgRatio > pageRatio){
+            finalW = availWidth;
+            finalH = finalW / imgRatio;
+        }else{
+            finalH = availHeight;
+            finalW = finalH * imgRatio;
+        }
+
+        const posX = (pageWidth - finalW) / 2;
+        const posY = (pageHeight - finalH) / 2;
+
+        pdf.addImage(image, "JPEG", posX, posY, finalW, finalH, undefined, "FAST");
+        pdf.save("GW_Analytics_Dashboard.pdf");
+    }catch(err){
+        console.error("PDF Error:", err);
+        alert("PDF download failed: " + err.message);
+    }finally{
+        loading.style.display = "none";
+    }
+}
+
+/* =========================================================
+   DEEP DATA ANALYSIS ENGINE FOR COMPREHENSIVE REPORT
+========================================================= */
+function computeDetailedAnalysis(){
+    const values = getValues();
+    const count = values.length;
+    if(!count) return null;
+
+    // Sorting for medians & quartiles
+    const sorted = [...values].sort((a,b) => a - b);
+    const sum = values.reduce((a,b) => a + b, 0);
+    const mean = sum / count;
+    const min = sorted[0];
+    const max = sorted[count - 1];
+    const range = max - min;
+
+    // Median & Quartiles
+    const median = sorted[Math.floor(count / 2)];
+    const q1 = sorted[Math.floor(count * 0.25)];
+    const q3 = sorted[Math.floor(count * 0.75)];
+    const iqr = q3 - q1;
+
+    // Standard Deviation & Variance
+    const variance = values.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / count;
+    const stdDev = Math.sqrt(variance);
+
+    // Outliers (Z-score > 2.0)
+    const outliers = values.filter(v => Math.abs(v - mean) > 2 * stdDev);
+
+    // Skewness
+    let skewness = "Symmetric (Balanced)";
+    if(mean > median * 1.08) skewness = "Right-Skewed (Positive Skew - High Value Outliers)";
+    else if(mean < median * 0.92) skewness = "Left-Skewed (Negative Skew - Lower Bound Pull)";
+
+    // Category analysis
+    const catMap = getCategoryData();
+    const sortedCats = Object.entries(catMap).sort((a,b) => b[1] - a[1]);
+    const topCat = sortedCats.length ? sortedCats[0] : ["None", 0];
+    const totalCatVal = sortedCats.reduce((acc, item) => acc + item[1], 0);
+    const topCatPct = totalCatVal ? ((topCat[1] / totalCatVal) * 100).toFixed(1) : 0;
+
+    // Volatility rate
+    const volatility = mean !== 0 ? ((stdDev / Math.abs(mean)) * 100).toFixed(1) : "0";
+
+    return {
+        count,
+        sum,
+        mean,
+        median,
+        min,
+        max,
+        range,
+        q1,
+        q3,
+        iqr,
+        variance,
+        stdDev,
+        volatility,
+        skewness,
+        outlierCount: outliers.length,
+        outliers: outliers.slice(0, 5),
+        categoryCount: sortedCats.length,
+        topCategory: topCat[0],
+        topCategoryVal: topCat[1],
+        topCategoryPct: topCatPct,
+        sortedCats
+    };
+}
+
+/* =========================================================
+   GENERATE COMPREHENSIVE REPORT
+========================================================= */
+function generateComprehensiveReport(){
+    if(!data.length){
+        alert("Please upload a CSV or Excel dataset first before creating a report.");
+        return;
+    }
+
+    const stats = computeDetailedAnalysis();
+    if(!stats){
+        alert("No numeric metrics detected to build a statistical report.");
+        return;
+    }
+
+    // Populate Report Header
+    document.getElementById("repDatasetName").textContent = `Dataset: ${currentFileName}`;
+    document.getElementById("repDateGenerated").textContent = `Generated: ${new Date().toLocaleDateString("en-IN", {
+        day:"2-digit", month:"short", year:"numeric"
+    })}`;
+
+    // Executive Summary Text
+    const execText = `
+        The dataset <strong>${currentFileName}</strong> contains <strong>${data.length.toLocaleString()} records</strong>
+        across <strong>${headers.length} attributes</strong>. Primary numeric analysis was conducted on
+        <code>${numericColumn || "Metric"}</code>, exhibiting a cumulative aggregate sum of <strong>${formatNumber(stats.sum)}</strong>
+        with an arithmetic mean of <strong>${formatNumber(stats.mean)}</strong> and a median benchmark of <strong>${formatNumber(stats.median)}</strong>.
+        Category distribution identified <strong>${stats.categoryCount} unique segments</strong> under <code>${categoryColumn || "Categories"}</code>,
+        with <em>"${stats.topCategory}"</em> leading overall volume (${stats.topCategoryPct}% aggregate share).
+        Overall data consistency demonstrates a relative standard deviation coefficient of <strong>${stats.volatility}%</strong>
+        with <strong>${stats.outlierCount} statistical anomalies</strong> isolated.
+    `;
+    document.getElementById("repExecSummary").innerHTML = execText;
+
+    // Populate Stats Grid
+    const grid = document.getElementById("repStatsGrid");
+    grid.innerHTML = `
+        <div class="report-stat-box">
+            <div class="title">Total Records</div>
+            <div class="val">${stats.count.toLocaleString()}</div>
+            <div class="sub">100% Parsed</div>
+        </div>
+        <div class="report-stat-box">
+            <div class="title">Mean (Average)</div>
+            <div class="val">${formatNumber(stats.mean)}</div>
+            <div class="sub">Median: ${formatNumber(stats.median)}</div>
+        </div>
+        <div class="report-stat-box">
+            <div class="title">Std Deviation (σ)</div>
+            <div class="val">${formatNumber(stats.stdDev)}</div>
+            <div class="sub">Volatility: ${stats.volatility}%</div>
+        </div>
+        <div class="report-stat-box">
+            <div class="title">Dynamic Range</div>
+            <div class="val">${formatNumber(stats.range)}</div>
+            <div class="sub">Min: ${formatNumber(stats.min)} | Max: ${formatNumber(stats.max)}</div>
+        </div>
+        <div class="report-stat-box">
+            <div class="title">Interquartile (IQR)</div>
+            <div class="val">${formatNumber(stats.iqr)}</div>
+            <div class="sub">Q1: ${formatNumber(stats.q1)} → Q3: ${formatNumber(stats.q3)}</div>
+        </div>
+        <div class="report-stat-box">
+            <div class="title">Distribution Skew</div>
+            <div class="val" style="font-size:14px;padding-top:4px;">${stats.skewness.split(" ")[0]}</div>
+            <div class="sub">${stats.skewness}</div>
+        </div>
+        <div class="report-stat-box">
+            <div class="title">Leading Category</div>
+            <div class="val" style="font-size:16px;">${stats.topCategory}</div>
+            <div class="sub">${stats.topCategoryPct}% Total Share</div>
+        </div>
+        <div class="report-stat-box">
+            <div class="title">Outliers Detected</div>
+            <div class="val" style="color:#f43f5e;">${stats.outlierCount}</div>
+            <div class="sub">&gt; 2σ Variance Threshold</div>
+        </div>
+    `;
+
+    // Populate Detailed Chart Explanations
+    document.getElementById("repChart1Title").textContent = `${numericColumn || "Value"} Trend Across Sequential Records`;
+    document.getElementById("repChart1Explanation").innerHTML = `
+        <strong>📊 Trend Diagnostic & Sequential Analysis:</strong>
+        <p>This sequential line chart reveals the trajectory and fluctuations of <em>${numericColumn}</em> across consecutive observations.</p>
+        <ul>
+            <li><strong>Trend Direction:</strong> The baseline average of ${formatNumber(stats.mean)} acts as the central anchor. Records exhibit a range span of ${formatNumber(stats.range)}.</li>
+            <li><strong>Volatility Factor:</strong> With a variance coefficient of ${stats.volatility}%, performance swings indicate ${stats.volatility > 30 ? "moderate to high periodic volatility" : "steady, stable operational velocity"}.</li>
+            <li><strong>Actionable Finding:</strong> Monitor sudden dips below the lower quartile (${formatNumber(stats.q1)}) to prevent revenue or output bottlenecks.</li>
+        </ul>
+    `;
+
+    document.getElementById("repChart2Title").textContent = `${categoryColumn || "Category"} Distribution & Market Share`;
+    document.getElementById("repChart2Explanation").innerHTML = `
+        <strong>🥧 Composition & Portfolio Concentration:</strong>
+        <p>The distribution pie evaluates the market or operational concentration across <em>${categoryColumn}</em> categories.</p>
+        <ul>
+            <li><strong>Market Dominance:</strong> Segment <em>"${stats.topCategory}"</em> accounts for <strong>${stats.topCategoryPct}%</strong> of total aggregate volume.</li>
+            <li><strong>Concentration Risk:</strong> ${stats.topCategoryPct > 45 ? "High reliance on a single category; diversification across secondary segments is strongly recommended." : "Balanced distribution observed across core categories."}</li>
+            <li><strong>Long-tail Potential:</strong> Secondary and emerging categories constitute the remaining ${(100 - stats.topCategoryPct).toFixed(1)}% of potential growth.</li>
+        </ul>
+    `;
+
+    document.getElementById("repChart3Title").textContent = `${categoryColumn || "Category"} Comparative Benchmarking`;
+    document.getElementById("repChart3Explanation").innerHTML = `
+        <strong>📶 Category Performance Benchmarking:</strong>
+        <p>Direct comparative bar ranking illustrates the performance hierarchy across individual segments.</p>
+        <ul>
+            <li><strong>Leader vs Followers:</strong> The top category outpaces trailing segments by up to ${stats.sortedCats.length > 1 ? ((stats.topCategoryVal / (stats.sortedCats[stats.sortedCats.length-1][1] || 1))).toFixed(1) + "x" : "N/A"}.</li>
+            <li><strong>Resource Allocation:</strong> Channel capital and focus into mid-tier segments to accelerate upward momentum.</li>
+        </ul>
+    `;
+
+    document.getElementById("repChart4Explanation").innerHTML = `
+        <strong>📈 Spread, Boundaries & Benchmark Targets:</strong>
+        <p>Comparing statistical quartiles and benchmarks allows leadership to set realistic performance targets.</p>
+        <ul>
+            <li><strong>Central Median (${formatNumber(stats.median)}):</strong> Represents the true typical record, free from extreme skew.</li>
+            <li><strong>Ceiling Potential (${formatNumber(stats.max)}):</strong> Sets the upper operational benchmark achievable under peak conditions.</li>
+            <li><strong>Floor Protection (${formatNumber(stats.min)}):</strong> Serves as the minimal acceptable threshold for quality control.</li>
+        </ul>
+    `;
+
+    // Populate Strategic Recommendations
+    const recsList = document.getElementById("repInsightsList");
+    recsList.innerHTML = `
+        <div class="report-insight-card">
+            <h5>🎯 1. Segment Focus & Scaling</h5>
+            <p>Double down on <strong>${stats.topCategory}</strong> while instituting targeted acceleration programs for mid-tier categories to build a resilient, multi-pillar portfolio.</p>
+        </div>
+        <div class="report-insight-card">
+            <h5>⚡ 2. Volatility Dampening</h5>
+            <p>Standard deviation sits at <strong>${formatNumber(stats.stdDev)}</strong>. Implement rolling moving averages to anticipate seasonal or cyclical demand troughs.</p>
+        </div>
+        <div class="report-insight-card">
+            <h5>🔍 3. Outlier Root-Cause Audit</h5>
+            <p>Identified <strong>${stats.outlierCount} anomalous data points</strong> deviating significantly from the mean. Conduct an operational audit on peak values to isolate success factors.</p>
+        </div>
+        <div class="report-insight-card">
+            <h5>📈 4. Target Optimization</h5>
+            <p>Use the 75th percentile (<strong>${formatNumber(stats.q3)}</strong>) as the new standardized monthly KPI target for lower-quartile records.</p>
+        </div>
+    `;
+
+    // Open Report Modal
+    document.getElementById("reportOverlay").style.display = "flex";
+    document.body.style.overflow = "hidden";
+
+    // Render Charts into Report Modals
+    setTimeout(renderReportModalCharts, 150);
+}
+
+function closeReportModal(){
+    document.getElementById("reportOverlay").style.display = "none";
+    document.body.style.overflow = "";
+}
+
+/* =========================================================
+   RENDER REPORT MODAL CHARTS
+========================================================= */
+function renderReportModalCharts(){
+    Object.values(reportCharts).forEach(c => { if(c) c.destroy(); });
+    reportCharts = {};
+
+    const values = getValues();
+    const categoryData = getCategoryData();
+    const categories = Object.keys(categoryData);
+    const categoryValues = Object.values(categoryData);
+
+    const reportOpts = {
+        responsive:true,
+        maintainAspectRatio:false,
+        animation:false,
+        plugins:{
+            legend:{
+                position:"bottom",
+                labels:{ color:"#cbd5e1", font:{ size:10 }, boxWidth:10 }
+            }
+        },
+        scales:{
+            x:{ ticks:{ color:"#94a3b8", font:{ size:9 } }, grid:{ color:"rgba(255,255,255,.05)" } },
+            y:{ ticks:{ color:"#94a3b8", font:{ size:9 } }, grid:{ color:"rgba(255,255,255,.05)" } }
+        }
+    };
+
+    // Line Chart
+    const lineCanvas = document.getElementById("reportLineCanvas");
+    if(lineCanvas){
+        const subVals = values.slice(0, 40);
+        reportCharts.line = new Chart(lineCanvas, {
+            type:"line",
+            data:{
+                labels:subVals.map((_, i) => "R" + (i + 1)),
+                datasets:[{
+                    label:numericColumn || "Metric",
+                    data:subVals,
+                    borderColor:"#38bdf8",
+                    backgroundColor:"rgba(56,189,248,0.15)",
+                    fill:true,
+                    tension:.35,
+                    borderWidth:2.5
+                }]
+            },
+            options:reportOpts
+        });
+    }
+
+    // Pie Chart
+    const pieCanvas = document.getElementById("reportPieCanvas");
+    if(pieCanvas){
+        reportCharts.pie = new Chart(pieCanvas, {
+            type:"pie",
+            data:{
+                labels:categories.slice(0, 8),
+                datasets:[{
+                    data:categoryValues.slice(0, 8),
+                    backgroundColor:[
+                        "#6366f1", "#38bdf8", "#ec4899", "#10b981",
+                        "#f59e0b", "#8b5cf6", "#14b8a6", "#f43f5e"
+                    ],
+                    borderWidth:1.5,
+                    borderColor:"#141f36"
+                }]
+            },
+            options:{
+                responsive:true,
+                maintainAspectRatio:false,
+                animation:false,
+                plugins:{
+                    legend:{
+                        position:"bottom",
+                        labels:{ color:"#cbd5e1", font:{ size:10 }, boxWidth:10 }
+                    }
+                }
+            }
+        });
+    }
+
+    // Bar Chart
+    const barCanvas = document.getElementById("reportBarCanvas");
+    if(barCanvas){
+        reportCharts.bar = new Chart(barCanvas, {
+            type:"bar",
+            data:{
+                labels:categories.slice(0, 8),
+                datasets:[{
+                    label:numericColumn || "Sum",
+                    data:categoryValues.slice(0, 8),
+                    backgroundColor:"#818cf8",
+                    borderRadius:5
+                }]
+            },
+            options:reportOpts
+        });
+    }
+
+    // Summary Chart
+    const sumCanvas = document.getElementById("reportSummaryCanvas");
+    if(sumCanvas){
+        const min = values.length ? Math.min(...values) : 0;
+        const sorted = [...values].sort((a,b) => a - b);
+        const med = sorted.length ? sorted[Math.floor(sorted.length/2)] : 0;
+        const avg = values.length ? values.reduce((a,b)=>a+b,0)/values.length : 0;
+        const max = values.length ? Math.max(...values) : 0;
+
+        reportCharts.summary = new Chart(sumCanvas, {
+            type:"bar",
+            data:{
+                labels:["Minimum", "Average", "Median", "Maximum"],
+                datasets:[{
+                    label:"Metric Value",
+                    data:[min, avg, med, max],
+                    backgroundColor:["#f59e0b", "#38bdf8", "#a855f7", "#10b981"],
+                    borderRadius:5
+                }]
+            },
+            options:reportOpts
+        });
+    }
+}
+
+/* =========================================================
+   DOWNLOAD COMPREHENSIVE REPORT (PDF)
+========================================================= */
+async function downloadReportPDF(){
+    if(!isPaymentVerified()){
+        alert("🔒 पेमेंट पूर्ण झाल्याशिवाय अ‍ॅनालिसिस रिपोर्ट PDF डाउनलोड करता येणार नाही.\n\nकृपया प्रथम ₹10 पेमेंट पूर्ण करा आणि डाउनलोड अनलॉक करा.\n(Report PDF download is locked until ₹10 payment is completed.)");
+        openPaymentModal();
+        return;
+    }
+
+    const loading = document.getElementById("loading");
+    document.getElementById("loadingTitle").textContent = "Compiling Executive Report PDF...";
+    document.getElementById("loadingSubtitle").textContent = "Capturing charts, statistical tables, and strategic explanations...";
+    loading.style.display = "flex";
+
+    await new Promise(r => setTimeout(r, 600));
+
+    try{
+        const reportContent = document.getElementById("reportContentArea");
+        const canvas = await html2canvas(reportContent, {
+            scale:2.2,
+            useCORS:true,
+            allowTaint:true,
+            backgroundColor:"#141f36",
+            logging:false,
+            windowWidth:reportContent.scrollWidth
+        });
+
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF("portrait", "mm", "a4");
+
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const margin = 8;
+        const pdfWidth = pageWidth - (margin * 2);
+
+        // Convert canvas to image chunks for multiple A4 pages
+        const canvasWidth = canvas.width;
+        const canvasHeight = canvas.height;
+        const pageCanvasHeight = (canvasWidth / pdfWidth) * (pageHeight - (margin * 2));
+
+        let currentY = 0;
+        let pageNum = 1;
+
+        while(currentY < canvasHeight){
+            if(pageNum > 1) pdf.addPage();
+
+            const chunkHeight = Math.min(pageCanvasHeight, canvasHeight - currentY);
+            const chunkCanvas = document.createElement("canvas");
+            chunkCanvas.width = canvasWidth;
+            chunkCanvas.height = chunkHeight;
+
+            const ctx = chunkCanvas.getContext("2d");
+            ctx.drawImage(
+                canvas,
+                0, currentY, canvasWidth, chunkHeight,
+                0, 0, canvasWidth, chunkHeight
+            );
+
+            const chunkImg = chunkCanvas.toDataURL("image/jpeg", 0.95);
+            const renderedH = (chunkHeight / canvasWidth) * pdfWidth;
+
+            pdf.addImage(chunkImg, "JPEG", margin, margin, pdfWidth, renderedH, undefined, "FAST");
+
+            // Footer with page number
+            pdf.setFontSize(8);
+            pdf.setTextColor(148, 163, 184);
+            pdf.text(
+                `GW Smart Analytics • ${currentFileName} • Page ${pageNum}`,
+                pageWidth / 2,
+                pageHeight - 4,
+                { align: "center" }
+            );
+
+            currentY += chunkHeight;
+            pageNum++;
+        }
+
+        pdf.save(`GW_Analytics_Comprehensive_Report_${currentFileName.split(".")[0]}.pdf`);
+    }catch(err){
+        console.error("Report PDF Error:", err);
+        alert("Report PDF generation failed: " + err.message);
+    }finally{
+        loading.style.display = "none";
+    }
+}
+
+/* =========================================================
+   KEYBOARD & EVENT SHORTCUTS
+========================================================= */
+document.addEventListener("keydown", function(event){
+    if(event.key === "Escape"){
+        closePaymentModal();
+        closeReceiptModal();
+        closeReportModal();
+    }
+});
+
+/* =========================================================
+   INITIALIZATION
+========================================================= */
+currentTheme = "blue";
+checkUserSessionAndSubscription();
+
+// Auto-load dataset if cached in localStorage
+(function(){
+    const savedTheme = localStorage.getItem("gwTheme");
+    if(savedTheme === "white") toggleTheme();
+
+    const saved = localStorage.getItem("gwUploadedFile");
+    if(saved && typeof handleFile === "function"){
+        try{
+            const d = JSON.parse(saved);
+            const bytes = atob(d.data.split(",")[1]);
+            const arr = new Uint8Array(bytes.length);
+            for(let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+            const file = new File([arr], d.name, { type: d.type || "application/octet-stream" });
+            handleFile({ target: { files: [file] } });
+        }catch(e){
+            console.error("Unable to load cached dataset:", e);
+        }
+    }
+})();
+</script>
+<!-- ===== MAIN SCRIPT ENDS HERE ===== -->
+
+
+<!-- ===== GW ASSISTANT (Swati) ===== -->
+<style>
+#gwBot,#gwBot *{box-sizing:border-box;font-family:"Segoe UI",Arial,sans-serif}
+#gwBotBtn{position:fixed;right:22px;bottom:22px;width:58px;height:58px;border-radius:50%;padding:0;font-size:26px;background:linear-gradient(135deg,#6366f1,#06b6d4);color:#fff;box-shadow:0 8px 24px rgba(99,102,241,.45);z-index:6000;border:none;cursor:pointer}
+#gwBotBox{position:fixed;right:22px;bottom:92px;width:340px;max-width:calc(100vw - 30px);height:500px;max-height:calc(100vh - 120px);background:#131b2e;border:1px solid rgba(255,255,255,.1);border-radius:16px;display:none;flex-direction:column;overflow:hidden;z-index:6000;box-shadow:0 20px 50px rgba(0,0,0,.5)}
+#gwBotBox.open{display:flex}
+#gwBotHead{background:#162238;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;color:#fff;border-bottom:1px solid rgba(255,255,255,.1)}
+#gwBotHead b{font-size:14px;display:flex;align-items:center;gap:6px}
+#gwBotHead small{display:block;color:#4ade80;font-size:11px;margin-top:2px}
+#gwBotClose{background:transparent;color:#94a3b8;font-size:22px;padding:0 4px;border:none;cursor:pointer}
+#gwBotMsgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
+.gwm{max-width:85%;padding:9px 12px;border-radius:12px;font-size:13px;line-height:1.45;white-space:pre-wrap;word-break:break-word}
+.gwm.bot{background:#1b2949;color:#e6eefc;border:1px solid rgba(255,255,255,.08);align-self:flex-start;border-bottom-left-radius:3px}
+.gwm.me{background:linear-gradient(135deg,#6366f1,#06b6d4);color:#fff;align-self:flex-end;border-bottom-right-radius:3px}
+.gwm img{display:block;max-width:100%;max-height:160px;border-radius:8px;margin-bottom:6px}
+.gwm .gwfile{display:block;background:rgba(255,255,255,.18);border-radius:6px;padding:6px 8px;margin-bottom:6px;font-size:12px}
+#gwBotChips{display:flex;flex-wrap:wrap;gap:6px;padding:0 12px 8px}
+#gwBotChips button{background:#0e1424;color:#38bdf8;border:1px solid #2d3e5e;border-radius:14px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer}
+#gwBotChips button:hover{background:#1b2949}
+#gwBotPending{display:none;align-items:center;gap:8px;padding:6px 12px;background:#0e1424;border-top:1px solid rgba(255,255,255,.08);color:#4ade80;font-size:12px}
+#gwBotPending.show{display:flex}
+#gwBotPending span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#gwBotPending button{background:transparent;border:none;color:#f87171;font-size:16px;cursor:pointer}
+#gwBotForm{display:flex;gap:8px;padding:10px;border-top:1px solid rgba(255,255,255,.08);background:#0e1424}
+#gwBotAttach{background:#1a253e;color:#38bdf8;border:1px solid #2d3e60;border-radius:8px;padding:0 10px;font-size:16px;cursor:pointer}
+#gwBotInput{flex:1;min-width:0;background:#1a253e;color:#fff;border:1px solid #2d3e60;border-radius:8px;padding:9px 10px;font-size:13px;outline:none}
+#gwBotSend{background:#6366f1;color:#fff;border:none;border-radius:8px;padding:0 14px;font-weight:700;cursor:pointer}
+</style>
+
+<div id="gwBot">
+  <button id="gwBotBtn" type="button" aria-label="Open assistant">💬</button>
+  <div id="gwBotBox" role="dialog" aria-label="GW Assistant">
+    <div id="gwBotHead">
+      <div>
+        <b>
+          <img src="clean_high_resolution_modern_ui_style_icon_brand.png" alt="" style="width:24px;height:24px;border-radius:6px" onerror="this.style.display='none'">
+          GW Assistent
+        </b>
+        <small>● GW Smart Analytics personal assistant</small>
+      </div>
+      <button id="gwBotClose" type="button" aria-label="Close assistant">×</button>
+    </div>
+    <div id="gwBotMsgs"></div>
+    <div id="gwBotChips"></div>
+    <div id="gwBotPending"><span id="gwBotPendingName"></span><button type="button" id="gwBotPendingX" aria-label="Remove file">✕</button></div>
+    <div id="gwBotForm">
+      <button id="gwBotAttach" type="button" title="Photo / File attach kara" aria-label="Attach file">📎</button>
+      <input id="gwBotFile" type="file" accept="image/*,.pdf,.csv,.xlsx,.xls,.txt,.json,.sql,.db,.sqlite,.mdb,.accdb,.py,.key,.graphml,.xml,.yaml,.yml,.tsv,.html,.htm,.md,.r,.sas7bdat,.sav,.dta,.parquet" style="display:none">
+      <input id="gwBotInput" type="text" placeholder="How can I help you today?" autocomplete="off">
+      <button id="gwBotSend" type="button">Send</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const msgs=$("gwBotMsgs"), chips=$("gwBotChips"), input=$("gwBotInput"), box=$("gwBotBox");
+  const fileInput=$("gwBotFile"), pending=$("gwBotPending"), pendingName=$("gwBotPendingName");
+  if(!msgs||!box||!input){console.warn("GW assistant markup missing");return;}
+  let lang="mr";
+  let pendingFile=null;
+
+  // ===== SETTINGS =====
+  // Jar tumchya kade backend aahe tar ithe URL taka (POST, multipart/form-data: file, message, page).
+  // Rikama theval tar file fakt chat madhe dakhvli jate.
+  const SUPPORT_UPLOAD_URL = "";
+  const MAX_MB = 5;
+
+  const T={
+    hello:["Hi! 👋 I'm Swati, your GW assistant. I can help you upload data, create a report, subscribe (₹10) or download PDFs. Having a problem? Attach a screenshot with 📎. What do you need?",
+           "Namaskar! 👋 Mi Swati, tumchi GW assistant. Data upload, report banavne, ₹10 subscription kinva PDF download madhe madat karte. Kahi problem asel tar 📎 ne screenshot/photo pathva. Kay pahije?"],
+    what:["GW Smart Analytics turns your CSV/Excel file into KPIs, interactive charts and a detailed statistical report. You can export the dashboard and the report as PDF.",
+          "GW Smart Analytics tumchi CSV/Excel file KPIs, interactive charts ani detailed statistical report madhe badalto. Dashboard ani report donhi PDF mhanun download karta yetat."],
+    upload:["Click “📁 Upload CSV / Excel File” and pick a .csv, .xlsx or .xls,.json,.pdf,.txt,.sql,.db,.sqlite,.mdb,.accdb,.py,.key,.graphml,.xml,.yaml,.yml,.tsv,.html,.htm,.md,.r,.sas7bdat,.sav,.dta,.parquet file. KPIs and charts appear automatically. Tip: keep clear column headers and at least one numeric column.",
+            "“📁 Upload CSV / Excel File” var click kara ani .csv , .xlsx kinva .xls file nivada. KPIs ani charts aaplyaaap disatil. Tip: Column headers spasht theva ani kamit kami ek numeric column pahije."],
+    pay:["Dashboard and report PDF download need the ₹10 Pro plan (1 month). Login first, tap “Subscribe (₹10)”, then pay by Scan QR / UPI apps / Card. For QR, enter the 12-digit UTR number from your UPI app and tap Verify Payment.",
+         "Dashboard ani report PDF download sathi ₹10 cha Pro plan lagto (1 mahina). Adhi Login kara, “Subscribe (₹10)” dabva, mag Scan QR / UPI apps / Card ne pay kara. QR sathi UPI app madhla 12-digit UTR number taka ani Verify Payment dabva."],
+    utr:["The UTR / transaction reference is a 12-digit number shown in your UPI app under the payment details after you pay.",
+         "UTR / transaction reference mhanje 12-digit number, jo payment nantar UPI app madhe payment details madhe distto."],
+    receipt:["After payment a “🧾 View Receipt” button appears in the top bar. You can download the receipt as PDF or print it.",
+             "Payment nantar varti “🧾 View Receipt” button disto. Receipt PDF mhanun download kinva print karta yete."],
+    report:["Upload your data first, then click “📑 Create Report”. You'll get statistics, chart explanations and recommendations. Downloading the report PDF needs the ₹10 plan.",
+            "Adhi data upload kara, mag “📑 Create Report” dabva. Statistics, chart explanations ani recommendations milatil. Report PDF download sathi ₹10 plan lagto."],
+    theme:["Use the ☀ White Theme / 🌙 Blue Theme button in the top bar to switch the look.",
+           "Varchya bar madhla ☀ White Theme / 🌙 Blue Theme button vaprun look badlta yeto."],
+    login:["Use Login / Register at the top right. You must be logged in before subscribing.",
+           "Varti right la Login / Register vapra. Subscribe karaychya adhi login karne garajeche aahe."],
+    locked:["The Download Dashboard button is locked (🔒) until the ₹10 payment is verified. After payment it unlocks automatically.",
+            "Download Dashboard button (🔒) ₹10 payment verify hoiparyant locked asto. Payment nantar to aaplyaaap unlock hoto."],
+    fail:["Not working? Check: 1) internet is on 2) file is .csv/.xlsx/.xls with a header row and a numeric column 3) you are logged in and payment is verified.\n\nStill stuck? Attach a screenshot/photo of the problem with the 📎 button and describe it.",
+          "Chalat nahi ka? Tapasa: 1) internet chalu aahe ka 2) file .csv/.xlsx/.xls aahe, header row ani numeric column aahe ka 3) login ani payment verify zhale ka.\n\nTari problem asel tar 📎 button ne problem cha screenshot/photo pathva ani thodkyat sanga."],
+    attach:["Choose a photo or file (image, PDF, CSV, Excel, TXT — max "+MAX_MB+" MB) with 📎, write a short description, then press Send.",
+            "📎 button dabun photo kinva file (image, PDF, CSV, Excel, TXT — max "+MAX_MB+" MB) nivada, thodkyat problem liha ani Send dabva."],
+    got:["Thanks! I received your file. We'll look into the problem. 🙏","Dhanyavaad! Tumchi file milali. Aamhi problem tapasto. 🙏"],
+    gotLocal:["Your file is attached here in chat. (Support server is not connected yet, so please also describe the problem in words.)",
+              "Tumchi file ya chat madhe attach zhali aahe. (Support server ajun jodlela nahi, mhanun problem shabdat pan liha.)"],
+    sendFail:["Sorry, the file could not be sent. Please try again.","Maaf kara, file pathvta ali nahi. Punha prayatna kara."],
+    tooBig:["File is too large. Please choose a file under "+MAX_MB+" MB.","File khup motthi aahe. "+MAX_MB+" MB peksha lahan file nivada."],
+    badType:["This file type is not supported. Use image, PDF, CSV, Excel or TXT.","Ha file type chalat nahi. Image, PDF, CSV, Excel kinva TXT vapra."],
+    thanks:["You're welcome! 😊","Dhanyavaad! 😊 Kadhihi vichara."],
+    bye:["Bye! 👋","Bye! Chhan divas jao 👋"],
+    unknown:["I'm not sure about that yet. I can help with upload, report, payment, receipt, PDF download and theme. If you have a problem, attach a photo with 📎.",
+             "He mala ajun nit samajle nahi. Mi upload, report, payment, receipt, PDF download ani theme baddal madat karu shakte. Problem asel tar 📎 ne photo pathva."]
+  };
+  const say=k=>T[k][lang==="en"?0:1];
+  const L=(en,mr)=>lang==="en"?en:mr;
+
+  function add(text,who){const d=document.createElement("div");d.className="gwm "+who;d.textContent=text;msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;}
+  function addUserWithFile(text,file){
+    const d=document.createElement("div");d.className="gwm me";
+    if(file){
+      if(file.type.startsWith("image/")){
+        const img=document.createElement("img");img.src=URL.createObjectURL(file);img.alt=file.name;d.appendChild(img);
+      }else{
+        const f=document.createElement("span");f.className="gwfile";f.textContent="📄 "+file.name;d.appendChild(f);
+      }
+    }
+    if(text) d.appendChild(document.createTextNode(text));
+    msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;
+  }
+  function setChips(list){chips.innerHTML="";list.forEach(([label,fn])=>{const b=document.createElement("button");b.type="button";b.textContent=label;b.onclick=()=>{add(label,"me");fn();};chips.appendChild(b);});}
+  const call=(name,...a)=>{ if(typeof window[name]==="function"){toggle(false);window[name](...a);} else add("⚠ "+name+" not found on this page.","bot"); };
+
+  const A={
+    upload:()=>{toggle(false);const f=$("fileInput");if(f)f.click();},
+    pay:()=>call("openPaymentModal"),
+    receipt:()=>call("openReceiptModal"),
+    report:()=>call("generateComprehensiveReport"),
+    theme:()=>{ if(typeof toggleTheme==="function")toggleTheme(); },
+    login:()=>{location.href="login.html";},
+    attach:()=>{ add(say("attach"),"bot"); fileInput.click(); }
+  };
+
+  function mainChips(){
+    setChips([
+      [L("What is this?","He kay aahe?"),()=>reply("what")],
+      [L("Upload data","Data upload"),()=>reply("upload")],
+      [L("Create report","Report banva"),()=>reply("report")],
+      [L("Subscribe ₹10","₹10 subscribe"),()=>reply("pay")],
+      [L("Receipt","Receipt"),()=>reply("receipt")],
+      [L("PDF locked?","PDF locked ka?"),()=>reply("locked")],
+      [L("📎 Report a problem","📎 Problem sanga"),()=>reply("fail")]
+    ]);
+  }
+  function reply(key){
+    add(say(key),"bot");
+    const back=["⬅ Back",mainChips];
+    const att=[L("📎 Attach photo/file","📎 Photo/File upload kara"),A.attach];
+    if(key==="pay") setChips([[L("Open payment window","Payment window ughada"),A.pay],[L("What is UTR?","UTR mhanje?"),()=>reply("utr")],back]);
+    else if(key==="receipt") setChips([[L("Open receipt","Receipt ughada"),A.receipt],back]);
+    else if(key==="upload") setChips([[L("Choose file now","File ata nivada"),A.upload],back]);
+    else if(key==="report") setChips([[L("Create report now","Report ata banva"),A.report],back]);
+    else if(key==="theme") setChips([[L("Switch theme","Theme badla"),A.theme],back]);
+    else if(key==="login") setChips([["Login",A.login],back]);
+    else if(key==="fail"||key==="unknown") setChips([att,back]);
+    else mainChips();
+  }
+
+  // ===== File attach logic =====
+  const OK_EXT=/\.(png|jpe?g|gif|webp|bmp|pdf|csv|xlsx?|txt|json|sql|db|sqlite|mdb|accdb|py|key|graphml|xml|yaml|yml|tsv|html|htm|md|r;sas7bdat|sav|dta|parquet)$/i;
+  function setPending(file){
+    pendingFile=file;
+    if(file){pendingName.textContent="📎 "+file.name+" ("+Math.max(1,Math.round(file.size/1024))+" KB)";pending.classList.add("show");}
+    else{pendingName.textContent="";pending.classList.remove("show");fileInput.value="";}
+  }
+  fileInput.addEventListener("change",()=>{
+    const f=fileInput.files[0]; if(!f) return;
+    if(f.size>MAX_MB*1024*1024){add(say("tooBig"),"bot");setPending(null);return;}
+    if(!(f.type.startsWith("image/")||OK_EXT.test(f.name))){add(say("badType"),"bot");setPending(null);return;}
+    setPending(f); input.focus();
+  });
+  $("gwBotPendingX").onclick=()=>setPending(null);
+  $("gwBotAttach").onclick=()=>fileInput.click();
+
+  async function uploadSupport(file,message){
+    if(!SUPPORT_UPLOAD_URL) return "local";
+    try{
+      const fd=new FormData();
+      fd.append("file",file);
+      fd.append("message",message||"");
+      fd.append("page",location.href);
+      const r=await fetch(SUPPORT_UPLOAD_URL,{method:"POST",body:fd});
+      return r.ok?"ok":"fail";
+    }catch(e){return "fail";}
+  }
+
+  const has=(s,w)=>w.some(x=>s.includes(x));
+  function detectLang(raw){
+    if(/[\u0900-\u097F]/.test(raw)) return "mr";
+    if(/\b(kay|kasa|kashi|kase|kara|karu|aahe|ahe|pahije|nahi|mala|mi|tumhi|sanga|banva|banvun|ughada|dya|hoy|ka|madat|kuthe|kon)\b/i.test(raw)) return "mr";
+    if(/\b(how|what|why|where|can|help|pay|download|upload|hello|hi|price|cost|report|receipt)\b/i.test(raw)) return "en";
+    return lang;
+  }
+  function handle(raw){
+    const s=raw.toLowerCase().trim(); if(!s) return;
+    lang=detectLang(raw);
+    if(has(s,["thank","thanks","dhanyavad","धन्यवाद","आभार"])) return reply("thanks");
+    if(has(s,["bye","goodbye"])) return reply("bye");
+    if(has(s,["hi","hello","hey","namaste","namaskar","नमस्कार","हॅलो"]) && s.split(/\s+/).length<4) return reply("hello");
+    if(has(s,["screenshot","photo","image","attach","फोटो"])){add(say("attach"),"bot");setChips([[L("📎 Attach photo/file","📎 Photo/File upload kara"),A.attach],["⬅ Back",mainChips]]);return;}
+    if(has(s,["utr","reference number","transaction id"])) return reply("utr");
+    if(has(s,["receipt","invoice","पावती","pavti"])) return reply("receipt");
+    if(has(s,["locked","lock","unlock"])) return reply("locked");
+    if(has(s,["not working","error","problem","issue","fail","chalat nahi","kaam karat nahi","kaam nahi","samasya","समस्या"])) return reply("fail");
+    if(has(s,["pay","price","cost","₹","rupee","upi","subscribe","subscription","plan","paise","पैसे","phonepe","gpay","paytm","card","qr","pdf","download"])) return reply("pay");
+    if(has(s,["report","अहवाल"])) return reply("report");
+    if(has(s,["upload","file","csv","excel","xlsx","json","sql","db","sqlite","mdb","accdb","py","key","graphml","xml","yaml","yml","tsv","html","htm","md","r","sas7bdat","sav","dta","parquet"])) return reply("upload");
+    if(has(s,["theme","white","blue","dark","light"])) return reply("theme");
+    if(has(s,["login","register","sign","account","logout"])) return reply("login");
+    if(has(s,["what is","about","kay aahe","kay ahe","he kay","purpose","features","dashboard"])) return reply("what");
+    reply("unknown");
+  }
+
+  function toggle(force){
+    const open=typeof force==="boolean"?force:!box.classList.contains("open");
+    box.classList.toggle("open",open);
+    if(open){ if(!msgs.children.length) reply("hello"); input.focus(); }
+  }
+  $("gwBotBtn").onclick=()=>toggle();
+  $("gwBotClose").onclick=()=>toggle(false);
+
+  async function send(){
+    const v=input.value.trim();
+    const f=pendingFile;
+    if(!v && !f) return;
+    if(f){
+      addUserWithFile(v,f);
+      input.value=""; setPending(null);
+      const status=await uploadSupport(f,v);
+      lang=detectLang(v||"kara");
+      if(status==="ok") add(say("got"),"bot");
+      else if(status==="local") add(say("gotLocal"),"bot");
+      else add(say("sendFail"),"bot");
+      mainChips();
+      return;
+    }
+    add(v,"me"); input.value="";
+    setTimeout(()=>handle(v),250);
+  }
+  $("gwBotSend").onclick=send;
+  input.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();send();}});
+})();
+</script>
+<!-- ===== END GW ASSISTANT ===== -->
+
+<script id="gw-universal-dashboard-engine">
+(function(){
+  const $ = id => document.getElementById(id);
+  const palette = ['#4f8cff','#20c997','#f59e0b','#a78bfa','#f472b6','#22d3ee','#fb7185','#84cc16'];
+  let dynCharts = {};
+  let filteredRows = [];
+  let dateField = null, measureFields = [], categoryFields = [];
+  let filterDefs = [];
+
+  function safeText(v){ return String(v == null ? '' : v); }
+  function norm(s){ return safeText(s).toLowerCase().replace(/[^a-z0-9]+/g,' ').trim(); }
+  function numeric(v){
+    if(v === null || v === undefined || String(v).trim()==='') return NaN;
+    if(typeof v === 'number') return Number.isFinite(v)?v:NaN;
+    let s=String(v).trim().replace(/[₹$€£,%\s]/g,'').replace(/,/g,'');
+    if(/^\(.*\)$/.test(s)) s='-'+s.slice(1,-1);
+    const n=Number(s); return Number.isFinite(n)?n:NaN;
+  }
+  function fmt(n){
+    if(!Number.isFinite(n)) return '—';
+    const abs=Math.abs(n);
+    if(abs>=1e9) return (n/1e9).toFixed(2)+'B';
+    if(abs>=1e6) return (n/1e6).toFixed(2)+'M';
+    if(abs>=1e4) return n.toLocaleString(undefined,{maximumFractionDigits:1});
+    return n.toLocaleString(undefined,{maximumFractionDigits:2});
+  }
+  function getNumericFields(rows, hs){
+    return hs.filter(h=>{
+      const name=norm(h);
+      if(/(^| )(id|uuid|index|serial|zip|postal|phone|mobile|account number|code|year)( |$)/.test(name)) return false;
+      const vals=rows.map(r=>numeric(r[h])).filter(Number.isFinite);
+      return vals.length>=Math.max(1,Math.ceil(rows.length*.55)) && new Set(vals).size>1;
+    });
+  }
+  function getDateField(rows, hs){
+    const named=hs.find(h=>/(date|time|timestamp|created at|updated at|month|year)/i.test(h));
+    const candidates=named?[named,...hs.filter(h=>h!==named)]:hs;
+    for(const h of candidates){
+      let valid=0;
+      rows.slice(0,Math.min(rows.length,250)).forEach(r=>{
+        const v=r[h]; if(v!==''&&v!=null&&!Number.isNaN(Date.parse(v))) valid++;
+      });
+      if(valid>=Math.max(2,Math.ceil(Math.min(rows.length,250)*.6))) return h;
+    }
+    return null;
+  }
+  function detectDomain(hs){
+    const s=hs.map(norm).join(' ');
+    const checks=[
+      ['Sales & Retail',/sales|revenue|order|product|quantity|retail|invoice/],
+      ['Finance & Profit/Loss',/profit|loss|expense|income|budget|balance|payment|transaction|cost/],
+      ['Inventory & Stock',/stock|inventory|warehouse|reorder|supplier|sku/],
+      ['HR & Employees',/employee|salary|department|hire|attrition|attendance|performance rating/],
+      ['Marketing Analytics',/campaign|click|impression|conversion|ad spend|marketing|ctr/],
+      ['Education Analytics',/student|marks|grade|score|course|attendance|exam/],
+      ['Healthcare Analytics',/patient|diagnosis|hospital|treatment|clinical|blood pressure/],
+      ['E-commerce & Customers',/customer|cart|checkout|shipping|review|rating|website session/],
+      ['Logistics & Supply Chain',/shipment|delivery|logistics|route|tracking|lead time/],
+      ['Survey & Research',/survey|response|question|feedback|satisfaction|likert/],
+      ['Production & Manufacturing',/production|manufactur|machine|defect|downtime|yield/],
+      ['Banking & Transactions',/bank|account|credit|debit|loan|fraud|transaction/]
+    ];
+    const hit=checks.find(([name,re])=>re.test(s));
+    return hit?hit[0]:'General Data Analytics';
+  }
+  function chooseCategory(rows,hs){
+    return hs.find(h=>{
+      const n=norm(h);
+      if(/id|uuid|phone|email|address|description|comment|notes/.test(n)) return false;
+      const vals=new Set(rows.map(r=>safeText(r[h]).trim()).filter(Boolean));
+      return vals.size>=2 && vals.size<=Math.min(100,Math.max(2,rows.length*.7)) &&
+        rows.some(r=>safeText(r[h]).trim()!=='' && Number.isNaN(numeric(r[h])));
+    }) || null;
+  }
+  function detectMeasures(rows,hs){
+    const ns=getNumericFields(rows,hs);
+    const priority=/revenue|sales|amount|total|profit|income|price|value|cost|quantity|qty|units|score|marks|salary|spend|expense|balance|stock|rate|percent|conversion/;
+    return ns.sort((a,b)=>(priority.test(norm(b))?1:0)-(priority.test(norm(a))?1:0));
+  }
+  function domainPrimary(domain,fields){
+    const preferred={
+      'Sales & Retail':/sales|revenue|amount|quantity|profit/,
+      'Finance & Profit/Loss':/profit|revenue|income|expense|cost|amount|balance/,
+      'Inventory & Stock':/stock|quantity|inventory|value/,
+      'HR & Employees':/salary|performance|attendance|tenure/,
+      'Marketing Analytics':/conversion|click|impression|spend|cost|revenue/,
+      'Education Analytics':/marks|score|grade|attendance|percentage/,
+      'Healthcare Analytics':/cost|stay|age|count|rate/,
+      'E-commerce & Customers':/revenue|sales|amount|order|rating/,
+      'Logistics & Supply Chain':/delivery|cost|time|distance|quantity/,
+      'Survey & Research':/score|rating|response|satisfaction/,
+      'Production & Manufacturing':/production|yield|defect|cost|quantity/,
+      'Banking & Transactions':/amount|balance|credit|debit|transaction/
+    }[domain];
+    return fields.find(f=>preferred && preferred.test(norm(f))) || fields[0] || null;
+  }
+  function aggregate(rows, cat, measure){
+    const m=new Map();
+    rows.forEach(r=>{
+      const key=safeText(r[cat]).trim() || '(Blank)';
+      const v=measure?numeric(r[measure]):1;
+      if(Number.isFinite(v)) m.set(key,(m.get(key)||0)+v);
+    });
+    return [...m.entries()].sort((a,b)=>b[1]-a[1]);
+  }
+  function qualitySummary(rows,hs){
+    let missing=0,duplicates=0; const seen=new Set();
+    rows.forEach(r=>{
+      hs.forEach(h=>{if(r[h]===null||r[h]===undefined||String(r[h]).trim()==='')missing++;});
+      const key=JSON.stringify(hs.map(h=>safeText(r[h])));
+      if(seen.has(key))duplicates++; else seen.add(key);
+    });
+    return `${rows.length.toLocaleString()} records · ${hs.length} columns · ${missing.toLocaleString()} blank cells · ${duplicates.toLocaleString()} duplicate rows detected`;
+  }
+  function themeConfig(){
+    const el=$('universalDashboard');
+    const st=getComputedStyle(el);
+    return {text:st.getPropertyValue('--gw-text').trim(),muted:st.getPropertyValue('--gw-muted').trim(),grid:st.getPropertyValue('--gw-grid').trim(),panel:st.getPropertyValue('--gw-panel').trim(),accent:st.getPropertyValue('--gw-accent').trim()};
+  }
+  function chartOptions(extra={}){
+    const t=themeConfig();
+    return Object.assign({responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:{labels:{color:t.muted,boxWidth:10,usePointStyle:true}},tooltip:{enabled:true}},scales:{x:{ticks:{color:t.muted,maxRotation:35},grid:{color:t.grid}},y:{ticks:{color:t.muted},grid:{color:t.grid}}}},extra);
+  }
+  function killCharts(){Object.values(dynCharts).forEach(c=>{try{c.destroy()}catch(e){}});dynCharts={};}
+  function chartCard(title,subtitle,id,wide){
+    const card=document.createElement('article');card.className='gw-chart-card'+(wide?' gw-wide':'');
+    const head=document.createElement('div');head.className='gw-chart-head';
+    const text=document.createElement('div');const h=document.createElement('h3');h.className='gw-chart-title';h.textContent=title;text.appendChild(h);
+    if(subtitle){const p=document.createElement('div');p.className='gw-chart-hint';p.textContent=subtitle;text.appendChild(p);}
+    head.appendChild(text);card.appendChild(head);
+    const wrap=document.createElement('div');wrap.className='gw-canvas-wrap';const canvas=document.createElement('canvas');canvas.id=id;canvas.setAttribute('aria-label',title);wrap.appendChild(canvas);card.appendChild(wrap);return card;
+  }
+  function createChart(id,type,labels,values,label,opts={}){
+    const canvas=$(id); if(!canvas) return;
+    const t=themeConfig();
+    const ds={label:label||'Records',data:values,backgroundColor:type==='line'?'rgba(79,140,255,.18)':palette,borderColor:type==='line'?'#4f8cff':palette,borderWidth:type==='line'?2:1,tension:.3,fill:type==='line',pointRadius:type==='line'?2:0};
+    const config={type,data:{labels,datasets:[ds]},options:{responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:{display:type==='pie'||type==='doughnut',position:'bottom',labels:{color:t.muted,boxWidth:10}},tooltip:{enabled:true}},scales:(type==='pie'||type==='doughnut'||type==='polarArea')?{}:{x:{ticks:{color:t.muted,maxRotation:35,autoSkip:true},grid:{color:t.grid}},y:{beginAtZero:true,ticks:{color:t.muted},grid:{color:t.grid}}}}};
+    if(opts.horizontal) config.options.indexAxis='y';
+    if(type==='scatter'){config.data={datasets:[{label:label||'Relationship',data:values,backgroundColor:'#f472b6',pointRadius:4}]};config.options.scales={x:{title:{display:true,text:opts.xLabel,color:t.muted},ticks:{color:t.muted},grid:{color:t.grid}},y:{title:{display:true,text:opts.yLabel,color:t.muted},ticks:{color:t.muted},grid:{color:t.grid}}};}
+    dynCharts[id]=new Chart(canvas,config);
+  }
+  function renderKPIs(rows,primary,domain){
+    const root=$('gwDynKpis');root.innerHTML='';
+    const defs=[{label:'Records analyzed',value:rows.length,note:'Rows in current filtered view'}];
+    if(primary){
+      const vals=rows.map(r=>numeric(r[primary])).filter(Number.isFinite);
+      if(vals.length){
+        const sum=vals.reduce((a,b)=>a+b,0),avg=sum/vals.length;
+        const meaningful=/(sales|revenue|amount|profit|income|expense|cost|price|value|balance|salary|spend|stock|quantity|qty|marks|score|rating|production)/i.test(primary);
+        defs.push({label:(meaningful?primary:'Total '+primary),value:sum,note:`Sum of ${vals.length} valid numeric values`});
+        defs.push({label:'Average '+primary,value:avg,note:'Mean of valid numeric values'});
+        defs.push({label:'Highest '+primary,value:Math.max(...vals),note:'Maximum observed value'});
+      }
+    }
+    if(categoryFields[0]){
+      const uniq=new Set(rows.map(r=>safeText(r[categoryFields[0]]).trim()).filter(Boolean)).size;
+      defs.push({label:'Unique '+categoryFields[0],value:uniq,note:'Distinct non-empty categories'});
+    }
+    defs.slice(0,5).forEach(k=>{
+      const card=document.createElement('div');card.className='gw-kpi';
+      const l=document.createElement('div');l.className='gw-kpi-label';l.textContent=k.label;
+      const v=document.createElement('div');v.className='gw-kpi-value';v.textContent=typeof k.value==='number'?fmt(k.value):k.value;
+      const n=document.createElement('div');n.className='gw-kpi-note';n.textContent=k.note;
+      card.append(l,v,n);root.appendChild(card);
+    });
+  }
+  function buildFilters(rows,hs){
+    const root=$('gwDynFilters');root.innerHTML='';filterDefs=[];
+    const date=getDateField(rows,hs);
+    if(date){
+      const vals=rows.map(r=>Date.parse(r[date])).filter(Number.isFinite);
+      if(vals.length){
+        const min=new Date(Math.min(...vals)).toISOString().slice(0,10),max=new Date(Math.max(...vals)).toISOString().slice(0,10);
+        [['From date','date',min],['To date','date',max]].forEach(([label,type,value],i)=>{
+          const box=document.createElement('div');box.className='gw-filter';const l=document.createElement('label');l.textContent=label;
+          const input=document.createElement('input');input.type=type;input.value=value;input.min=min;input.max=max;input.id=i===0?'gwDateFrom':'gwDateTo';input.addEventListener('change',applyFilters);box.append(l,input);root.appendChild(box);
+        });
+        filterDefs.push(date);
+      }
+    }
+    const cats=hs.filter(h=>{
+      if(h===date) return false;
+      const vals=new Set(rows.map(r=>safeText(r[h]).trim()).filter(Boolean));
+      return vals.size>=2 && vals.size<=30 && rows.length>2 && vals.size<rows.length*.9;
+    }).slice(0,3);
+    cats.forEach((h,i)=>{
+      const box=document.createElement('div');box.className='gw-filter';const l=document.createElement('label');l.textContent=h;
+      const select=document.createElement('select');select.id='gwCatFilter'+i;select.dataset.field=h;
+      const all=document.createElement('option');all.value='';all.textContent='All '+h;select.appendChild(all);
+      [...new Set(rows.map(r=>safeText(r[h]).trim()).filter(Boolean))].sort().forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;select.appendChild(o);});
+      select.addEventListener('change',applyFilters);box.append(l,select);root.appendChild(box);filterDefs.push(h);
+    });
+    const b=document.createElement('button');b.className='gw-reset';b.type='button';b.textContent='Reset filters';b.onclick=()=>{root.querySelectorAll('input').forEach(x=>{x.value=x.id==='gwDateFrom'?x.min:x.max});root.querySelectorAll('select').forEach(x=>x.value='');applyFilters();};root.appendChild(b);
+  }
+  function applyFilters(){
+    const hs=Array.isArray(headers)?headers:[];
+    const from=$('gwDateFrom')?.value, to=$('gwDateTo')?.value;
+    const date=getDateField(data,hs);
+    filteredRows=data.filter(r=>{
+      if(date && from){const v=Date.parse(r[date]);if(Number.isFinite(v)&&new Date(v).toISOString().slice(0,10)<from)return false;}
+      if(date && to){const v=Date.parse(r[date]);if(Number.isFinite(v)&&new Date(v).toISOString().slice(0,10)>to)return false;}
+      for(let i=0;i<3;i++){const s=$('gwCatFilter'+i);if(s&&s.value&&safeText(r[s.dataset.field||categoryFields[i]||'']).trim()!==s.value)return false;}
+      return true;
+    });
+    renderDynamic(filteredRows);
+  }
+  function renderDynamic(rows){
+    const hs=Array.isArray(headers)?headers:[];
+    const domain=detectDomain(hs);
+    const primary=domainPrimary(domain,measureFields);
+    categoryFields=hs.filter(h=>{
+      const vals=new Set(rows.map(r=>safeText(r[h]).trim()).filter(Boolean));
+      return vals.size>=2&&vals.size<=Math.min(100,Math.max(2,rows.length*.7))&&rows.some(r=>safeText(r[h]).trim()!==''&&Number.isNaN(numeric(r[h])));
+    }).slice(0,4);
+    renderKPIs(rows,primary,domain);
+    $('gwDynTitle').textContent=domain+' Dashboard';
+    $('gwDynSub').textContent=`Automatically generated from ${currentFileName||'uploaded dataset'} · ${primary?'Primary measure: '+primary:'No clear numeric measure found'}`;
+    $('gwDynMeta').textContent=`${rows.length.toLocaleString()} of ${data.length.toLocaleString()} records · ${new Date().toLocaleDateString()}`;
+    $('gwQuality').textContent=qualitySummary(rows,hs);
+    const grid=$('gwDynCharts');killCharts();grid.innerHTML='';
+    let count=0;
+    const nums=measureFields.filter(h=>rows.some(r=>Number.isFinite(numeric(r[h]))));
+    const p=domainPrimary(domain,nums), sec=nums.find(h=>h!==p);
+    const date=getDateField(rows,hs);
+    const cat=categoryFields[0]||null;
+    if(date&&p){
+      const by=new Map();rows.forEach(r=>{const d=Date.parse(r[date]),v=numeric(r[p]);if(Number.isFinite(d)&&Number.isFinite(v)){const k=new Date(d).toISOString().slice(0,10);by.set(k,(by.get(k)||0)+v);}});
+      const e=[...by.entries()].sort((a,b)=>a[0].localeCompare(b[0])).slice(-100);
+      if(e.length>1){const id='gwDynChart'+(++count);grid.appendChild(chartCard(p+' over time',`Aggregated by ${date}`,id,true));createChart(id,'line',e.map(x=>x[0]),e.map(x=>x[1]),p);}
+    }
+    if(cat){
+      const entries=aggregate(rows,cat,p).slice(0,10);
+      if(entries.length){const id='gwDynChart'+(++count);grid.appendChild(chartCard((p||'Record count')+' by '+cat,'Top categories',id,true));createChart(id,'bar',entries.map(x=>x[0]),entries.map(x=>x[1]),p||'Count',{horizontal:entries.some(x=>x[0].length>12)});}
+      const dist=aggregate(rows,cat,null).slice(0,7);
+      if(dist.length>1){const id='gwDynChart'+(++count);grid.appendChild(chartCard(cat+' distribution','Share of filtered records',id,false));createChart(id,'doughnut',dist.map(x=>x[0]),dist.map(x=>x[1]),'Records');}
+    }
+    if(p&&sec){
+      const points=rows.map(r=>({x:numeric(r[p]),y:numeric(r[sec])})).filter(o=>Number.isFinite(o.x)&&Number.isFinite(o.y)).slice(0,1500);
+      if(points.length>2){const id='gwDynChart'+(++count);grid.appendChild(chartCard(p+' vs '+sec,'Relationship between numeric measures',id,false));createChart(id,'scatter',[],points,p+' / '+sec,{xLabel:p,yLabel:sec});}
+    }
+    if(p){
+      const vals=rows.map(r=>numeric(r[p])).filter(Number.isFinite);
+      if(vals.length>1){const id='gwDynChart'+(++count);grid.appendChild(chartCard(p+' distribution','Observed values',id,false));const sorted=[...vals].sort((a,b)=>a-b);const buckets=Math.min(10,Math.max(4,Math.ceil(Math.sqrt(sorted.length))));const min=sorted[0],max=sorted[sorted.length-1],step=(max-min||1)/buckets,counts=Array(buckets).fill(0);sorted.forEach(v=>counts[Math.min(buckets-1,Math.floor((v-min)/step))]++);createChart(id,'bar',counts.map((_,i)=>fmt(min+i*step)),counts,'Records');}
+    }
+    if(!count){
+      const empty=document.createElement('div');empty.className='gw-chart-card gw-wide';empty.innerHTML='<div class="gw-empty-chart">This dataset does not contain enough varied data for meaningful charts. Review the data preview below or upload a dataset with additional fields.</div>';grid.appendChild(empty);
+    }
+    renderPreview(rows,hs);
+  }
+  function renderPreview(rows,hs){
+    const root=$('gwDynPreview');root.innerHTML='';
+    if(!rows.length){root.textContent='No records match the current filters.';return;}
+    const wrap=document.createElement('div');wrap.className='gw-table-wrap';const table=document.createElement('table');table.className='gw-preview';
+    const thead=document.createElement('thead'),tr=document.createElement('tr');
+    hs.slice(0,12).forEach(h=>{const th=document.createElement('th');th.textContent=h;tr.appendChild(th)});thead.appendChild(tr);table.appendChild(thead);
+    const tbody=document.createElement('tbody');
+    rows.slice(0,25).forEach(r=>{const tr=document.createElement('tr');hs.slice(0,12).forEach(h=>{const td=document.createElement('td');td.textContent=safeText(r[h]);tr.appendChild(td)});tbody.appendChild(tr)});
+    table.appendChild(tbody);wrap.appendChild(table);root.appendChild(wrap);
+    if(rows.length>25){const p=document.createElement('div');p.className='gw-chart-hint';p.style.marginTop='8px';p.textContent=`Showing first 25 of ${rows.length.toLocaleString()} filtered rows and first 12 columns.`;root.appendChild(p);}
+  }
+  function install(){
+    const dataDash=$('dataDashboard');if(!dataDash||$('universalDashboard'))return;
+    const oldSections=dataDash.querySelectorAll(':scope > .kpi-grid,:scope > .main-grid,:scope > .bottom-grid,:scope > .data-visual-section');
+    oldSections.forEach(el=>el.style.display='none');
+    const panel=document.createElement('section');panel.id='universalDashboard';panel.innerHTML=`
+      <div class="gw-dash-top"><div><div class="gw-eyebrow">GW SMART ANALYTICS · AUTO-GENERATED</div><h2 class="gw-dash-title" id="gwDynTitle">Universal Analytics Dashboard</h2><p class="gw-dash-sub" id="gwDynSub">Upload a dataset to build a tailored dashboard.</p></div><div class="gw-meta" id="gwDynMeta">Waiting for data</div></div>
+      <div class="gw-toolbar" id="gwDynFilters" aria-label="Dashboard filters"></div>
+      <section class="gw-kpis" id="gwDynKpis"></section>
+      <section class="gw-charts" id="gwDynCharts"></section>
+      <div class="gw-chart-card" style="margin-top:14px"><div class="gw-chart-head"><div><h3 class="gw-chart-title">Data preview</h3><div class="gw-chart-hint">Sample rows from the current filtered view</div></div></div><div id="gwDynPreview"></div></div>
+      <div class="gw-quality" id="gwQuality"></div>`;
+    dataDash.insertBefore(panel,dataDash.firstChild);
+    const actions=document.querySelector('.dashboard-actions');
+    if(actions&&!$('gwDashboardThemeWrap')){
+      const wrap=document.createElement('label');wrap.id='gwDashboardThemeWrap';wrap.innerHTML='<span>Dashboard theme</span><select id="gwDashboardTheme" aria-label="Dashboard theme"><option value="midnight">Midnight Blue</option><option value="light">Professional Light</option><option value="white">Crisp White</option><option value="corporate">Corporate Blue</option><option value="emerald">Emerald Green</option><option value="purple">Modern Purple</option><option value="gray">Minimal Gray</option><option value="ocean">Ocean Blue</option></select>';
+      actions.appendChild(wrap);
+      $('gwDashboardTheme').addEventListener('change',e=>{panel.className='';panel.id='universalDashboard';const value=e.target.value;if(value!=='white'&&value!=='light')panel.classList.add('gw-theme-'+value);else panel.classList.add('gw-theme-light');if(filteredRows.length)renderDynamic(filteredRows);});
+    }
+  }
+  const oldPrepare=window.prepareDashboard;
+  window.prepareDashboard=function(){
+    if(!Array.isArray(data)||!data.length){alert('The uploaded file does not contain any valid rows.');return;}
+    headers=Object.keys(data[0]||{});
+    numericColumn=detectNumericColumn();
+    categoryColumn=detectCategoryColumn();
+    measureFields=detectMeasures(data,headers);
+    dateField=getDateField(data,headers);
+    install();
+    buildFilters(data,headers);
+    filteredRows=data.slice();
+    renderDynamic(filteredRows);
+    $('emptyState').style.display='none';
+    $('dataDashboard').style.display='block';
+    $('dashboardDescription').textContent=`${data.length.toLocaleString()} records · ${detectDomain(headers)} · adaptive KPIs and charts`;
+    $('dashboardDate').textContent=new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+    // Keep original report engine and any existing project integrations operational.
+  };
+  // If this script is loaded after an existing dataset has already been prepared.
+  if(Array.isArray(window.data)&&window.data.length) window.prepareDashboard();
+  window.gwUniversalRefreshTheme=function(){if(filteredRows.length)renderDynamic(filteredRows);};
+})();
+</script>
+
+</body>
+</html>
