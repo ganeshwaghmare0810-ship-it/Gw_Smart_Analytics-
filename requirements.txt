@@ -16,3 +16,17 @@ scipy
 statsmodels
 streamlit
 werkzeug
+Flask>=3.0
+mistralai>=1.0
+python-dotenv>=1.0
+pandas>=2.0
+openpyxl>=3.1
+xlrd>=2.0
+streamlit
+pandas
+numpy
+plotly
+mistralai
+openpyxl
+python-dotenv
+Pillow
