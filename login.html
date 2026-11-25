@@ -635,10 +635,7 @@ body::after {
 
 <script>
 // Automatically detect Python server host
-const API_BASE = window.location.protocol === "http:" || window.location.protocol === "https:"
-  ? ""
-  : "http://127.0.0.1:5000";
-
+const API_BASE = window.location.origin;
 const loginForm = document.getElementById("loginForm");
 const message = document.getElementById("message");
 const emailInput = document.getElementById("email");
