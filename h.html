@@ -369,8 +369,8 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
             </div>
         </div>
         <div class="top-actions">
-            <button class="pdf-btn" onclick="generatePDF('dashboard')">⬇ Download Dashboard (PDF)</button>
-            <button class="payment-primary" id="saveDashboardPaymentButton" onclick="startDashboardPurchase()">Save Dashboard &amp; Continue to Payment · ₹10</button>
+            <button class="pdf-btn" onclick="generatePDF('dashboard')">⬇ Download Dashboard (FREE PDF)</button>
+            <button class="payment-primary" id="saveDashboardPaymentButton" onclick="startDashboardPurchase()">Prepare Dashboard &amp; Report (FREE)</button>
             <button class="report-btn" onclick="createReport()">📄 Create Report</button>
             <button class="back-btn" onclick="goHome()">← Dashboard Types</button>
         </div>
@@ -510,7 +510,7 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
             </div>
         </div>
         <div class="top-actions">
-            <button class="pdf-btn" onclick="generatePDF('report')">⬇ Download Report (PDF)</button>
+            <button class="pdf-btn" onclick="generatePDF('report')">⬇ Download Report (FREE PDF)</button>
             <button class="back-btn" onclick="backToDashboard()">← Back to Dashboard</button>
         </div>
     </div>
@@ -881,61 +881,46 @@ async function downloadExistingArtifact(artifactType) {
     setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
 }
 
+// FREE DOWNLOAD FLOW: PDFs are generated in the browser; no payment or server artifact is required.
+function downloadBlobFile(blob, fileName) {
+    const objectUrl = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = objectUrl;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 1500);
+}
+
 async function startDashboardPurchase() {
-    if (!window.__gwUser) {
-        alert("Please log in before saving a dashboard for payment.");
-        location.href = "login.html";
-        return;
-    }
     if (!rawData.length) {
-        alert("Upload a dataset or load a dashboard before continuing to payment.");
+        alert("Please upload a dataset or load a dashboard first.");
         return;
     }
     const button = document.getElementById("saveDashboardPaymentButton");
     button.disabled = true;
     const originalText = button.textContent;
-    button.textContent = "Saving dashboard and report…";
+    button.textContent = "Preparing free PDF downloads…";
     try {
-        if (!currentBillingDashboard || currentBillingDashboard.dashboard_name !== selectedDashboard) {
-            const response = await fetch(`${AUTH_API_BASE}/api/dashboard-payments/dashboards`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                credentials: "include",
-                body: JSON.stringify({
-                    dashboard_name: selectedDashboard || "Data Analytics Dashboard",
-                    report_name: `${selectedDashboard || "Dashboard"} · Analytical Report`,
-                    dataset_name: document.getElementById("fileInput")?.files?.[0]?.name || "Generated dataset",
-                    rows: rawData
-                })
-            });
-            const data = await readPaymentApiJson(response);
-            if (!response.ok || !data.success) throw new Error(data.message || "Dashboard could not be saved.");
-            currentBillingDashboard = {
-                dashboard_id: data.dashboard_id,
-                report_id: data.report_id,
-                dashboard_name: selectedDashboard || "Data Analytics Dashboard",
-                report_name: `${selectedDashboard || "Dashboard"} · Analytical Report`
-            };
-            persistBillingDashboard();
-        }
-
         document.getElementById("dashboardPage").style.display = "block";
         document.getElementById("reportPage").style.display = "none";
         document.getElementById("homePage").style.display = "none";
         renderAll();
         await waitForRender();
+
         const dashboardArtifact = await buildPDFArtifact("dashboard");
-        await uploadGeneratedArtifact("dashboard_pdf", dashboardArtifact.blob, dashboardArtifact.fileName);
+        downloadBlobFile(dashboardArtifact.blob, dashboardArtifact.fileName);
 
         createReport();
         await waitForRender();
         const reportArtifact = await buildPDFArtifact("report");
-        await uploadGeneratedArtifact("report_pdf", reportArtifact.blob, reportArtifact.fileName);
-        showPaymentPage();
-        await refreshBillingAccess();
+        downloadBlobFile(reportArtifact.blob, reportArtifact.fileName);
+
+        backToDashboard();
+        alert("Your dashboard and report PDFs are free. Both downloads have started.");
     } catch (error) {
-        billingStatus(error.message || "Could not prepare the dashboard payment.", "error");
-        showPaymentPage();
+        alert("Could not prepare the PDFs: " + (error.message || error));
     } finally {
         button.disabled = false;
         button.textContent = originalText;
@@ -3033,15 +3018,21 @@ async function buildPDFArtifact(target) {
 }
 
 async function generatePDF(target) {
-    if (!currentBillingDashboard?.dashboard_id) {
-        alert("Save the dashboard and report first. A single ₹10 payment unlocks both downloads.");
+    if (!rawData.length) {
+        alert("Please upload a dataset or load a dashboard first.");
         return;
     }
     try {
+        if (target === "report" && document.getElementById("reportPage").style.display !== "block") {
+            createReport();
+            await waitForRender();
+        } else if (target === "dashboard") {
+            document.getElementById("reportPage").style.display = "none";
+            document.getElementById("dashboardPage").style.display = "block";
+            await waitForRender();
+        }
         const artifact = await buildPDFArtifact(target);
-        const artifactType = target === "report" ? "report_pdf" : "dashboard_pdf";
-        await uploadGeneratedArtifact(artifactType, artifact.blob, artifact.fileName);
-        await downloadExistingArtifact(artifactType);
+        downloadBlobFile(artifact.blob, artifact.fileName);
     } catch (error) {
         alert("PDF download error: " + (error.message || error));
     }
